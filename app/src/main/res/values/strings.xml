@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Nkhuku Management</string>
+    <string name="home">Home</string>
+    <string name="accounts">Accounts</string>
+    <string name="tips">Tips</string>
+    <string name="planner">Planner</string>
+    <string name="overview">Overview</string>
+    <string name="no_flocks_description">No flocks in the inventory</string>
+    <string name="add_flock">Add Flock</string>
+    <string name="details">Details</string>
+    <string name="edit_flock">Edit Flock</string>
+    <string name="add_vaccinations">Add vaccinations</string>
+    <string name="back">Back</string>
+</resources>
