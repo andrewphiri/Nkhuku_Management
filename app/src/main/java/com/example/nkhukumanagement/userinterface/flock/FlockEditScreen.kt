@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import kotlin.String
 
 object EditFlockDestination : NkhukuDestinations {
     override val icon: ImageVector

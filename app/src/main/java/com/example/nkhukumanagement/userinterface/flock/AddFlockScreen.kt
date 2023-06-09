@@ -31,8 +31,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,8 +46,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.nkhukumanagement.AppViewModelProviders
+import androidx.hilt.navigation.compose.hiltViewModel
+
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -72,9 +72,10 @@ fun AddFlockScreen(
     modifier: Modifier = Modifier,
     onNavigateUp: () -> Unit,
     canNavigateBack: Boolean = true,
-    navigateToVaccinationsScreen: () -> Unit,
-    viewModel: FlockEntryViewModel = viewModel(factory = AppViewModelProviders.Factory)
+    navigateToVaccinationsScreen: (FlockUiState) -> Unit,
+    viewModel: FlockEntryViewModel
 ) {
+
     Scaffold(
         topBar = {
                  FlockManagementTopAppBar(
@@ -88,9 +89,9 @@ fun AddFlockScreen(
             flockUiState = viewModel.flockUiState,
             modifier = modifier.padding(innerPadding),
             onItemValueChange = viewModel::updateUiState,
-            onVaccinationsScreen = navigateToVaccinationsScreen )
+            onVaccinationsScreen = {
+                navigateToVaccinationsScreen(viewModel.flockUiState)} )
     }
-
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -98,7 +99,7 @@ fun AddFlockScreen(
 fun AddFlockBody(
     flockUiState: FlockUiState,
     onItemValueChange: (FlockUiState) -> Unit,
-    modifier: Modifier = Modifier, onVaccinationsScreen: () -> Unit
+    modifier: Modifier = Modifier, onVaccinationsScreen: (FlockUiState) -> Unit
 ) {
     Column (
         modifier = Modifier.fillMaxWidth()
@@ -108,7 +109,7 @@ fun AddFlockBody(
             onValueChanged = onItemValueChange)
         Button(
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-            onClick = onVaccinationsScreen,
+            onClick = {onVaccinationsScreen(flockUiState)},
             enabled = flockUiState.enabled
         ) {
             Text("Set vaccination days")
@@ -127,11 +128,11 @@ fun AddFlockInputForm(
 
     val options = flockUiState.options
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedOption by rememberSaveable { mutableStateOf(flockUiState.getBreed()) }
+    var selectedOption by rememberSaveable { mutableStateOf(flockUiState.breed) }
 
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
-    flockUiState.setBreed(selectedOption)
+//    flockUiState.setBreed(selectedOption)
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -147,12 +148,13 @@ fun AddFlockInputForm(
                 TextField(
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
                     readOnly = true,
-                    value = flockUiState.getBreed(),
+                    value = flockUiState.breed,
                     onValueChange = {
-                        flockUiState.setBreed(selectedOption)
+                        onValueChanged(flockUiState.copy(breed = it))
+                        Log.i("Flock Changed", flockUiState.toString())
                     },
                     label = { Text("Breed") },
-                    isError = flockUiState.isSingleEntryValid(flockUiState.getBreed()),
+                    isError = flockUiState.isSingleEntryValid(flockUiState.breed),
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                     },
@@ -172,6 +174,7 @@ fun AddFlockInputForm(
                                 onClick = {
                                     selectedOption = option
                                     expanded = false
+                                    onValueChanged(flockUiState.copy(breed = selectedOption))
                                 }
                             )
                         }
@@ -179,13 +182,12 @@ fun AddFlockInputForm(
                 }
             }
 
-
-        Log.i("Date received", flockUiState.getDate())
         PickerDialog(
             showDialog = showDialog,
             onDismissed = {showDialog = false},
             flockUiState = flockUiState,
             updateShowDialogOnClick = {showDialog = true},
+            onValueChanged = onValueChanged,
             saveDateSelected = { dateState ->
                 val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
                     DateUtils().convertMillisToLocalDate(
@@ -235,7 +237,8 @@ fun PickerDialog(
     onDismissed: () -> Unit,
     updateShowDialogOnClick: (Boolean) -> Unit,
     flockUiState: FlockUiState,
-    saveDateSelected: (DatePickerState) -> String
+    saveDateSelected: (DatePickerState) -> String,
+    onValueChanged: (FlockUiState) -> Unit
     ) {
     val state = rememberDatePickerState(initialDisplayMode = DisplayMode.Picker,
     initialSelectedDateMillis = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
@@ -246,7 +249,7 @@ fun PickerDialog(
         modifier = Modifier
             .fillMaxWidth(),
         value = flockUiState.getDate(),
-        onValueChange = {flockUiState.setDate(saveDateSelected(state))},
+        onValueChange = {onValueChanged(flockUiState.copy(datePlaced = it))},
         label = { Text("Date Received")},
         singleLine = true,
         readOnly = true,

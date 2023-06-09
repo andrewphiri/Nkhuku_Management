@@ -37,8 +37,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.nkhukumanagement.AppViewModelProviders
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Flock
@@ -52,7 +52,7 @@ fun HomeScreen(
     navigateToAddFlock: () -> Unit,
     navigateToFlockDetails: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = viewModel(factory = AppViewModelProviders.Factory)
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val homeUiState by viewModel.homeUiState.collectAsState()
     Scaffold(
@@ -109,9 +109,11 @@ fun FlockBody(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FlockList(
+    modifier: Modifier = Modifier,
     flockList: List<Flock>,
-    modifier: Modifier = Modifier, onItemClick: (Flock) -> Unit) {
-    LazyColumn {
+    onItemClick: (Flock) -> Unit
+) {
+    LazyColumn (modifier = modifier) {
         items(flockList) {flock ->
             FlockCard(flock, onItemClick = onItemClick)
         }
@@ -128,7 +130,7 @@ fun FlockCard(
     OutlinedCard(
         modifier = modifier.padding(8.dp)
             .clickable { onItemClick(flock) },
-        elevation = CardDefaults.cardElevation(),) {
+        elevation = CardDefaults.cardElevation()) {
         Row (
             modifier = Modifier.padding(4.dp),
             verticalAlignment = Alignment.CenterVertically

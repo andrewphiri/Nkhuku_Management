@@ -16,16 +16,4 @@ abstract class FlockDatabase : RoomDatabase() {
 
     abstract fun flockDao(): FlockDao
 
-    companion object {
-        private var Instance: FlockDatabase? = null
-
-        fun getDatabase(context: Context) : FlockDatabase {
-            return Instance ?: synchronized(this) {
-                Room.databaseBuilder(context = context, FlockDatabase::class.java, "flock_database")
-                    .fallbackToDestructiveMigration()
-                    .build()
-                    .also { Instance = it }
-            }
-        }
-    }
 }

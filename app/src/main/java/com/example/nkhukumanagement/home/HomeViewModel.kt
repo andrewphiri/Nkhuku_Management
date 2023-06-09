@@ -3,15 +3,18 @@ package com.example.nkhukumanagement.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nkhukumanagement.data.FlockRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 /**
  * View model to receive all items from database
  */
-class HomeViewModel(flockRepository: FlockRepository) : ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor(flockRepository: FlockRepository) : ViewModel() {
     companion object {
         private const val MILLIS = 5_000L
     }

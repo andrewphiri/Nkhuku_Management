@@ -1,8 +1,9 @@
 package com.example.nkhukumanagement.data
 
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class OfflineFlockRepository(private val flockDao: FlockDao) : FlockRepository {
+class FlockRepositoryImplementation @Inject constructor(private val flockDao: FlockDao) : FlockRepository {
     override fun getAllItems(): Flow<List<Flock>> = flockDao.getAllItems()
 
     override fun getItem(id: Int): Flow<Flock> = flockDao.retrieveFlock(id)

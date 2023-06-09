@@ -1,7 +1,9 @@
 package com.example.nkhukumanagement.utils
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.nkhukumanagement.userinterface.flock.VaccinationUiState
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -40,12 +42,35 @@ class DateUtils {
             .atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
+
+
     /**
      * Convert a string to a local date object
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun stringToLocalDate(date: String) : LocalDate {
+    fun stringToLocalDate(date: String?) : LocalDate {
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
         return LocalDate.parse(date, dateFormatter)
+    }
+
+    /**
+     * Function to calculate vaccination dates based on date
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun calculateDate(date: LocalDate, day: Long) : LocalDate {
+        return date.plusDays(day)
+    }
+
+    /**
+     * Function to set vaccination date
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun vaccinationDate(date: LocalDate, day: Long, vaccinationUiState: VaccinationUiState) : String {
+        val calculateDate = calculateDate(date = date, day = day)
+        val dateToString = convertLocalDateToString(calculateDate)
+        vaccinationUiState.setDate(dateToString)
+        Log.i("CALCULATED DATE", dateToString)
+        Log.i("DATE SET", vaccinationUiState.getDate())
+        return vaccinationUiState.getDate()
     }
 }

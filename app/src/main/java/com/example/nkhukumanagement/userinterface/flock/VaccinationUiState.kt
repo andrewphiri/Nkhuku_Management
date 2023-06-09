@@ -1,18 +1,26 @@
 package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
+import android.os.Parcelable
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.derivedStateOf
-import com.example.nkhukumanagement.data.Flock
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.utils.DateUtils
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class VaccinationUiState(
     val id: Int = 0,
+    val vaccinationNumber: Int = 1,
     private var name: String = "",
     private var date: String = "",
+    val notes: String = "",
     val actionEnabled: Boolean = false
-){
+) : Parcelable {
+
     val options = listOf("Gumburo", "Lasota")
     fun setDate(mDate: String) {
         date = derivedStateOf { mDate }.value
@@ -27,7 +35,17 @@ data class VaccinationUiState(
     fun getName(): String {
         return name
     }
+//    fun setNotes(mNotes: String) {
+//        notes = mNotes
+//    }
+//    fun getNotes(): String {
+//        return notes
+//    }
+
 }
+
+
+
 /**
  * Extension function to convert [VaccinationUiState] to [Vaccination]
  */
@@ -35,7 +53,8 @@ data class VaccinationUiState(
 fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
     id = id,
     name  = getName(),
-    date = DateUtils().stringToLocalDate(getDate())
+    date = DateUtils().stringToLocalDate(getDate()),
+    notes = notes
 )
 
 /**
@@ -46,14 +65,16 @@ fun Vaccination.toVaccinationUiState(enabled: Boolean = false) : VaccinationUiSt
     id = id,
     name = name,
     date = DateUtils().convertLocalDateToString(date),
+    notes = notes,
     actionEnabled = enabled
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun VaccinationUiState.isValid() : Boolean {
-    return getName().isNotBlank() && getDate().isNotBlank()
+    return getName().isNotBlank() &&
+            getDate().isNotBlank()
 }
 
-fun VaccinationUiState.isSingleEntryValid(value:String): Boolean {
+fun VaccinationUiState.isSingleEntryValid(value: kotlin.String): Boolean {
     return value.isBlank()
 }

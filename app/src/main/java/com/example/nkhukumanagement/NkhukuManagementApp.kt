@@ -133,6 +133,7 @@ fun FlockManagementTopAppBar(
         TopAppBar(
             modifier = modifier,
             title = { Text(title) },
+            colors = TopAppBarDefaults.topAppBarColors(),
             navigationIcon = {
                 IconButton(onClick = navigateUp) {
                     Icon(

@@ -3,13 +3,16 @@ package com.example.nkhukumanagement.userinterface.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.nkhukumanagement.AccountsScreen
 import com.example.nkhukumanagement.home.HomeScreen
@@ -24,12 +27,16 @@ import com.example.nkhukumanagement.userinterface.flock.EditFlockDestination
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsScreen
 import com.example.nkhukumanagement.userinterface.flock.FlockEditScreen
+import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
+import com.example.nkhukumanagement.userinterface.flock.VaccinationViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NkhukuNavHost(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    flockEntryViewModel: FlockEntryViewModel = hiltViewModel(),
+    vaccinationViewModel: VaccinationViewModel = hiltViewModel()
 ) {
     NavHost(
         navController = navController,
@@ -41,8 +48,8 @@ fun NkhukuNavHost(
             HomeScreen(
                 navigateToAddFlock = { navController.navigate(AddFlockDestination.route)
                 },
-                navigateToFlockDetails = {
-                    navController.navigate("${FlockDetailsDestination.route}/${it}")
+                navigateToFlockDetails = {id ->
+                    navController.navigate("${FlockDetailsDestination.route}/$id")
                 }
             )
         }
@@ -65,13 +72,23 @@ fun NkhukuNavHost(
         composable(AddFlockDestination.route) {
             AddFlockScreen(
                 onNavigateUp = { navController.navigateUp() },
-                navigateToVaccinationsScreen = {navController.navigate(AddVaccinationsDestination.route)},
-
+                navigateToVaccinationsScreen = { flockUiState ->
+//                    viewModel.setFlock(flockUiState)
+                    navController.navigate(route = AddVaccinationsDestination.route)
+                                               },
+                viewModel = remember(flockEntryViewModel.flockUiState){flockEntryViewModel}
             )
         }
-        composable(AddVaccinationsDestination.route) {
+        composable(
+            route = AddVaccinationsDestination.route,
+        ) { navBackStackEntry ->
+            //Retrieve the arguments
+            val breed = navBackStackEntry.arguments?.getString(AddVaccinationsDestination.flockBreedArg)
+            val date = navBackStackEntry.arguments?.getString(AddVaccinationsDestination.dateReceivedArg)
             AddVaccinationsScreen(
-                onNavigateUp = {navController.navigateUp()}
+                onNavigateUp = {navController.navigateUp()},
+                flockEntryViewModel = flockEntryViewModel,
+                vaccinationViewModel = vaccinationViewModel
             )
         }
         detailsGraph(navController)
@@ -84,10 +101,8 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController) {
         startDestination = FlockDetailsDestination.route
     ) {
         composable(
-            FlockDetailsDestination.routeWithArgs,
-        arguments = listOf(navArgument(FlockDetailsDestination.flockIdArg) {
-            type = NavType.IntType
-        })
+            route = FlockDetailsDestination.routeWithArgs,
+            arguments = FlockDetailsDestination.arguments
         ) {
             FlockDetailsScreen(
                 onNavigateUp = {navController.navigateUp()}

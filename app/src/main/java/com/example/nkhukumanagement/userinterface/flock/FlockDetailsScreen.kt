@@ -9,9 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import kotlin.String
 
 object FlockDetailsDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -22,6 +25,9 @@ object FlockDetailsDestination : NkhukuDestinations {
         get() = R.string.details
     const val flockIdArg = "id"
     val routeWithArgs = "$route/{$flockIdArg}"
+    val arguments = listOf(navArgument(flockIdArg) {
+        type = NavType.IntType
+    })
 }
 
 @Composable
