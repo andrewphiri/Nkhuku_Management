@@ -7,12 +7,16 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Unsubscribe
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -23,10 +27,13 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -34,6 +41,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -76,23 +84,49 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                           canNavigateBack: Boolean = true,
                           onNavigateUp: () -> Unit,
                           vaccinationViewModel: VaccinationViewModel ,
-                          flockEntryViewModel: FlockEntryViewModel,
+                          flockEntryViewModel: FlockEntryViewModel
 ){
-    val dateReceived = DateUtils().stringToLocalDate(flockEntryViewModel.flockUiState.getDate())
     vaccinationViewModel.setInitialDates(flockEntryViewModel)
+    val vaccinationDates = remember { vaccinationViewModel.getInitialVaccinationList() }
+    var listSize by remember { mutableIntStateOf(vaccinationViewModel.getInitialVaccinationList().size) }
+    var isRemoveShowing by remember { mutableStateOf(listSize > 1)
+     }
+    var isAddShowing by remember { mutableStateOf(true) }
+
     Scaffold (
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(AddVaccinationsDestination.resourceId),
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                isRemoveShowing = isRemoveShowing,
+                isAddShowing = isAddShowing,
+                onClickRemove = {
+                    listSize--
+                    if (listSize == 1) {
+                        isRemoveShowing = false
+                    }
+                    vaccinationViewModel.getInitialVaccinationList().removeAt(
+                        listSize
+                    )
+                },
+                onClickAdd = {
+                    listSize++
+                    isRemoveShowing = true
+                    vaccinationViewModel.getInitialVaccinationList().add(
+                        vaccinationDates.last().copy(
+                            vaccinationNumber = listSize
+                        )
+                    )
+                }
             )
         }
     ){ innerPadding ->
             VaccinationInputList(
                 modifier = modifier.padding(innerPadding),
                 onItemChange = vaccinationViewModel::updateUiState,
-                vaccinationViewModel = vaccinationViewModel
+                vaccinationViewModel = vaccinationViewModel,
+                flockEntryViewModel = flockEntryViewModel
             )
     }
 }
@@ -102,15 +136,34 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
 fun VaccinationInputList(
     modifier: Modifier,
     onItemChange: (Int,VaccinationUiState) -> Unit,
-    vaccinationViewModel: VaccinationViewModel
+    vaccinationViewModel: VaccinationViewModel,
+    flockEntryViewModel: FlockEntryViewModel,
 ) {
     LazyColumn(modifier = modifier) {
         itemsIndexed(vaccinationViewModel.getInitialVaccinationList()) { index, vaccinationUiState ->
-            VaccinationCardEntry(vaccinationUiState = vaccinationUiState,
-                onValueChanged = {onItemChange(index, it )}
-            )
-        }
-    }
+
+            val isBreedOther by remember { mutableStateOf(flockEntryViewModel.flockUiState.breed == "Other") }
+            val isIndexZero by remember { mutableStateOf(index < 1) }
+
+                    VaccinationCardEntry(
+                        modifier = Modifier,
+                        vaccinationUiState = vaccinationUiState,
+                        onValueChanged = {
+                            onItemChange(index, it)
+                        }
+                    )
+
+                        if (isBreedOther) {
+                            if (isIndexZero && vaccinationViewModel.getInitialVaccinationList().size == 1) {
+
+                            }
+
+
+                        }
+                    }
+
+            }
+
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

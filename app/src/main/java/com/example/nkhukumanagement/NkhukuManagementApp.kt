@@ -4,7 +4,9 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -127,7 +129,11 @@ fun FlockManagementTopAppBar(
     title: String,
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean,
-    navigateUp: () -> Unit = {}
+    navigateUp: () -> Unit = {},
+    onClickRemove: () -> Unit = {},
+    isRemoveShowing: Boolean = false,
+    onClickAdd: () -> Unit = {},
+    isAddShowing: Boolean = false
 ) {
     if (canNavigateBack) {
         TopAppBar(
@@ -140,6 +146,28 @@ fun FlockManagementTopAppBar(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = stringResource(R.string.back)
                     )
+                }
+            },
+            actions = {
+
+                if (isRemoveShowing) {
+                    IconButton(
+                        onClick = onClickRemove) {
+                        Icon(
+                            imageVector = Icons.Default.Remove,
+                            contentDescription = "Remove Vaccination"
+                        )
+                    }
+                }
+
+                if (isAddShowing) {
+                    IconButton(
+                        onClick = onClickAdd) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Vaccination"
+                        )
+                    }
                 }
             }
         )

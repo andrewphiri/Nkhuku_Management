@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel
 import com.example.nkhukumanagement.data.FlockRepository
 import com.example.nkhukumanagement.utils.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
 import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -47,9 +48,9 @@ class VaccinationViewModel @Inject constructor(private val flockRepository: Floc
             "Hybrid" -> { defaultHybridVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState) }
             "Ross" -> {defaultRossVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState)}
             "Zamhatch" -> {defaultZamhatchVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState)}
-            "Other" -> { mutableStateListOf(VaccinationUiState()) }
+            "Other" -> { defaultOtherVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState) }
             else -> {
-                mutableStateListOf(VaccinationUiState())
+                defaultOtherVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState)
             }
         }
     }
@@ -107,6 +108,15 @@ class VaccinationViewModel @Inject constructor(private val flockRepository: Floc
                 date = DateUtils().vaccinationDate(date = dateReceived, day = 12,
                     vaccinationUiState = vaccinationUiState)),
 
+            )
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultOtherVaccinations(flockUiState: FlockUiState, vaccinationUiState: VaccinationUiState) : SnapshotStateList<VaccinationUiState> {
+        val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
+        return mutableStateListOf(
+            VaccinationUiState(vaccinationNumber = 1,
+                date = DateUtils().vaccinationDate(date = dateReceived, day = 10,
+                    vaccinationUiState = vaccinationUiState)),
             )
     }
 }

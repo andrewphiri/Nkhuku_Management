@@ -29,7 +29,7 @@ data class FlockUiState (
     val culls: String = "",
     val enabled : Boolean = false
 ) : Parcelable {
-    val options = listOf("Hybrid", "Ross", "Zamhatch", "Other")
+    val options = mutableListOf("Hybrid", "Ross", "Zamhatch")
 
     fun setDate(date: String) {
         datePlaced = derivedStateOf { date }.value
