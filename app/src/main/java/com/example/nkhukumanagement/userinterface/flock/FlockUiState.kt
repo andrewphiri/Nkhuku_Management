@@ -20,13 +20,14 @@ import kotlinx.parcelize.Parcelize
 @RequiresApi(Build.VERSION_CODES.O)
 data class FlockUiState (
     val id: Int = 0,
+    val uniqueId: String = "",
     val breed: String = "",
     private var datePlaced: String = "",
     val quantity: String = "",
     val donorFlock: String = "",
     val mortality: Int = 0,
     val imageResourceId: Int = R.drawable.chicken,
-    val culls: String = "",
+    val culls: Int = 0,
     val enabled : Boolean = false
 ) : Parcelable {
     val options = mutableListOf("Hybrid", "Ross", "Zamhatch")
@@ -45,6 +46,7 @@ data class FlockUiState (
     @RequiresApi(Build.VERSION_CODES.O)
     fun FlockUiState.toFlock(): Flock = Flock(
         id = id,
+        uniqueId = uniqueId,
         breed = breed,
         datePlaced = DateUtils().stringToLocalDate(getDate()),
         numberOfChicksPlaced = quantity.toInt(),
@@ -61,12 +63,13 @@ data class FlockUiState (
     fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
         FlockUiState(
             id = id,
+            uniqueId = uniqueId,
             breed = breed,
             datePlaced = DateUtils().convertLocalDateToString(datePlaced),
             quantity = numberOfChicksPlaced.toString(),
             donorFlock = donorFlock.toString(),
             mortality = mortality,
-            culls = culls.toString(),
+            culls = culls,
             enabled = enabled
         )
 

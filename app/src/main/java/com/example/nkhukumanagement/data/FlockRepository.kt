@@ -9,12 +9,27 @@ interface FlockRepository {
     /**
      * Retrieve all flock entries from data source
      */
-    fun getAllItems(): Flow<List<Flock>>
+    fun getAllFlockItems(): Flow<List<Flock>>
 
     /**
-     * Retrieve an item from data source
+     * Retrieve all flocksWithVaccinations from data source
      */
-    fun getItem(id: Int): Flow<Flock>
+    fun getAllFlocksWithVaccinations(): Flow<List<FlockWithVaccinations>>
+
+    /**
+     * Retrieve all vaccination entries from data source
+     */
+    fun getAllVaccinationItems(): Flow<List<Vaccination>>
+
+    /**
+     * Retrieve flock from data source
+     */
+    fun getFlock(id: Int): Flow<Flock>
+
+    /**
+     * Retrieve vaccination item from data source
+     */
+    fun getVaccinationItem(id: Int): Flow<Vaccination>
 
     /**
      * Insert flock in the database
@@ -22,12 +37,27 @@ interface FlockRepository {
     suspend fun insertFlock(flock: Flock)
 
     /**
+     * Insert vaccination in the database
+     */
+    suspend fun insertVaccination(vaccination: Vaccination)
+
+    /**
      * Delete flock from the database
      */
     suspend fun deleteFlock(flock: Flock)
 
     /**
+     * Delete vaccination from the database
+     */
+    suspend fun deleteVaccination(vaccination: Vaccination)
+
+    /**
      * Update flock in the database
      */
     suspend fun updateFlock(flock: Flock)
+
+    /**
+     * Update vaccination in the database
+     */
+    suspend fun updateVaccination(vaccination: Vaccination)
 }

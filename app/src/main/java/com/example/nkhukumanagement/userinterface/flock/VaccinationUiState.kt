@@ -14,6 +14,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class VaccinationUiState(
     val id: Int = 0,
+    val flockUniqueId: String = "",
     val vaccinationNumber: Int = 1,
     private var name: String = "",
     private var date: String = "",
@@ -52,6 +53,7 @@ data class VaccinationUiState(
 @RequiresApi(Build.VERSION_CODES.O)
 fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
     id = id,
+    flockUniqueId = flockUniqueId,
     name  = getName(),
     date = DateUtils().stringToLocalDate(getDate()),
     notes = notes
@@ -63,6 +65,7 @@ fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
 @RequiresApi(Build.VERSION_CODES.O)
 fun Vaccination.toVaccinationUiState(enabled: Boolean = false) : VaccinationUiState = VaccinationUiState(
     id = id,
+    flockUniqueId = flockUniqueId,
     name = name,
     date = DateUtils().convertLocalDateToString(date),
     notes = notes,

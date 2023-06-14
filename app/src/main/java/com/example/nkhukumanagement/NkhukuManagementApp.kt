@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -133,7 +134,9 @@ fun FlockManagementTopAppBar(
     onClickRemove: () -> Unit = {},
     isRemoveShowing: Boolean = false,
     onClickAdd: () -> Unit = {},
-    isAddShowing: Boolean = false
+    isAddShowing: Boolean = false,
+    isDoneShowing: Boolean = false,
+    onSaveToDatabase: () -> Unit = {}
 ) {
     if (canNavigateBack) {
         TopAppBar(
@@ -166,6 +169,16 @@ fun FlockManagementTopAppBar(
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Add Vaccination"
+                        )
+                    }
+                }
+                if (isDoneShowing) {
+                    IconButton(
+                        onClick = onSaveToDatabase
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Done,
+                            contentDescription = "Done"
                         )
                     }
                 }

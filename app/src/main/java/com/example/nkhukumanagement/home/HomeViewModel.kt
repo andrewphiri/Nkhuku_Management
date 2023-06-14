@@ -20,7 +20,7 @@ class HomeViewModel @Inject constructor(flockRepository: FlockRepository) : View
     }
 
     val homeUiState: StateFlow<HomeUiState> =
-        flockRepository.getAllItems().map { HomeUiState(it) }
+        flockRepository.getAllFlockItems().map { HomeUiState(it) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(MILLIS),

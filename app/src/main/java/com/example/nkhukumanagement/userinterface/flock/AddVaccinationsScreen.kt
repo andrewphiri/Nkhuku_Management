@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,8 +58,11 @@ import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.UUID
 import kotlin.String
 
 
@@ -81,10 +85,12 @@ object AddVaccinationsDestination : NkhukuDestinations {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddVaccinationsScreen(modifier: Modifier = Modifier,
+                          navigateBack: () -> Unit,
                           canNavigateBack: Boolean = true,
                           onNavigateUp: () -> Unit,
                           vaccinationViewModel: VaccinationViewModel ,
-                          flockEntryViewModel: FlockEntryViewModel
+                          flockEntryViewModel: FlockEntryViewModel,
+                          isDoneButtonShowing: Boolean = true
 ){
     vaccinationViewModel.setInitialDates(flockEntryViewModel)
     val vaccinationDates = remember { vaccinationViewModel.getInitialVaccinationList() }
@@ -92,6 +98,8 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
     var isRemoveShowing by remember { mutableStateOf(listSize > 1)
      }
     var isAddShowing by remember { mutableStateOf(true) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold (
         topBar = {
@@ -101,6 +109,7 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                 navigateUp = onNavigateUp,
                 isRemoveShowing = isRemoveShowing,
                 isAddShowing = isAddShowing,
+                isDoneShowing = isDoneButtonShowing,
                 onClickRemove = {
                     listSize--
                     if (listSize == 1) {
@@ -113,11 +122,25 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                 onClickAdd = {
                     listSize++
                     isRemoveShowing = true
+                    val dateReceived = DateUtils().stringToLocalDate(vaccinationViewModel.getInitialVaccinationList()[listSize--].getDate())
                     vaccinationViewModel.getInitialVaccinationList().add(
                         vaccinationDates.last().copy(
                             vaccinationNumber = listSize
                         )
                     )
+                },
+                onSaveToDatabase = {
+                    val uniqueId = UUID.randomUUID().toString()
+                    flockEntryViewModel.flockUiState.copy(uniqueId = uniqueId)
+                    vaccinationViewModel.vaccinationUiState.copy(flockUniqueId = uniqueId)
+                   coroutineScope.launch {
+                       flockEntryViewModel.saveItem()
+//                       repeat(listSize) {
+//
+//                       }
+                       vaccinationViewModel.saveVaccination()
+                       navigateBack
+                   }
                 }
             )
         }
@@ -141,10 +164,6 @@ fun VaccinationInputList(
 ) {
     LazyColumn(modifier = modifier) {
         itemsIndexed(vaccinationViewModel.getInitialVaccinationList()) { index, vaccinationUiState ->
-
-            val isBreedOther by remember { mutableStateOf(flockEntryViewModel.flockUiState.breed == "Other") }
-            val isIndexZero by remember { mutableStateOf(index < 1) }
-
                     VaccinationCardEntry(
                         modifier = Modifier,
                         vaccinationUiState = vaccinationUiState,
@@ -153,16 +172,8 @@ fun VaccinationInputList(
                         }
                     )
 
-                        if (isBreedOther) {
-                            if (isIndexZero && vaccinationViewModel.getInitialVaccinationList().size == 1) {
-
-                            }
-
-
-                        }
-                    }
-
-            }
+                }
+        }
 
 }
 

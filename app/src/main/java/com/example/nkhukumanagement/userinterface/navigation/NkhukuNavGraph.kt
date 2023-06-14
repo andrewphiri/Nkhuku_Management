@@ -86,6 +86,7 @@ fun NkhukuNavHost(
             val breed = navBackStackEntry.arguments?.getString(AddVaccinationsDestination.flockBreedArg)
             val date = navBackStackEntry.arguments?.getString(AddVaccinationsDestination.dateReceivedArg)
             AddVaccinationsScreen(
+                navigateBack = { navController.popBackStack() },
                 onNavigateUp = {navController.navigateUp()},
                 flockEntryViewModel = flockEntryViewModel,
                 vaccinationViewModel = vaccinationViewModel

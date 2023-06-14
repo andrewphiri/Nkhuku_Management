@@ -16,6 +16,7 @@ import java.util.Locale
 data class Flock(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
+    val uniqueId: String,
     val breed: String,
     @ColumnInfo(name = "date_received")
     val datePlaced: LocalDate,

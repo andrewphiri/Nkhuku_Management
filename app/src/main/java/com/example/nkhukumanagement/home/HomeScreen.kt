@@ -197,12 +197,6 @@ private fun FlockDetails(label: String, entry: String) {
 @Composable
 fun ShowPreview() {
     NkhukuManagementTheme {
-        FlockBody(
-            listOf(
-                Flock(id= 1, breed = "Hybrid", datePlaced = LocalDate.now(), numberOfChicksPlaced = 250,
-                    donorFlock = 5, mortality = 0, R.drawable.chicken, culls = 0)
-            ),
-            onItemClick = {}
-        )
+
     }
 }

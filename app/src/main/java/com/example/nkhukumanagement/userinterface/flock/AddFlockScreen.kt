@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
@@ -30,6 +31,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -53,8 +55,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.ButtonDefaults
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -118,8 +118,11 @@ fun AddFlockBody(
             onClick = {onVaccinationsScreen(flockUiState)},
             enabled = flockUiState.enabled
         ) {
-            Text("Set vaccination days",
-            textAlign = TextAlign.Center)
+            Text(
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                textAlign = TextAlign.Center,
+                text = "Set vaccination days",
+            )
         }
     }
 }
@@ -213,6 +216,7 @@ fun AddFlockInputForm(
             onDismissed = { isBreedDialogShowing = false},
             onSaveBreed = {
                 flockUiState.options.add(newBreedEntry)
+                onValueChanged(flockUiState.copy(breed = newBreedEntry))
                 isBreedDialogShowing = false
             },
             isEnabled = newBreedEntry.isNotBlank()
@@ -362,15 +366,12 @@ fun AddBreedDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Button(
+                    OutlinedButton(
                         modifier = Modifier.weight(1f),
-                        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.secondary),
-                        contentPadding = PaddingValues(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Unspecified, contentColor = Color.Unspecified),
+                        border = BorderStroke(2.dp, color = MaterialTheme.colorScheme.primary),
                         onClick = onDismissed) {
                         Text(
-                            modifier = Modifier.align(Alignment.CenterVertically),
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
                             text = "Cancel",
                             textAlign = TextAlign.Center
                         )
@@ -379,12 +380,11 @@ fun AddBreedDialog(
                     Button(
                         modifier = Modifier.weight(1f),
                         enabled = isEnabled,
-                        contentPadding = PaddingValues(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                         onClick = onSaveBreed) {
                         Text(
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
                             text = "Save",
-                            textAlign = TextAlign.Justify
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
