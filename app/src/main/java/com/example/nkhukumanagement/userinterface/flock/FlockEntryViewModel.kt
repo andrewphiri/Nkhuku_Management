@@ -58,4 +58,8 @@ class FlockEntryViewModel @Inject constructor(private val flockRepository: Flock
             flockRepository.insertFlock(flockUiState.toFlock())
         }
     }
+
+    suspend fun deleteFlock(flockUniqueID: String) {
+        flockRepository.deleteFlock(flockUniqueID)
+    }
 }

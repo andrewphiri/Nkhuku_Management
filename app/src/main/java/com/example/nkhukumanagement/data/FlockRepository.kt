@@ -44,12 +44,12 @@ interface FlockRepository {
     /**
      * Delete flock from the database
      */
-    suspend fun deleteFlock(flock: Flock)
+    suspend fun deleteFlock(flockUniqueID: String)
 
     /**
      * Delete vaccination from the database
      */
-    suspend fun deleteVaccination(vaccination: Vaccination)
+    suspend fun deleteVaccination(flockUniqueID: String)
 
     /**
      * Update flock in the database

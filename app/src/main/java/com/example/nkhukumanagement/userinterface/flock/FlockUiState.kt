@@ -4,9 +4,7 @@ import android.os.Build
 import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.remember
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Flock
 import com.example.nkhukumanagement.utils.DateUtils
@@ -20,7 +18,8 @@ import kotlinx.parcelize.Parcelize
 @RequiresApi(Build.VERSION_CODES.O)
 data class FlockUiState (
     val id: Int = 0,
-    val uniqueId: String = "",
+    private var uniqueId: String = "",
+    val batchName: String = "",
     val breed: String = "",
     private var datePlaced: String = "",
     val quantity: String = "",
@@ -35,10 +34,20 @@ data class FlockUiState (
     fun setDate(date: String) {
         datePlaced = derivedStateOf { date }.value
     }
+
     fun getDate(): String {
         return datePlaced
     }
 
+    fun setUniqueId(uniqueID: String) {
+        uniqueId = uniqueID
+    }
+
+    fun getUniqueId(): String {
+        return uniqueId
+    }
+
+    fun getBirdsRemaining() : Int = quantity.toInt() - mortality
 }
     /**
      * Extension function to convert [FlockUIState] to [Flock]
@@ -46,13 +55,14 @@ data class FlockUiState (
     @RequiresApi(Build.VERSION_CODES.O)
     fun FlockUiState.toFlock(): Flock = Flock(
         id = id,
-        uniqueId = uniqueId,
+        uniqueId = getUniqueId(),
+        batchName = batchName,
         breed = breed,
         datePlaced = DateUtils().stringToLocalDate(getDate()),
         numberOfChicksPlaced = quantity.toInt(),
         donorFlock = donorFlock.toIntOrNull() ?: 0,
         mortality = mortality,
-        culls = culls.toInt()
+        culls = culls
 
     )
 
@@ -64,6 +74,7 @@ data class FlockUiState (
         FlockUiState(
             id = id,
             uniqueId = uniqueId,
+            batchName = batchName,
             breed = breed,
             datePlaced = DateUtils().convertLocalDateToString(datePlaced),
             quantity = numberOfChicksPlaced.toString(),
@@ -84,6 +95,7 @@ data class FlockUiState (
                 getDate().isNotBlank() &&
                 quantity.isNotBlank() &&
                 donorFlock.isNotBlank()
+                && batchName.isNotBlank()
     }
 
     fun FlockUiState.isSingleEntryValid(value: String): Boolean{

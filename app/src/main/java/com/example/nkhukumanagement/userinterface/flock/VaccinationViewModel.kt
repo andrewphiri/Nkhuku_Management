@@ -29,10 +29,14 @@ class VaccinationViewModel @Inject constructor(private val flockRepository: Floc
         initialVaccinationList[index] = newVaccinationUiState.copy(actionEnabled = newVaccinationUiState.isValid())
     }
 
-    suspend fun saveVaccination() {
+    suspend fun saveVaccination(vaccinationUiState: VaccinationUiState) {
         if (vaccinationUiState.isValid()) {
             flockRepository.insertVaccination(vaccinationUiState.toVaccination())
         }
+    }
+
+    suspend fun deleteVaccination(flockUniqueID: String) {
+        flockRepository.deleteVaccination(flockUniqueID)
     }
 
     fun getInitialVaccinationList(): SnapshotStateList<VaccinationUiState> {

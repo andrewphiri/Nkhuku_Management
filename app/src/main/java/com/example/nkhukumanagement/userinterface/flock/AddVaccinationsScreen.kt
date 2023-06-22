@@ -7,16 +7,12 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.Unsubscribe
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -27,13 +23,10 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -41,7 +34,6 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,9 +50,7 @@ import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
 import kotlin.String
@@ -90,14 +80,15 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                           onNavigateUp: () -> Unit,
                           vaccinationViewModel: VaccinationViewModel ,
                           flockEntryViewModel: FlockEntryViewModel,
-                          isDoneButtonShowing: Boolean = true
+                          isDoneButtonShowing: Boolean = true,
 ){
     vaccinationViewModel.setInitialDates(flockEntryViewModel)
     val vaccinationDates = remember { vaccinationViewModel.getInitialVaccinationList() }
-    var listSize by remember { mutableIntStateOf(vaccinationViewModel.getInitialVaccinationList().size) }
+    var listSize by remember { mutableStateOf(vaccinationViewModel.getInitialVaccinationList().size) }
     var isRemoveShowing by remember { mutableStateOf(listSize > 1)
      }
     var isAddShowing by remember { mutableStateOf(true) }
+    var isDoneEnabled by remember { mutableStateOf(vaccinationDates.all { it.isValid() }) }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -110,11 +101,13 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                 isRemoveShowing = isRemoveShowing,
                 isAddShowing = isAddShowing,
                 isDoneShowing = isDoneButtonShowing,
+                isDoneEnabled = isDoneEnabled,
                 onClickRemove = {
                     listSize--
                     if (listSize == 1) {
                         isRemoveShowing = false
                     }
+                    isDoneEnabled = vaccinationDates.all { it.isValid() }
                     vaccinationViewModel.getInitialVaccinationList().removeAt(
                         listSize
                     )
@@ -122,7 +115,7 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                 onClickAdd = {
                     listSize++
                     isRemoveShowing = true
-                    val dateReceived = DateUtils().stringToLocalDate(vaccinationViewModel.getInitialVaccinationList()[listSize--].getDate())
+                    isDoneEnabled = vaccinationDates.all { it.isValid() }
                     vaccinationViewModel.getInitialVaccinationList().add(
                         vaccinationDates.last().copy(
                             vaccinationNumber = listSize
@@ -131,15 +124,17 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                 },
                 onSaveToDatabase = {
                     val uniqueId = UUID.randomUUID().toString()
-                    flockEntryViewModel.flockUiState.copy(uniqueId = uniqueId)
-                    vaccinationViewModel.vaccinationUiState.copy(flockUniqueId = uniqueId)
+                    flockEntryViewModel.flockUiState.setUniqueId(uniqueID = uniqueId)
+                    vaccinationViewModel.vaccinationUiState.setUniqueId(uniqueID = uniqueId)
                    coroutineScope.launch {
                        flockEntryViewModel.saveItem()
-//                       repeat(listSize) {
-//
-//                       }
-                       vaccinationViewModel.saveVaccination()
-                       navigateBack
+                       repeat(listSize) {
+                           vaccinationViewModel.saveVaccination(
+                               vaccinationViewModel.getInitialVaccinationList()[it].copy(
+                                   flockUniqueId = flockEntryViewModel.flockUiState.getUniqueId())
+                           )
+                       }
+                       navigateBack()
                    }
                 }
             )
@@ -149,7 +144,10 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                 modifier = modifier.padding(innerPadding),
                 onItemChange = vaccinationViewModel::updateUiState,
                 vaccinationViewModel = vaccinationViewModel,
-                flockEntryViewModel = flockEntryViewModel
+                flockEntryViewModel = flockEntryViewModel,
+                isListValid = {
+                    isDoneEnabled = it
+                }
             )
     }
 }
@@ -158,17 +156,19 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
 @Composable
 fun VaccinationInputList(
     modifier: Modifier,
-    onItemChange: (Int,VaccinationUiState) -> Unit,
+    onItemChange: (Int, VaccinationUiState) -> Unit,
     vaccinationViewModel: VaccinationViewModel,
     flockEntryViewModel: FlockEntryViewModel,
+    isListValid: (Boolean) -> Unit
 ) {
     LazyColumn(modifier = modifier) {
         itemsIndexed(vaccinationViewModel.getInitialVaccinationList()) { index, vaccinationUiState ->
                     VaccinationCardEntry(
                         modifier = Modifier,
                         vaccinationUiState = vaccinationUiState,
-                        onValueChanged = {
-                            onItemChange(index, it)
+                        onValueChanged = { uiState ->
+                            onItemChange(index, uiState)
+                            isListValid(vaccinationViewModel.getInitialVaccinationList().all { it.isValid() })
                         }
                     )
 
@@ -197,7 +197,7 @@ fun VaccinationCardEntry(
             color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.headlineSmall
             )
-            StatefulDropDownMenu(modifier = modifier, vaccinationUiState = vaccinationUiState)
+            StatefulDropDownMenu(modifier = modifier, vaccinationUiState = vaccinationUiState, onValueChanged = onValueChanged)
             StatefulPickDateDialog(modifier = modifier, vaccinationUiState = vaccinationUiState)
 
             OutlinedTextField(
@@ -311,11 +311,12 @@ fun StatefulPickDateDialog(modifier: Modifier, vaccinationUiState: VaccinationUi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropDownMenu(
+fun DownMenu(
     modifier: Modifier = Modifier,
     vaccinationUiState: VaccinationUiState,
     expanded: Boolean, onExpand: (Boolean) -> Unit,
     optionSelected: String, onOptionSelected: (String) -> Unit,
+    onValueChanged: (VaccinationUiState) -> Unit,
     onDismissed: () -> Unit
 ) {
     val options = vaccinationUiState.options
@@ -353,6 +354,7 @@ fun DropDownMenu(
                             text = { Text(text = option) },
                             onClick = {
                                 onOptionSelected(option)
+                                onValueChanged(vaccinationUiState.copy(name = option))
                                 onExpand(false)
                             }
                         )
@@ -364,17 +366,18 @@ fun DropDownMenu(
 }
 
 @Composable
-fun StatefulDropDownMenu(modifier: Modifier, vaccinationUiState: VaccinationUiState) {
+fun StatefulDropDownMenu(modifier: Modifier, vaccinationUiState: VaccinationUiState, onValueChanged: (VaccinationUiState) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var optionSelected by remember { mutableStateOf(vaccinationUiState.getName()) }
     vaccinationUiState.setName(optionSelected)
-    DropDownMenu(
+    DownMenu(
         modifier = modifier, vaccinationUiState = vaccinationUiState,
         expanded = expanded, onExpand = { expanded = !expanded},
         optionSelected = optionSelected, onOptionSelected = {
-            vaccinationUiState.setName(optionSelected)
             optionSelected = it
+            vaccinationUiState.setName(optionSelected)
                                                             },
+        onValueChanged = onValueChanged,
         onDismissed = {expanded = false}
     )
 }

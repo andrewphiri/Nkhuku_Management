@@ -204,7 +204,7 @@ fun AddFlockInputForm(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add breed",
-                    tint = MaterialTheme.colorScheme.surfaceTint
+                    tint = MaterialTheme.colorScheme.secondary
                 )
             }
         }
@@ -220,6 +220,16 @@ fun AddFlockInputForm(
                 isBreedDialogShowing = false
             },
             isEnabled = newBreedEntry.isNotBlank()
+        )
+
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = flockUiState.batchName,
+            onValueChange = { onValueChanged(flockUiState.copy(batchName = it)) },
+            label = { Text("Batch name")},
+            enabled = true,
+            singleLine = true,
+            isError = flockUiState.isSingleEntryValid(flockUiState.batchName)
         )
 
         PickerDialog(

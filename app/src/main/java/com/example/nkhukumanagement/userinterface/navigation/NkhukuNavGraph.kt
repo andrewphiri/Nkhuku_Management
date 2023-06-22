@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -48,9 +49,11 @@ fun NkhukuNavHost(
             HomeScreen(
                 navigateToAddFlock = { navController.navigate(AddFlockDestination.route)
                 },
-                navigateToFlockDetails = {id ->
+                navigateToFlockDetails = { id ->
                     navController.navigate("${FlockDetailsDestination.route}/$id")
-                }
+                },
+                flockEntryViewModel = flockEntryViewModel,
+                vaccinationViewModel = vaccinationViewModel
             )
         }
 
@@ -86,17 +89,28 @@ fun NkhukuNavHost(
             val breed = navBackStackEntry.arguments?.getString(AddVaccinationsDestination.flockBreedArg)
             val date = navBackStackEntry.arguments?.getString(AddVaccinationsDestination.dateReceivedArg)
             AddVaccinationsScreen(
-                navigateBack = { navController.popBackStack() },
+                navigateBack = { navController.navigate(NavigationBarScreens.Home.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = false
+                    }
+                    navController.popBackStack(NavigationBarScreens.Home.route, inclusive = true)
+                    }
+                 },
                 onNavigateUp = {navController.navigateUp()},
                 flockEntryViewModel = flockEntryViewModel,
                 vaccinationViewModel = vaccinationViewModel
             )
         }
-        detailsGraph(navController)
+        detailsGraph(navController = navController,
+            flockEntryViewModel = flockEntryViewModel,
+            vaccinationViewModel = vaccinationViewModel)
     }
 }
 
-fun NavGraphBuilder.detailsGraph (navController: NavHostController) {
+@RequiresApi(Build.VERSION_CODES.O)
+fun NavGraphBuilder.detailsGraph (navController: NavHostController,
+                                  flockEntryViewModel: FlockEntryViewModel,
+                                  vaccinationViewModel: VaccinationViewModel) {
     navigation(
         route = GraphRoutes.DETAILS,
         startDestination = FlockDetailsDestination.route
@@ -106,7 +120,9 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController) {
             arguments = FlockDetailsDestination.arguments
         ) {
             FlockDetailsScreen(
-                onNavigateUp = {navController.navigateUp()}
+                onNavigateUp = {navController.navigateUp()},
+                flockEntryViewModel = flockEntryViewModel,
+                vaccinationViewModel = vaccinationViewModel
             )
         }
         composable(EditFlockDestination.route) {

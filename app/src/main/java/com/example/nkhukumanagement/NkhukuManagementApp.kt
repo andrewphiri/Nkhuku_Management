@@ -136,6 +136,7 @@ fun FlockManagementTopAppBar(
     onClickAdd: () -> Unit = {},
     isAddShowing: Boolean = false,
     isDoneShowing: Boolean = false,
+    isDoneEnabled:Boolean = true,
     onSaveToDatabase: () -> Unit = {}
 ) {
     if (canNavigateBack) {
@@ -174,6 +175,7 @@ fun FlockManagementTopAppBar(
                 }
                 if (isDoneShowing) {
                     IconButton(
+                        enabled = isDoneEnabled,
                         onClick = onSaveToDatabase
                     ) {
                         Icon(

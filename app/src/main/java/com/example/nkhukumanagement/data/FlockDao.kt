@@ -22,11 +22,12 @@ interface FlockDao {
     @Update
     suspend fun updateVaccination(vaccination: Vaccination)
 
-    @Delete
-    suspend fun deleteFlock(flock: Flock)
+    @Query("DELETE FROM flock WHERE uniqueId = :flockUniqueID")
+    suspend fun deleteFlock(flockUniqueID: String)
 
-    @Delete
-    suspend fun deleteVaccination(vaccination: Vaccination)
+    @Query("DELETE FROM vaccinations WHERE flockUniqueId = :flockUniqueID")
+    suspend fun deleteVaccination(flockUniqueID: String)
+
 
     @Query("SELECT * FROM flock WHERE id = :id")
     fun retrieveFlock(id: Int) : Flow<Flock>

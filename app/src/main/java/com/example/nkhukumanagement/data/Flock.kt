@@ -1,22 +1,17 @@
 package com.example.nkhukumanagement.data
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.nkhukumanagement.R
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @Entity(tableName = "flock")
 data class Flock(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
     val uniqueId: String,
+    val batchName: String,
     val breed: String,
     @ColumnInfo(name = "date_received")
     val datePlaced: LocalDate,
@@ -28,12 +23,4 @@ data class Flock(
     val imageResourceId: Int = R.drawable.chicken,
     @ColumnInfo(name = "deformities")
     val culls: Int
-) {
-    val flocksRemaining: Int
-        get() = this.numberOfChicksPlaced - this.mortality
-
-    val age: Int @RequiresApi(Build.VERSION_CODES.O)
-    get() = LocalDate.now().dayOfYear - this.datePlaced.dayOfYear
-
-
-}
+)
