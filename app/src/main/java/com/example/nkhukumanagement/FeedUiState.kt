@@ -3,7 +3,7 @@ package com.example.nkhukumanagement
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.nkhukumanagement.data.Feed
-import com.example.nkhukumanagement.data.Flock
+import com.example.nkhukumanagement.userinterface.flock.WeightUiState
 import com.example.nkhukumanagement.utils.DateUtils
 
 data class FeedUiState(
@@ -11,9 +11,11 @@ data class FeedUiState(
     val flockUniqueID: String = "",
     val name: String = "",
     val type: String = "",
-    val consumed: Double = 0.0,
-    private var feedingDate: String = ""
+    val consumed: String = "",
+    private var feedingDate: String = "",
+    val enabled: Boolean = false
 ) {
+
     fun setDate(date: String) {
         feedingDate = date
     }
@@ -28,10 +30,10 @@ data class FeedUiState(
 @RequiresApi(Build.VERSION_CODES.O)
 fun FeedUiState.toFeed(): Feed = Feed (
     id = id,
-    uniqueID = flockUniqueID,
+    flockUniqueId = flockUniqueID,
     name = name,
     type = type,
-    consumed = consumed,
+    consumed = consumed.toDouble(),
     feedingDate = DateUtils().stringToLocalDate(getDate())
         )
 
@@ -41,9 +43,20 @@ fun FeedUiState.toFeed(): Feed = Feed (
 @RequiresApi(Build.VERSION_CODES.O)
 fun Feed.toFeedUiState(): FeedUiState = FeedUiState(
     id = id,
-    flockUniqueID = uniqueID,
+    flockUniqueID = flockUniqueId,
     name = name,
     type = type,
-    consumed = consumed,
+    consumed = consumed.toString(),
     feedingDate = DateUtils().convertLocalDateToString(feedingDate)
 )
+
+fun FeedUiState.isValid() : Boolean {
+    return  name.isNotBlank() &&
+            getDate().isNotBlank() &&
+            type.isNotBlank() &&
+            consumed.isNotBlank()
+}
+
+fun FeedUiState.isSingleEntryValid(value: String): Boolean {
+    return value.isBlank()
+}

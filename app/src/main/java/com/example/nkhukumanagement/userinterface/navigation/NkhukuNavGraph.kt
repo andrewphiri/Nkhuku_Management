@@ -12,8 +12,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.nkhukumanagement.AccountsScreen
 import com.example.nkhukumanagement.home.HomeScreen
@@ -27,6 +29,7 @@ import com.example.nkhukumanagement.userinterface.flock.AddVaccinationsScreen
 import com.example.nkhukumanagement.userinterface.flock.EditFlockDestination
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsScreen
+import com.example.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
 import com.example.nkhukumanagement.userinterface.flock.FlockEditScreen
 import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import com.example.nkhukumanagement.userinterface.flock.VaccinationViewModel
@@ -37,7 +40,8 @@ fun NkhukuNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     flockEntryViewModel: FlockEntryViewModel = hiltViewModel(),
-    vaccinationViewModel: VaccinationViewModel = hiltViewModel()
+    vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
+
 ) {
     NavHost(
         navController = navController,
@@ -75,8 +79,7 @@ fun NkhukuNavHost(
         composable(AddFlockDestination.route) {
             AddFlockScreen(
                 onNavigateUp = { navController.navigateUp() },
-                navigateToVaccinationsScreen = { flockUiState ->
-//                    viewModel.setFlock(flockUiState)
+                navigateToVaccinationsScreen = {
                     navController.navigate(route = AddVaccinationsDestination.route)
                                                },
                 viewModel = remember(flockEntryViewModel.flockUiState){flockEntryViewModel}
@@ -103,14 +106,14 @@ fun NkhukuNavHost(
         }
         detailsGraph(navController = navController,
             flockEntryViewModel = flockEntryViewModel,
-            vaccinationViewModel = vaccinationViewModel)
+            )
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.detailsGraph (navController: NavHostController,
                                   flockEntryViewModel: FlockEntryViewModel,
-                                  vaccinationViewModel: VaccinationViewModel) {
+                                  ) {
     navigation(
         route = GraphRoutes.DETAILS,
         startDestination = FlockDetailsDestination.route
@@ -122,7 +125,6 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController,
             FlockDetailsScreen(
                 onNavigateUp = {navController.navigateUp()},
                 flockEntryViewModel = flockEntryViewModel,
-                vaccinationViewModel = vaccinationViewModel
             )
         }
         composable(EditFlockDestination.route) {

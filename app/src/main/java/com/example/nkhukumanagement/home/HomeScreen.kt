@@ -1,6 +1,7 @@
 package com.example.nkhukumanagement.home
 
 import android.os.Build
+import android.view.MotionEvent
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -10,6 +11,7 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -110,7 +112,7 @@ fun HomeScreen(
                     modifier = Modifier.navigationBarsPadding(),
                     shape = ShapeDefaults.Small,
                     containerColor = MaterialTheme.colorScheme.secondary,
-                    elevation = FloatingActionButtonDefaults.elevation(),
+                    elevation = FloatingActionButtonDefaults.elevation()
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -164,12 +166,14 @@ fun FlockBody(
 
 /**
  * Composable function to detect scroll position of list
+ * This will be used to hide FAB when scrolling down, and to Show FAB when scrolling up
  */
 @Composable
 private fun LazyListState.isScrollingUp(): Boolean {
     var previousIndex by remember(this) {
         mutableStateOf(firstVisibleItemIndex) }
     var previousScrollOffset by remember(this) { mutableStateOf(firstVisibleItemScrollOffset) }
+    var listTouched by remember ( this ) { mutableStateOf(isScrollInProgress) }
 
     return remember(this) {
         derivedStateOf {

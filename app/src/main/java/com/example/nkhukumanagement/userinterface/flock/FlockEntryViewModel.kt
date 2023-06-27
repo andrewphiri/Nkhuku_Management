@@ -30,25 +30,6 @@ class FlockEntryViewModel @Inject constructor(private val flockRepository: Flock
     var flockUiState by mutableStateOf(FlockUiState())
         private set
 
-    private val getFlock: StateFlow<FlockUiState> = state.getStateFlow("flock", flockUiState)
-
-
-
-//    fun setFlock(flockUiState: FlockUiState) {
-//        state["flock"] = flockUiState
-//        Log.i("Flock SET ", state.get<FlockUiState>("flock").toString())
-//    }
-
-//    fun getFlock(): FlockUiState? {
-//        Log.i("GET FLOCK ", state.get<FlockUiState>("flock").toString())
-//       return getFlock.value
-////        stateIn(
-////            scope = viewModelScope,
-////            started = SharingStarted.WhileSubscribed(5_000L),
-////            initialValue = flockUiState
-////        ).value
-//    }
-
     fun updateUiState(newFlockUiState: FlockUiState) {
         flockUiState =   newFlockUiState.copy(enabled = newFlockUiState.isValid())
     }

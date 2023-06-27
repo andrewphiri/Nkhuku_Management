@@ -1,6 +1,7 @@
 package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.nkhukumanagement.data.Weight
 import com.example.nkhukumanagement.utils.DateUtils
@@ -10,8 +11,9 @@ data class WeightUiState(
     val id: Int = 0,
     val flockUniqueID: String = "",
     val week: String = "",
-    val weight: Double = 0.0,
-    private var dateMeasured: String = ""
+    val weight: String = "",
+    private var dateMeasured: String = "",
+    val enabled: Boolean = false
 ) {
 
     fun setDate(date: String) {
@@ -29,9 +31,9 @@ data class WeightUiState(
 @RequiresApi(Build.VERSION_CODES.O)
 fun WeightUiState.toWeight(): Weight = Weight (
     id = id,
-    uniqueID = flockUniqueID,
+    flockUniqueId = flockUniqueID,
     week = week,
-    weight = weight,
+    weight = weight.toDouble(),
     measuredDate = DateUtils().stringToLocalDate(getDate())
 )
 
@@ -39,10 +41,20 @@ fun WeightUiState.toWeight(): Weight = Weight (
  * Extension function to convert [Weight] to [WeightUiState]
  */
 @RequiresApi(Build.VERSION_CODES.O)
-fun Weight.toFeedUiState(): WeightUiState = WeightUiState(
+fun Weight.toWeightUiState(): WeightUiState = WeightUiState(
     id = id,
-    flockUniqueID = uniqueID,
+    flockUniqueID = flockUniqueId,
     week = week,
-    weight = weight,
+    weight = weight.toString(),
     dateMeasured = DateUtils().convertLocalDateToString(measuredDate)
 )
+
+fun WeightUiState.isValid() : Boolean {
+    return  week.isNotBlank() &&
+            getDate().isNotBlank() &&
+            weight.isNotBlank()
+}
+
+fun WeightUiState.isSingleEntryValid(value: String): Boolean {
+    return value.isBlank()
+}

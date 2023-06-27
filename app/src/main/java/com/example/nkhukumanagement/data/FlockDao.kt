@@ -16,17 +16,36 @@ interface FlockDao {
     @Insert
     suspend fun insertVaccination(vaccination: Vaccination)
 
+    @Insert
+    suspend fun insertFeed(feed: Feed)
+
+    @Insert
+    suspend fun insertWeight(weight: Weight)
+
     @Update
     suspend fun updateFlock(flock: Flock)
 
     @Update
     suspend fun updateVaccination(vaccination: Vaccination)
 
+    @Update
+    suspend fun updateFeed(feed: Feed)
+
+    @Update
+    suspend fun updateWeight(weight: Weight)
+
+
     @Query("DELETE FROM flock WHERE uniqueId = :flockUniqueID")
     suspend fun deleteFlock(flockUniqueID: String)
 
     @Query("DELETE FROM vaccinations WHERE flockUniqueId = :flockUniqueID")
     suspend fun deleteVaccination(flockUniqueID: String)
+
+    @Query("DELETE FROM feed WHERE flockUniqueId = :flockUniqueID")
+    suspend fun deleteFeed(flockUniqueID: String)
+
+    @Query("DELETE FROM weight WHERE flockUniqueId = :flockUniqueID")
+    suspend fun deleteWeight(flockUniqueID: String)
 
 
     @Query("SELECT * FROM flock WHERE id = :id")
@@ -41,7 +60,21 @@ interface FlockDao {
     @Query("SELECT * FROM vaccinations")
     fun getAllVaccinationItems() : Flow<List<Vaccination>>
 
+    @Query("SELECT * FROM feed")
+    fun getAllFeedItems() : Flow<List<Feed>>
+
+    @Query("SELECT * FROM weight")
+    fun getAllWeightItems() : Flow<List<Weight>>
+
     @Transaction
-    @Query("SELECT * FROM flock")
-    fun getFlocksWithVaccinations(): Flow<List<FlockWithVaccinations>>
+    @Query("SELECT * FROM flock WHERE id = :id")
+    fun getFlocksWithVaccinations(id: Int): Flow<FlockWithVaccinations>
+
+    @Transaction
+    @Query("SELECT * FROM flock WHERE id = :id")
+    fun getFlocksWithFeed(id: Int): Flow<FlockWithFeed>
+
+    @Transaction
+    @Query("SELECT * FROM flock WHERE id = :id")
+    fun getFlocksWithWeight(id: Int): Flow<FlockWithWeight>
 }

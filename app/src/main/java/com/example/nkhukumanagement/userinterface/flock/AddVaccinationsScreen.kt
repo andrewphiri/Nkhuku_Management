@@ -44,13 +44,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 import kotlin.String
@@ -78,9 +81,10 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                           navigateBack: () -> Unit,
                           canNavigateBack: Boolean = true,
                           onNavigateUp: () -> Unit,
-                          vaccinationViewModel: VaccinationViewModel ,
+                          vaccinationViewModel: VaccinationViewModel,
                           flockEntryViewModel: FlockEntryViewModel,
                           isDoneButtonShowing: Boolean = true,
+                          detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
 ){
     vaccinationViewModel.setInitialDates(flockEntryViewModel)
     val vaccinationDates = remember { vaccinationViewModel.getInitialVaccinationList() }
@@ -128,6 +132,21 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                     vaccinationViewModel.vaccinationUiState.setUniqueId(uniqueID = uniqueId)
                    coroutineScope.launch {
                        flockEntryViewModel.saveItem()
+
+                       detailsViewModel.saveWeight(WeightUiState(
+                           flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId(),
+                           week = "Initial Weight",
+                           weight = "0.04",
+                           dateMeasured = DateUtils().convertLocalDateToString(LocalDate.now())
+                       ))
+
+                       detailsViewModel.saveFeed(FeedUiState(
+                           flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId(),
+                           name = "Namfeed",
+                           type = "Starter",
+                           consumed = "0",
+                           feedingDate = DateUtils().convertLocalDateToString(LocalDate.now()),
+                       ))
                        repeat(listSize) {
                            vaccinationViewModel.saveVaccination(
                                vaccinationViewModel.getInitialVaccinationList()[it].copy(

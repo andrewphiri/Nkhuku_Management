@@ -2,39 +2,38 @@ package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Details
-import androidx.compose.material.icons.filled.FoodBank
 import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Vaccines
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -43,14 +42,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
+import com.example.nkhukumanagement.data.Feed
+import com.example.nkhukumanagement.data.Flock
+import com.example.nkhukumanagement.data.Vaccination
+import com.example.nkhukumanagement.data.Weight
+import com.example.nkhukumanagement.toFeedUiState
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import java.time.LocalDate
 import kotlin.String
 
 object FlockDetailsDestination : NkhukuDestinations {
@@ -62,7 +71,8 @@ object FlockDetailsDestination : NkhukuDestinations {
         get() = R.string.details
     const val flockIdArg = "id"
     val routeWithArgs = "$route/{$flockIdArg}"
-    val arguments = listOf(navArgument(flockIdArg) {
+    val arguments = listOf(navArgument(flockIdArg)  {
+        defaultValue = 1
         type = NavType.IntType
     })
 }
@@ -74,9 +84,13 @@ fun FlockDetailsScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    vaccinationViewModel: VaccinationViewModel,
-    flockEntryViewModel: FlockEntryViewModel
+    flockEntryViewModel: FlockEntryViewModel,
+    detailsViewModel: FlockDetailsViewModel = hiltViewModel()
 ){
+    val flockWithVaccinations by detailsViewModel.detailsVaccinationUiState.collectAsState()
+    val flockWithFeed by detailsViewModel.detailsFeedUiState.collectAsState()
+    val flockWithWeight by detailsViewModel.detailsWeightUiState.collectAsState()
+
     Scaffold (
         topBar = {
             FlockManagementTopAppBar(
@@ -87,28 +101,45 @@ fun FlockDetailsScreen(
         }
             ){ innerPadding ->
 
-        LazyVerticalGrid(
+        LazyVerticalStaggeredGrid(
             modifier = modifier.padding(innerPadding).fillMaxSize(),
-            columns = GridCells.Fixed(2),
+            columns = StaggeredGridCells.Fixed(2),
             contentPadding = PaddingValues(8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp).also { Arrangement.Center },
+            verticalItemSpacing = 16.dp,
             horizontalArrangement = Arrangement.spacedBy(16.dp).also { Arrangement.Center },
-        ) { item { HealthCard(flockUiState = flockEntryViewModel.flockUiState) }
-            item { VaccinationList(modifier =  modifier, vaccinationUiStateList = vaccinationViewModel.getInitialVaccinationList() ) }
-            item { FeedCard(
-                feedUiState = FeedUiState(
-                    name = "Novatek", type = "Pre-starter", consumed = 12.0),
-                flockUiState = flockEntryViewModel.flockUiState
-            ) }
+        ) {
+            item { flockWithVaccinations.flock?.let { HealthCard(flock = it) } }
+            item { flockWithVaccinations.vaccinations?.let { VaccinationList(modifier =  modifier, vaccinationUiStateList = it) } }
             item {
-                WeightCard(weightUiState = WeightUiState(week = "Initial weight", weight = 0.04)) }
+                flockWithFeed.feedList?.last()?.let {
+                    FeedCard(
+                        feed = it,
+                        flockUiState = flockEntryViewModel.flockUiState
+                    )
+                }
+            }
+            item {
+                flockWithWeight.weights?.last()?.let { WeightCard(weight = it) }
+            }
 
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HealthCard(modifier: Modifier = Modifier, flockUiState: FlockUiState) {
+fun HealthCard(modifier: Modifier = Modifier, flock: Flock) {
+    val flockUiState = Flock(
+        id = flock.id,
+        uniqueId = flock.uniqueId,
+        batchName = flock.batchName,
+        breed = flock.breed,
+        datePlaced = flock.datePlaced,
+        mortality = flock.mortality,
+        numberOfChicksPlaced = flock.numberOfChicksPlaced,
+        culls = flock.culls,
+        donorFlock = flock.donorFlock
+    ).toFlockUiState()
     ElevatedCard(modifier = modifier) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -128,14 +159,24 @@ fun HealthCard(modifier: Modifier = Modifier, flockUiState: FlockUiState) {
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
-            Row {
+            Row (
+                modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                 Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
+                    modifier = Modifier.weight(2f).fillMaxWidth()
                         .padding(2.dp),
                     text = "Mortality",
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Start
                 )
+
+                Divider(
+                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                )
+
                 Text(
                     modifier = Modifier.weight(1f).fillMaxWidth()
                         .padding(2.dp),
@@ -144,14 +185,24 @@ fun HealthCard(modifier: Modifier = Modifier, flockUiState: FlockUiState) {
                     textAlign = TextAlign.Start
                 )
             }
-            Row {
+            Row(
+                modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
+                    modifier = Modifier.weight(2f).fillMaxWidth()
                         .padding(2.dp),
                     text = "Culls",
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Start
                 )
+
+                Divider(
+                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                )
+
                 Text(
                     modifier = Modifier.weight(1f).fillMaxWidth()
                         .padding(2.dp),
@@ -166,7 +217,16 @@ fun HealthCard(modifier: Modifier = Modifier, flockUiState: FlockUiState) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FeedCard(modifier: Modifier = Modifier, feedUiState: FeedUiState, flockUiState: FlockUiState) {
+fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiState) {
+    val feedUiState = Feed(
+     id = feed.id,
+     flockUniqueId = feed.flockUniqueId,
+     name = feed.name,
+     type = feed.type,
+     consumed = feed.consumed,
+     feedingDate = feed.feedingDate
+    ).toFeedUiState()
+
     ElevatedCard  (
         modifier = modifier
     ) {
@@ -187,7 +247,11 @@ fun FeedCard(modifier: Modifier = Modifier, feedUiState: FeedUiState, flockUiSta
             Divider(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
-            Row {
+            Row(
+                modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Text(
                     modifier = Modifier.weight(1f).fillMaxWidth()
                         .padding(2.dp),
@@ -195,20 +259,30 @@ fun FeedCard(modifier: Modifier = Modifier, feedUiState: FeedUiState, flockUiSta
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Start
                 )
+
+                Divider(
+                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                )
+
                 Text(
                     modifier = Modifier.weight(1f).fillMaxWidth()
                         .padding(2.dp),
                     text = "${
                         String.format(
                             "%.2f",
-                            feedUiState.consumed / 2
+                            feedUiState.consumed.toDouble() / flockUiState.getBirdsRemaining()
                         )
                     } Kgs",
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Start
                 )
             }
-                Row {
+                Row(
+                    modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
                         modifier = Modifier.weight(1f).fillMaxWidth()
                             .padding(2.dp),
@@ -217,6 +291,12 @@ fun FeedCard(modifier: Modifier = Modifier, feedUiState: FeedUiState, flockUiSta
 
                         textAlign = TextAlign.Start
                     )
+
+                    Divider(
+                        modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                        thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                    )
+
                     Text(
                         modifier = Modifier.weight(1f).fillMaxWidth()
                             .padding(2.dp),
@@ -230,8 +310,9 @@ fun FeedCard(modifier: Modifier = Modifier, feedUiState: FeedUiState, flockUiSta
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun VaccinationList(modifier: Modifier, vaccinationUiStateList: List<VaccinationUiState>) {
+fun VaccinationList(modifier: Modifier, vaccinationUiStateList: List<Vaccination>) {
     ElevatedCard (modifier = modifier.padding(4.dp),) {
         Column (
             modifier = Modifier.padding(16.dp),
@@ -245,7 +326,7 @@ fun VaccinationList(modifier: Modifier, vaccinationUiStateList: List<Vaccination
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Vaccinations",
+                text = "Vaccination",
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
@@ -253,28 +334,47 @@ fun VaccinationList(modifier: Modifier, vaccinationUiStateList: List<Vaccination
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
             vaccinationUiStateList.forEach { uiState ->
-                VaccinationCard(vaccinationUiState = uiState)
+                VaccinationCard(vaccination = uiState)
             }
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun VaccinationCard(modifier: Modifier = Modifier, vaccinationUiState: VaccinationUiState) {
+fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
+    val vaccinationUiState = Vaccination(
+        id = vaccination.id,
+        flockUniqueId = vaccination.flockUniqueId,
+        date = vaccination.date,
+        name = vaccination.name,
+        notes = vaccination.notes
+
+    ).toVaccinationUiState()
     Card(modifier = modifier){
         Column {
-            Row {
+            Row (
+                modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     modifier = Modifier.weight(1f).fillMaxWidth()
                         .padding(2.dp),text = vaccinationUiState.getDate(),
                     style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Justify
+                    textAlign = TextAlign.Start
                 )
+
+                Divider(
+                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                )
+
                 Text(
                     modifier = Modifier.weight(1f).fillMaxWidth()
                         .padding(2.dp),text = vaccinationUiState.getName(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.tertiary,
+                    fontSize = TextUnit(value = 10f, type = TextUnitType.Sp ),
                     textAlign = TextAlign.Start
                 )
             }
@@ -282,8 +382,17 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccinationUiState: Vaccinati
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeightCard(modifier: Modifier = Modifier, weightUiState: WeightUiState) {
+fun WeightCard(modifier: Modifier = Modifier, weight: Weight) {
+    val weightUiState = Weight(
+        id = weight.id,
+        flockUniqueId = weight.flockUniqueId,
+        week = weight.week,
+        weight = weight.weight,
+        measuredDate = weight.measuredDate
+    ).toWeightUiState()
+
     ElevatedCard (modifier = modifier) {
         Column (
             modifier = Modifier.padding(16.dp),
@@ -306,7 +415,9 @@ fun WeightCard(modifier: Modifier = Modifier, weightUiState: WeightUiState) {
             Divider(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
-            Row {
+            Row(modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     modifier = Modifier.weight(1f).fillMaxWidth()
                         .padding(2.dp),
@@ -314,10 +425,15 @@ fun WeightCard(modifier: Modifier = Modifier, weightUiState: WeightUiState) {
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Start
                 )
+                Divider(
+                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                )
+
                 Text(
                     modifier = Modifier.weight(1f).fillMaxWidth()
                         .padding(2.dp),
-                    text = weightUiState.weight.toString(),
+                    text = "${weightUiState.weight} Kg",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.tertiary,
 
@@ -335,10 +451,10 @@ fun WeightCard(modifier: Modifier = Modifier, weightUiState: WeightUiState) {
 @Composable
 private fun FeedPreview() {
     NkhukuManagementTheme {
-        FeedCard(
-            feedUiState = FeedUiState(name = "Novatek", type = "Starter", consumed = 17.00),
-            flockUiState = FlockUiState(quantity = "250", mortality = 6)
-        )
+//        FeedCard(
+//            feed = Feed(name = "Novatek", type = "Starter", consumed = 17.00),
+//            flockUiState = FlockUiState(quantity = "250", mortality = 6)
+//        )
     }
 }
 

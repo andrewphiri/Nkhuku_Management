@@ -1,10 +1,13 @@
 package com.example.nkhukumanagement.data
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.time.LocalDate
-
+@Entity(tableName = "weight")
 data class Weight(
+    @PrimaryKey(autoGenerate = true)
     val id: Int,
-    val uniqueID: String,
+    val flockUniqueId: String,
     val week: String,
     val weight: Double,
     val measuredDate: LocalDate
