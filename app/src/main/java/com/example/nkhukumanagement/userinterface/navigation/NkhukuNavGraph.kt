@@ -27,11 +27,13 @@ import com.example.nkhukumanagement.userinterface.flock.AddFlockScreen
 import com.example.nkhukumanagement.userinterface.flock.AddVaccinationsDestination
 import com.example.nkhukumanagement.userinterface.flock.AddVaccinationsScreen
 import com.example.nkhukumanagement.userinterface.flock.EditFlockDestination
+import com.example.nkhukumanagement.userinterface.flock.EditFlockViewModel
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsScreen
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
 import com.example.nkhukumanagement.userinterface.flock.FlockEditScreen
 import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
+import com.example.nkhukumanagement.userinterface.flock.FlockUiState
 import com.example.nkhukumanagement.userinterface.flock.VaccinationViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -39,10 +41,10 @@ import com.example.nkhukumanagement.userinterface.flock.VaccinationViewModel
 fun NkhukuNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    flockEntryViewModel: FlockEntryViewModel = hiltViewModel(),
-    vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
+    vaccinationViewModel: VaccinationViewModel = hiltViewModel()
 
 ) {
+    val flockEntryViewModel: FlockEntryViewModel = hiltViewModel()
     NavHost(
         navController = navController,
         startDestination = NavigationBarScreens.Home.route,
@@ -78,19 +80,20 @@ fun NkhukuNavHost(
         }
         composable(AddFlockDestination.route) {
             AddFlockScreen(
-                onNavigateUp = { navController.navigateUp() },
+                onNavigateUp = {
+                    navController.navigateUp()
+                },
                 navigateToVaccinationsScreen = {
-                    navController.navigate(route = AddVaccinationsDestination.route)
+                    val id = it.id
+                    navController.navigate(route = "${AddVaccinationsDestination.route}/$id")
                                                },
-                viewModel = remember(flockEntryViewModel.flockUiState){flockEntryViewModel}
+                viewModel = flockEntryViewModel
             )
         }
         composable(
-            route = AddVaccinationsDestination.route,
+            route = AddVaccinationsDestination.routeWithArgs,
+            arguments = AddVaccinationsDestination.argument
         ) { navBackStackEntry ->
-            //Retrieve the arguments
-            val breed = navBackStackEntry.arguments?.getString(AddVaccinationsDestination.flockBreedArg)
-            val date = navBackStackEntry.arguments?.getString(AddVaccinationsDestination.dateReceivedArg)
             AddVaccinationsScreen(
                 navigateBack = { navController.navigate(NavigationBarScreens.Home.route) {
                     popUpTo(navController.graph.findStartDestination().id) {
@@ -123,13 +126,23 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController,
             arguments = FlockDetailsDestination.arguments
         ) {
             FlockDetailsScreen(
-                onNavigateUp = {navController.navigateUp()},
+                onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
+                navigateToFlockEdit = { id ->
+                   navController.navigate("${EditFlockDestination.route}/$id")
+                },
+                navigateToVaccinationScreen = { id ->
+                    navController.navigate("${AddVaccinationsDestination.route}/$id")
+                }
             )
         }
-        composable(EditFlockDestination.route) {
+        composable(
+            route = EditFlockDestination.routeWithArgs,
+        arguments = FlockDetailsDestination.arguments
+        ) {
             FlockEditScreen(
-                onNavigateUp = {navController.navigateUp()}
+                onNavigateUp = {navController.navigateUp()},
+                flockEntryViewModel = flockEntryViewModel
             )
         }
     }

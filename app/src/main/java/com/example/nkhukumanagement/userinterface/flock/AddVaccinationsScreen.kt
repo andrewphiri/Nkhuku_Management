@@ -1,6 +1,7 @@
 package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -33,11 +34,15 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +55,8 @@ import androidx.navigation.navArgument
 import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
+import com.example.nkhukumanagement.data.FlockWithVaccinations
+import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
 import kotlinx.coroutines.launch
@@ -66,12 +73,13 @@ object AddVaccinationsDestination : NkhukuDestinations {
         get() = "Add vaccinations"
     override val resourceId: Int
         get() = R.string.add_vaccinations
-    const val flockBreedArg = "breed"
-    const val dateReceivedArg = "date_received"
-    val routeWithArgs = "${route}/{{$flockBreedArg}&{$dateReceivedArg}}"
+    const val flockIdArg = "id"
+    val routeWithArgs = "$route/{$flockIdArg}"
     val argument = listOf(
-        navArgument(flockBreedArg) {type = NavType.StringType},
-        navArgument(dateReceivedArg) {type = NavType.StringType}
+        navArgument(flockIdArg) {
+            defaultValue = 0
+            type = NavType.IntType
+                                },
     )
 
 }
@@ -81,25 +89,41 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                           navigateBack: () -> Unit,
                           canNavigateBack: Boolean = true,
                           onNavigateUp: () -> Unit,
-                          vaccinationViewModel: VaccinationViewModel,
-                          flockEntryViewModel: FlockEntryViewModel,
-                          isDoneButtonShowing: Boolean = true,
+                          vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
                           detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
+                          flockEntryViewModel: FlockEntryViewModel,
+                          isDoneButtonShowing: Boolean = true
 ){
-    vaccinationViewModel.setInitialDates(flockEntryViewModel)
+    val flockWithVaccinations by detailsViewModel.detailsVaccinationUiState.collectAsState()
+
+    var title = stringResource(AddVaccinationsDestination.resourceId)
+
+    if (flockEntryViewModel.flockUiState.id > 0) {
+        title =  stringResource(R.string.edit_vaccinations)
+        val vaccinesList: List<Vaccination> = flockWithVaccinations.vaccinations
+        val vaccinesStateList: MutableList<VaccinationUiState> = mutableListOf()
+        vaccinesList.forEach { vaccinesStateList.add(it.toVaccinationUiState(enabled = true)) }
+
+        vaccinationViewModel.setInitialDates(vaccinesStateList.toMutableStateList())
+    } else {
+        vaccinationViewModel.setInitialDates(vaccinationViewModel.defaultVaccinationDates(
+            flockEntryViewModel.flockUiState,vaccinationViewModel.vaccinationUiState))
+    }
+
     val vaccinationDates = remember { vaccinationViewModel.getInitialVaccinationList() }
     var listSize by remember { mutableStateOf(vaccinationViewModel.getInitialVaccinationList().size) }
     var isRemoveShowing by remember { mutableStateOf(listSize > 1)
      }
-    var isAddShowing by remember { mutableStateOf(true) }
+    val isAddShowing by remember { mutableStateOf(true) }
     var isDoneEnabled by remember { mutableStateOf(vaccinationDates.all { it.isValid() }) }
+    isRemoveShowing = listSize > 1
 
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold (
         topBar = {
             FlockManagementTopAppBar(
-                title = stringResource(AddVaccinationsDestination.resourceId),
+                title = title,
                 canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp,
                 isRemoveShowing = isRemoveShowing,
@@ -120,9 +144,11 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                     listSize++
                     isRemoveShowing = true
                     isDoneEnabled = vaccinationDates.all { it.isValid() }
+                    val newDate = DateUtils().stringToLocalDate(vaccinationViewModel.getInitialVaccinationList().last().getDate())
+                    val vaccineDate = DateUtils().convertLocalDateToString(DateUtils().calculateDate(newDate, 7))
                     vaccinationViewModel.getInitialVaccinationList().add(
                         vaccinationDates.last().copy(
-                            vaccinationNumber = listSize
+                            vaccinationNumber = listSize, name = "", date = vaccineDate
                         )
                     )
                 },
@@ -132,21 +158,8 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                     vaccinationViewModel.vaccinationUiState.setUniqueId(uniqueID = uniqueId)
                    coroutineScope.launch {
                        flockEntryViewModel.saveItem()
-
-                       detailsViewModel.saveWeight(WeightUiState(
-                           flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId(),
-                           week = "Initial Weight",
-                           weight = "0.04",
-                           dateMeasured = DateUtils().convertLocalDateToString(LocalDate.now())
-                       ))
-
-                       detailsViewModel.saveFeed(FeedUiState(
-                           flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId(),
-                           name = "Namfeed",
-                           type = "Starter",
-                           consumed = "0",
-                           feedingDate = DateUtils().convertLocalDateToString(LocalDate.now()),
-                       ))
+                       vaccinationViewModel.saveInitialWeight()
+                       vaccinationViewModel.saveInitialFeed()
                        repeat(listSize) {
                            vaccinationViewModel.saveVaccination(
                                vaccinationViewModel.getInitialVaccinationList()[it].copy(
@@ -170,6 +183,7 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
             )
     }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -206,6 +220,7 @@ fun VaccinationCardEntry(
         modifier = modifier.padding(8.dp),
         elevation = CardDefaults.cardElevation()
     ) {
+
         Column(
             modifier = modifier.fillMaxWidth().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -301,7 +316,7 @@ fun StatefulPickDateDialog(modifier: Modifier, vaccinationUiState: VaccinationUi
         initialSelectedDateMillis = DateUtils()
             .stringToLocalDate(vaccinationUiState.getDate())
             .atStartOfDay()
-            .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+            .atZone(ZoneId.of("UTC")).toInstant().toEpochMilli())
 
     var showDialog by remember { mutableStateOf(false) }
 
@@ -385,7 +400,8 @@ fun DownMenu(
 }
 
 @Composable
-fun StatefulDropDownMenu(modifier: Modifier, vaccinationUiState: VaccinationUiState, onValueChanged: (VaccinationUiState) -> Unit) {
+fun StatefulDropDownMenu(modifier: Modifier, vaccinationUiState: VaccinationUiState,
+                         onValueChanged: (VaccinationUiState) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var optionSelected by remember { mutableStateOf(vaccinationUiState.getName()) }
     vaccinationUiState.setName(optionSelected)

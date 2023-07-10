@@ -46,6 +46,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -90,6 +91,13 @@ fun HomeScreen(
     val homeUiState by viewModel.homeUiState.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+
+    DisposableEffect(Unit) {
+        onDispose {
+            flockEntryViewModel.resetAll()
+        }
+    }
+
     Scaffold( modifier = modifier,
         topBar = {
                  FlockManagementTopAppBar(
@@ -131,8 +139,13 @@ fun HomeScreen(
             listState = listState,
             onDelete = {index ->
                 coroutineScope.launch {
-                    flockEntryViewModel.deleteFlock(homeUiState.flockList[index].uniqueId)
-                    vaccinationViewModel.deleteVaccination(homeUiState.flockList[index].uniqueId)
+                    val uniqueId = homeUiState.flockList[index].uniqueId
+                    flockEntryViewModel.deleteFlock(uniqueId)
+                    vaccinationViewModel.deleteVaccination(uniqueId)
+                    vaccinationViewModel.deleteFeed(uniqueId)
+                    vaccinationViewModel.deleteWeight(uniqueId)
+                    flockEntryViewModel.deleteFlockHealth(uniqueId)
+
                 }
             }
         )
@@ -244,14 +257,6 @@ fun FlockCard(
                 Column (
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 ){
-                    Text(
-                        text = "#${flock.id}",
-                        style = MaterialTheme.typography.displaySmall,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Cyan,
-                        modifier = modifier
-                            .align(Alignment.Start)
-                    )
                     Image(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         painter = painterResource(flock.imageResourceId),
@@ -313,7 +318,7 @@ fun FlockCard(
                                 .padding(2.dp),
                             textAlign = TextAlign.Justify
                         )
-                        Text(text = flock.numberOfChicksPlaced.toString(),
+                        Text(text = (flock.numberOfChicksPlaced + flock.donorFlock).toString(),
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier
                                 .padding(2.dp),
@@ -352,12 +357,12 @@ fun FlockCard(
                     Row (modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End) {
                         Text(
-                            text = "Stock: ${flock.numberOfChicksPlaced - flock.mortality}",
+                            text = "Stock: ${(flock.stock)}",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier
                                 .padding(8.dp),
-                            textAlign = TextAlign.Justify
+                            textAlign = TextAlign.Center
                         )
                     }
                 }

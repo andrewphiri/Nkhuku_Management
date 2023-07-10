@@ -1,9 +1,11 @@
 package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -15,8 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.icons.Icons
@@ -32,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,11 +46,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Feed
@@ -59,6 +58,7 @@ import com.example.nkhukumanagement.data.Weight
 import com.example.nkhukumanagement.toFeedUiState
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import com.example.nkhukumanagement.utils.DateUtils
 import java.time.LocalDate
 import kotlin.String
 
@@ -84,13 +84,20 @@ fun FlockDetailsScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    navigateToFlockEdit: (Int) -> Unit = {},
+    navigateToVaccinationScreen: (Int) -> Unit,
     flockEntryViewModel: FlockEntryViewModel,
     detailsViewModel: FlockDetailsViewModel = hiltViewModel()
 ){
     val flockWithVaccinations by detailsViewModel.detailsVaccinationUiState.collectAsState()
     val flockWithFeed by detailsViewModel.detailsFeedUiState.collectAsState()
     val flockWithWeight by detailsViewModel.detailsWeightUiState.collectAsState()
+    val flock by detailsViewModel.flock.collectAsState(initial = flockEntryViewModel.flockUiState.copy(
+        datePlaced = DateUtils().convertLocalDateToString(LocalDate.now()), quantity = "0", donorFlock = "0"
+    ).toFlock())
 
+
+    flockEntryViewModel.updateUiState(flock.toFlockUiState(true))
     Scaffold (
         topBar = {
             FlockManagementTopAppBar(
@@ -108,13 +115,22 @@ fun FlockDetailsScreen(
             verticalItemSpacing = 16.dp,
             horizontalArrangement = Arrangement.spacedBy(16.dp).also { Arrangement.Center },
         ) {
-            item { flockWithVaccinations.flock?.let { HealthCard(flock = it) } }
-            item { flockWithVaccinations.vaccinations?.let { VaccinationList(modifier =  modifier, vaccinationUiStateList = it) } }
+            item {
+                flockWithVaccinations.flock?.let {
+                    HealthCard(flock = it, onHealthCardClick = { navigateToFlockEdit(flock.id) }) }
+            }
+            item {
+                VaccinationList(modifier =  modifier,
+                    vaccinationUiStateList = flockWithVaccinations.vaccinations,
+                    onVaccinationCardClick = {
+                        navigateToVaccinationScreen(it)},
+                    flock = flock)
+            }
             item {
                 flockWithFeed.feedList?.last()?.let {
                     FeedCard(
                         feed = it,
-                        flockUiState = flockEntryViewModel.flockUiState
+                        flockUiState = flock.toFlockUiState(enabled = true)
                     )
                 }
             }
@@ -128,7 +144,7 @@ fun FlockDetailsScreen(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HealthCard(modifier: Modifier = Modifier, flock: Flock) {
+fun HealthCard(modifier: Modifier = Modifier, flock: Flock, onHealthCardClick: (Flock) -> Unit) {
     val flockUiState = Flock(
         id = flock.id,
         uniqueId = flock.uniqueId,
@@ -138,9 +154,13 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock) {
         mortality = flock.mortality,
         numberOfChicksPlaced = flock.numberOfChicksPlaced,
         culls = flock.culls,
+        stock = flock.stock,
         donorFlock = flock.donorFlock
     ).toFlockUiState()
-    ElevatedCard(modifier = modifier) {
+    ElevatedCard(
+        modifier = modifier
+            .clickable { onHealthCardClick(flock) }
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -159,58 +179,62 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock) {
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
-            Row (
-                modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                Text(
-                    modifier = Modifier.weight(2f).fillMaxWidth()
-                        .padding(2.dp),
-                    text = "Mortality",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start
-                )
+           Card {
+               Row (
+                   modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                   verticalAlignment = Alignment.CenterVertically,
+                   horizontalArrangement = Arrangement.spacedBy(8.dp)
+               ) {
+                   Text(
+                       modifier = Modifier.weight(2f).fillMaxWidth()
+                           .padding(2.dp),
+                       text = "Mortality",
+                       style = MaterialTheme.typography.bodySmall,
+                       textAlign = TextAlign.Start
+                   )
 
-                Divider(
-                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                )
+                   Divider(
+                       modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                       thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                   )
 
-                Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                        .padding(2.dp),
-                    text = flockUiState.mortality.toString(),
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start
-                )
-            }
-            Row(
-                modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    modifier = Modifier.weight(2f).fillMaxWidth()
-                        .padding(2.dp),
-                    text = "Culls",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start
-                )
+                   Text(
+                       modifier = Modifier.weight(1f).fillMaxWidth()
+                           .padding(2.dp),
+                       text = flockUiState.getMortality(),
+                       style = MaterialTheme.typography.bodySmall,
+                       textAlign = TextAlign.Start
+                   )
+               }
+           }
+           Card {
+               Row(
+                   modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                   verticalAlignment = Alignment.CenterVertically,
+                   horizontalArrangement = Arrangement.spacedBy(8.dp)
+               ) {
+                   Text(
+                       modifier = Modifier.weight(2f).fillMaxWidth()
+                           .padding(2.dp),
+                       text = "Culls",
+                       style = MaterialTheme.typography.bodySmall,
+                       textAlign = TextAlign.Start
+                   )
 
-                Divider(
-                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                )
+                   Divider(
+                       modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                       thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                   )
 
-                Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                        .padding(2.dp),
-                    text = flockUiState.culls.toString(),
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start
-                )
-            }
+                   Text(
+                       modifier = Modifier.weight(1f).fillMaxWidth()
+                           .padding(2.dp),
+                       text = flockUiState.getCulls(),
+                       style = MaterialTheme.typography.bodySmall,
+                       textAlign = TextAlign.Start
+                   )
+               }
+           }
         }
     }
 }
@@ -247,37 +271,8 @@ fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiSta
             Divider(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
-            Row(
-                modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                        .padding(2.dp),
-                    text = "Consumption/Bird:",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start
-                )
 
-                Divider(
-                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                )
-
-                Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                        .padding(2.dp),
-                    text = "${
-                        String.format(
-                            "%.2f",
-                            feedUiState.consumed.toDouble() / flockUiState.getBirdsRemaining()
-                        )
-                    } Kgs",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start
-                )
-            }
+            Card {
                 Row(
                     modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -286,9 +281,8 @@ fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiSta
                     Text(
                         modifier = Modifier.weight(1f).fillMaxWidth()
                             .padding(2.dp),
-                        text = "Total Feed Consumed:",
+                        text = "Consumption/Bird:",
                         style = MaterialTheme.typography.bodySmall,
-
                         textAlign = TextAlign.Start
                     )
 
@@ -300,22 +294,58 @@ fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiSta
                     Text(
                         modifier = Modifier.weight(1f).fillMaxWidth()
                             .padding(2.dp),
-                        text = "${feedUiState.consumed} Kgs",
+                        text = "${
+                            String.format(
+                                "%.2f",
+                                feedUiState.consumed.toDouble() / flockUiState.getBirdsRemaining()
+                            )
+                        } Kgs",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary,
                         textAlign = TextAlign.Start
                     )
+                }
             }
+                Card {
+                    Row(
+                        modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f).fillMaxWidth()
+                                .padding(2.dp),
+                            text = "Total Feed Consumed:",
+                            style = MaterialTheme.typography.bodySmall,
+
+                            textAlign = TextAlign.Start
+                        )
+
+                        Divider(
+                            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                            thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                        )
+
+                        Text(
+                            modifier = Modifier.weight(1f).fillMaxWidth()
+                                .padding(2.dp),
+                            text = "${feedUiState.consumed} Kgs",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                }
         }
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun VaccinationList(modifier: Modifier, vaccinationUiStateList: List<Vaccination>) {
+fun VaccinationList(modifier: Modifier, vaccinationUiStateList: List<Vaccination>,
+                    onVaccinationCardClick: (Int) -> Unit, flock: Flock) {
     ElevatedCard (modifier = modifier.padding(4.dp),) {
         Column (
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(16.dp).clickable { onVaccinationCardClick(flock.id) },
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
@@ -351,6 +381,7 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
         notes = vaccination.notes
 
     ).toVaccinationUiState()
+
     Card(modifier = modifier){
         Column {
             Row (
@@ -390,6 +421,7 @@ fun WeightCard(modifier: Modifier = Modifier, weight: Weight) {
         flockUniqueId = weight.flockUniqueId,
         week = weight.week,
         weight = weight.weight,
+        expectedWeight = weight.expectedWeight,
         measuredDate = weight.measuredDate
     ).toWeightUiState()
 
@@ -412,35 +444,72 @@ fun WeightCard(modifier: Modifier = Modifier, weight: Weight) {
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
+
             Divider(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
-            Row(modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                        .padding(2.dp),
-                    text = weightUiState.week,
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start
-                )
-                Divider(
-                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                )
 
-                Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                        .padding(2.dp),
-                    text = "${weightUiState.weight} Kg",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.tertiary,
+            Text(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(2.dp),
+                text = weightUiState.week,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
 
-                    textAlign = TextAlign.Start
-                )
+            Card {
+                Row(modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        modifier = Modifier.weight(1.5f).fillMaxWidth()
+                            .padding(2.dp),
+                        text = "Actual",
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Start
+                    )
+                    Divider(
+                        modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                        thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                    )
 
+                    Text(
+                        modifier = Modifier.weight(1f).fillMaxWidth()
+                            .padding(2.dp),
+                        text = "${weightUiState.actualWeight} Kg",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        textAlign = TextAlign.Start
+                    )
+                }
             }
+
+               Card {
+                   Row(modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
+                       verticalAlignment = Alignment.CenterVertically,
+                       horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                       Text(
+                           modifier = Modifier.weight(1.5f).fillMaxWidth()
+                               .padding(2.dp),
+                           text = "Standard",
+                           style = MaterialTheme.typography.bodySmall,
+                           textAlign = TextAlign.Start
+                       )
+                       Divider(
+                           modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                           thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+                       )
+
+                       Text(
+                           modifier = Modifier.weight(1f).fillMaxWidth()
+                               .padding(2.dp),
+                           text = "${weightUiState.standard} Kg",
+                           style = MaterialTheme.typography.bodySmall,
+                           color = MaterialTheme.colorScheme.tertiary,
+                           textAlign = TextAlign.Start
+                       )
+                   }
+               }
         }
     }
 }

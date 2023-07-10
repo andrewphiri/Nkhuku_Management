@@ -15,6 +15,7 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
     override fun getAllFlocksWithFeed(id: Int): Flow<FlockWithFeed> = flockDao.getFlocksWithFeed(id)
 
     override fun getAllFlocksWithWeight(id: Int): Flow<FlockWithWeight> = flockDao.getFlocksWithWeight(id)
+    override fun getFlocksWithHealth(id: Int): Flow<FlockWithHealth> = flockDao.getFlocksWithHealth(id)
 
     override fun getAllVaccinationItems(): Flow<List<Vaccination>> = flockDao.getAllVaccinationItems()
 
@@ -26,16 +27,19 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
     override suspend fun insertFeed(feed: Feed) = flockDao.insertFeed(feed)
 
     override suspend fun insertWeight(weight: Weight) = flockDao.insertWeight(weight)
+    override suspend fun insertFlockHealth(flockHealth: FlockHealth) = flockDao.insertFlockHealth(flockHealth)
 
     override suspend fun deleteFlock(flockUniqueID: String) = flockDao.deleteFlock(flockUniqueID)
     override suspend fun deleteVaccination(flockUniqueID: String) = flockDao.deleteVaccination(flockUniqueID)
     override suspend fun deleteFeed(flockUniqueID: String) = flockDao.deleteFeed(flockUniqueID)
 
     override suspend fun deleteWeight(flockUniqueID: String) = flockDao.deleteWeight(flockUniqueID)
+    override suspend fun deleteFlockHealth(flockUniqueID: String) = flockDao.deleteFlockHealth(flockUniqueID)
 
     override suspend fun updateFlock(flock: Flock) = flockDao.updateFlock(flock)
     override suspend fun updateVaccination(vaccination: Vaccination) = flockDao.updateVaccination(vaccination)
     override suspend fun updateFeed(feed: Feed) = flockDao.updateFeed(feed)
 
     override suspend fun updateWeight(weight: Weight) = flockDao.updateWeight(weight)
+    override suspend fun updateFlockHealth(flockHealth: FlockHealth) = flockDao.updateFlockHealth(flockHealth)
 }

@@ -39,6 +39,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -87,7 +88,9 @@ fun AddFlockScreen(
                  FlockManagementTopAppBar(
                      title = stringResource(AddFlockDestination.resourceId),
                      canNavigateBack = canNavigateBack,
-                     navigateUp = onNavigateUp
+                     navigateUp = {onNavigateUp()
+
+                     }
                  )
         } ,
     ) { innerPadding ->
@@ -96,6 +99,7 @@ fun AddFlockScreen(
             modifier = modifier.padding(innerPadding),
             onItemValueChange = viewModel::updateUiState,
             onVaccinationsScreen = {
+                viewModel.flockUiState.setStock(it.quantity, it.donorFlock)
                 navigateToVaccinationsScreen(viewModel.flockUiState)} )
     }
 }
@@ -235,6 +239,7 @@ fun AddFlockInputForm(
         PickerDialog(
             showDialog = showDialog,
             onDismissed = {showDialog = false},
+            label = "Date Received",
             flockUiState = flockUiState,
             updateShowDialogOnClick = {showDialog = true},
             onValueChanged = onValueChanged,
@@ -284,6 +289,7 @@ fun AddFlockInputForm(
 @Composable
 fun PickerDialog(
     showDialog: Boolean,
+    label: String,
     onDismissed: () -> Unit,
     updateShowDialogOnClick: (Boolean) -> Unit,
     flockUiState: FlockUiState,
@@ -300,7 +306,7 @@ fun PickerDialog(
             .fillMaxWidth(),
         value = flockUiState.getDate(),
         onValueChange = {onValueChanged(flockUiState.copy(datePlaced = it))},
-        label = { Text("Date Received")},
+        label = { Text(text = label)},
         singleLine = true,
         readOnly = true,
         colors = TextFieldDefaults.colors(

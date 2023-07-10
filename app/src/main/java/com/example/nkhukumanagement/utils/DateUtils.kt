@@ -22,13 +22,13 @@ class DateUtils {
 
         //Convert the passed in date to a Long in millis
         val timeInMillis = LocalDate.parse(date.format(dateFormatter), dateFormatter)
-            .atStartOfDay(ZoneId.systemDefault())
+            .atStartOfDay(ZoneId.of("UTC"))
             .toInstant()
             .toEpochMilli()
 
         //Then convert the timeInMillis to a LocalDate object
         val dateSelectedInMillis = Instant.ofEpochMilli(timeInMillis)
-            .atZone(ZoneId.systemDefault()).toLocalDate()
+            .atZone(ZoneId.of("UTC")).toLocalDate()
 
         //Format dateSelectedInMillis to a string and Return
         return dateFormatter.format(
@@ -39,10 +39,8 @@ class DateUtils {
     @RequiresApi(Build.VERSION_CODES.O)
     fun convertMillisToLocalDate(millis: Long) : LocalDate {
         return Instant.ofEpochMilli(millis)
-            .atZone(ZoneId.systemDefault()).toLocalDate()
+            .atZone(ZoneId.of("UTC")).toLocalDate()
     }
-
-
 
     /**
      * Convert a string to a local date object
@@ -50,7 +48,14 @@ class DateUtils {
     @RequiresApi(Build.VERSION_CODES.O)
     fun stringToLocalDate(date: String?) : LocalDate {
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
-        return LocalDate.parse(date, dateFormatter)
+
+        val timeInMillis = LocalDate.parse(date, dateFormatter)
+            .atStartOfDay(ZoneId.of("UTC"))
+            .toInstant()
+            .toEpochMilli()
+
+           return Instant.ofEpochMilli(timeInMillis)
+               .atZone(ZoneId.of("UTC")).toLocalDate()
     }
 
     /**

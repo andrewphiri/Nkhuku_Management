@@ -1,5 +1,6 @@
 package com.example.nkhukumanagement.data
 
+import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -37,6 +38,11 @@ interface FlockRepository {
     fun getAllFlocksWithWeight(id: Int): Flow<FlockWithWeight>
 
     /**
+     * Retrieve all flocksWithHealth from data source
+     */
+    fun getFlocksWithHealth(id: Int): Flow<FlockWithHealth>
+
+    /**
      * Retrieve all vaccination entries from data source
      */
     fun getAllVaccinationItems(): Flow<List<Vaccination>>
@@ -72,6 +78,11 @@ interface FlockRepository {
     suspend fun insertWeight(weight: Weight)
 
     /**
+     * Insert flockHealth in the database
+     */
+    suspend fun insertFlockHealth(flockHealth: FlockHealth)
+
+    /**
      * Delete flock from the database
      */
     suspend fun deleteFlock(flockUniqueID: String)
@@ -92,6 +103,12 @@ interface FlockRepository {
     suspend fun deleteWeight(flockUniqueID: String)
 
     /**
+     * Delete flockHealth from the database
+     */
+    @Query("DELETE FROM health WHERE flockUniqueId = :flockUniqueID")
+    suspend fun deleteFlockHealth(flockUniqueID: String)
+
+    /**
      * Update flock in the database
      */
     suspend fun updateFlock(flock: Flock)
@@ -110,4 +127,9 @@ interface FlockRepository {
      * Update weight in the database
      */
     suspend fun updateWeight(weight: Weight)
+
+    /**
+     * Update flockHealth in the database
+     */
+    suspend fun updateFlockHealth(flockHealth: FlockHealth)
 }

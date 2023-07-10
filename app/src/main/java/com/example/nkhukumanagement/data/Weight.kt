@@ -9,6 +9,7 @@ data class Weight(
     val id: Int,
     val flockUniqueId: String,
     val week: String,
+    val expectedWeight: Double,
     val weight: Double,
     val measuredDate: LocalDate
 )

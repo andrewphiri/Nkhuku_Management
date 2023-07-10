@@ -8,20 +8,48 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.data.FlockRepository
+import com.example.nkhukumanagement.data.FlockWithVaccinations
+import com.example.nkhukumanagement.toFeed
 import com.example.nkhukumanagement.utils.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
-class VaccinationViewModel @Inject constructor(private val flockRepository: FlockRepository): ViewModel() {
+class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandle,
+                                               private val flockRepository: FlockRepository): ViewModel() {
+
+    companion object {
+        private const val MILLIS = 5_000L
+    }
 
     private var initialVaccinationList: SnapshotStateList<VaccinationUiState> = mutableStateListOf()
     var vaccinationUiState by mutableStateOf(VaccinationUiState())
         private set
+
+
+    private val flockID: Int = savedStateHandle[AddVaccinationsDestination.flockIdArg] ?: -1
+
+    val flockWithVaccinations: StateFlow<FlockWithVaccinations> =
+        flockRepository.getAllFlocksWithVaccinations(flockID)
+            .map { it }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(MILLIS),
+                initialValue = FlockWithVaccinations(flock = null, vaccinations = listOf())
+            )
+
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -35,6 +63,36 @@ class VaccinationViewModel @Inject constructor(private val flockRepository: Floc
         }
     }
 
+    suspend fun saveInitialWeight() {
+        flockRepository.insertWeight(WeightUiState(
+            flockUniqueID = vaccinationUiState.getUniqueId(),
+            week = "Initial Weight",
+            standard = "0.04",
+            actualWeight = "0.04",
+            dateMeasured = DateUtils().convertLocalDateToString(LocalDate.now())
+        ).toWeight())
+
+    }
+
+    suspend fun deleteWeight(flockUniqueId: String) {
+        flockRepository.deleteWeight(flockUniqueId)
+    }
+
+    suspend fun deleteFeed(flockUniqueId: String) {
+        flockRepository.deleteFeed(flockUniqueId)
+    }
+
+    suspend fun saveInitialFeed() {
+        flockRepository.insertFeed(
+            FeedUiState(
+                flockUniqueID = vaccinationUiState.getUniqueId(),
+                name = "N/A",
+                type = "Starter",
+                consumed = "0",
+                feedingDate = DateUtils().convertLocalDateToString(LocalDate.now()),
+            ).toFeed()
+        )
+    }
     suspend fun deleteVaccination(flockUniqueID: String) {
         flockRepository.deleteVaccination(flockUniqueID)
     }
@@ -44,8 +102,12 @@ class VaccinationViewModel @Inject constructor(private val flockRepository: Floc
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun setInitialDates(flockEntryViewModel: FlockEntryViewModel)  {
-        initialVaccinationList = defaultVaccinationDates(flockEntryViewModel.flockUiState, vaccinationUiState)
+    fun setInitialDates(vaccinationUiStateList: SnapshotStateList<VaccinationUiState>)  {
+            initialVaccinationList = vaccinationUiStateList
+    }
+
+    fun reset() {
+        initialVaccinationList = mutableStateListOf()
     }
     /**
      * Default vaccination dates based on breed and date chicks received

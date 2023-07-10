@@ -24,14 +24,14 @@ data class VaccinationUiState(
 
     val options = listOf("Gumburo", "Lasota")
     fun setDate(mDate: String) {
-        date = derivedStateOf { mDate }.value
+        date = mDate
     }
     fun getDate(): String {
         return date
     }
 
     fun setName(mName: String) {
-        name = derivedStateOf { mName }.value
+        name = mName
     }
     fun getName(): String {
         return name
@@ -70,7 +70,8 @@ fun Vaccination.toVaccinationUiState(enabled: Boolean = false) : VaccinationUiSt
     name = name,
     date = DateUtils().convertLocalDateToString(date),
     notes = notes,
-    actionEnabled = enabled
+    actionEnabled = enabled,
+    vaccinationNumber = id,
 )
 
 @RequiresApi(Build.VERSION_CODES.O)

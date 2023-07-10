@@ -2,7 +2,6 @@ package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
+import com.example.nkhukumanagement.data.Flock
 import com.example.nkhukumanagement.data.FlockWithFeed
 import com.example.nkhukumanagement.data.FlockWithVaccinations
 import com.example.nkhukumanagement.data.FlockWithWeight
@@ -25,6 +25,7 @@ import com.example.nkhukumanagement.home.HomeUiState
 import com.example.nkhukumanagement.home.HomeViewModel
 import com.example.nkhukumanagement.isValid
 import com.example.nkhukumanagement.toFeed
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.WhileSubscribed
 
 @HiltViewModel
@@ -41,6 +42,9 @@ class FlockDetailsViewModel @Inject constructor(savedStateHandle: SavedStateHand
         private set
 
     private val flockID: Int = checkNotNull(savedStateHandle[FlockDetailsDestination.flockIdArg])
+
+    val flock: Flow<Flock> =
+        flockRepository.getFlock(flockID)
 
     @RequiresApi(Build.VERSION_CODES.O)
     val detailsFeedUiState: StateFlow<FlockWithFeed> =
@@ -67,8 +71,9 @@ class FlockDetailsViewModel @Inject constructor(savedStateHandle: SavedStateHand
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = FlockWithVaccinations(flock = null, vaccinations = null)
+                initialValue = FlockWithVaccinations(flock = null, vaccinations = listOf())
             )
+
 
     fun updateWeightUiState(uiState: WeightUiState) {
         weightUiState =   uiState.copy(enabled = uiState.isValid())

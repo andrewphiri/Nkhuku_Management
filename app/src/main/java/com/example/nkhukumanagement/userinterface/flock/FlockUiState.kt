@@ -24,9 +24,10 @@ data class FlockUiState (
     private var datePlaced: String = "",
     val quantity: String = "",
     val donorFlock: String = "",
-    val mortality: Int = 0,
+    private var stock: String = "0",
+    private var mortality: String = "0",
     val imageResourceId: Int = R.drawable.chicken,
-    val culls: Int = 0,
+    private var culls: String = "0",
     val enabled : Boolean = false
 ) : Parcelable {
     val options = mutableListOf("Hybrid", "Ross", "Zamhatch")
@@ -47,7 +48,32 @@ data class FlockUiState (
         return uniqueId
     }
 
-    fun getBirdsRemaining() : Int = quantity.toInt() - mortality
+    fun setMortality(mMortality: String) {
+        mortality =  mMortality
+    }
+
+    fun getMortality(): String {
+        return mortality
+    }
+
+    fun setCulls(mCulls: String) {
+        culls = derivedStateOf { mCulls }.value
+    }
+
+    fun getCulls(): String {
+        return culls
+    }
+
+    fun setStock(quantity: String, donorFlock: String) {
+        stock = (quantity.toInt() + donorFlock.toInt()).toString()
+    }
+
+    fun getStock(): String {
+        return stock
+    }
+
+    fun getBirdsRemaining() : Int = getStock().toInt() - mortality.toInt()
+
 }
     /**
      * Extension function to convert [FlockUIState] to [Flock]
@@ -61,9 +87,9 @@ data class FlockUiState (
         datePlaced = DateUtils().stringToLocalDate(getDate()),
         numberOfChicksPlaced = quantity.toInt(),
         donorFlock = donorFlock.toIntOrNull() ?: 0,
-        mortality = mortality,
-        culls = culls
-
+        mortality = getMortality().toInt(),
+        stock = getStock().toInt(),
+        culls = getCulls().toInt()
     )
 
     /**
@@ -79,8 +105,9 @@ data class FlockUiState (
             datePlaced = DateUtils().convertLocalDateToString(datePlaced),
             quantity = numberOfChicksPlaced.toString(),
             donorFlock = donorFlock.toString(),
-            mortality = mortality,
-            culls = culls,
+            mortality = mortality.toString(),
+            culls = culls.toString(),
+            stock = stock.toString(),
             enabled = enabled
         )
 

@@ -11,6 +11,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.saveable
+import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.FlockRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.scopes.ActivityRetainedScoped
@@ -40,7 +41,46 @@ class FlockEntryViewModel @Inject constructor(private val flockRepository: Flock
         }
     }
 
+    suspend fun updateItem(flockUiState: FlockUiState) {
+        if (flockUiState.isValid()) {
+            flockRepository.updateFlock(flockUiState.toFlock())
+            Log.i("FLOCK_UPDATE", flockUiState.toString())
+        }
+    }
+
     suspend fun deleteFlock(flockUniqueID: String) {
         flockRepository.deleteFlock(flockUniqueID)
+    }
+
+    suspend fun deleteFlockHealth(flockUniqueID: String) {
+        flockRepository.deleteFlockHealth(flockUniqueID)
+    }
+    fun resetAll() {
+        flockUiState = flockUiState.copy(
+            id = 0,
+            uniqueId = "",
+            batchName = "",
+            breed = "",
+            datePlaced = "",
+            quantity = "",
+            donorFlock = "",
+            stock = "0",
+            mortality = "0",
+            imageResourceId = R.drawable.chicken,
+            culls = "0",
+            enabled = false
+        )
+    }
+
+    fun reset() {
+        flockUiState = flockUiState.copy(
+            uniqueId = "",
+            batchName = "",
+            donorFlock = "",
+            stock = "0",
+            mortality = "0",
+            imageResourceId = R.drawable.chicken,
+            culls = "0",
+        )
     }
 }

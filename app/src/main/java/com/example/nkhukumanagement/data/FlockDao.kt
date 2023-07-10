@@ -22,6 +22,9 @@ interface FlockDao {
     @Insert
     suspend fun insertWeight(weight: Weight)
 
+    @Insert
+    suspend fun insertFlockHealth(flockHealth: FlockHealth)
+
     @Update
     suspend fun updateFlock(flock: Flock)
 
@@ -33,6 +36,9 @@ interface FlockDao {
 
     @Update
     suspend fun updateWeight(weight: Weight)
+
+    @Update
+    suspend fun updateFlockHealth(flockHealth: FlockHealth)
 
 
     @Query("DELETE FROM flock WHERE uniqueId = :flockUniqueID")
@@ -47,6 +53,8 @@ interface FlockDao {
     @Query("DELETE FROM weight WHERE flockUniqueId = :flockUniqueID")
     suspend fun deleteWeight(flockUniqueID: String)
 
+    @Query("DELETE FROM health WHERE flockUniqueId = :flockUniqueID")
+    suspend fun deleteFlockHealth(flockUniqueID: String)
 
     @Query("SELECT * FROM flock WHERE id = :id")
     fun retrieveFlock(id: Int) : Flow<Flock>
@@ -77,4 +85,8 @@ interface FlockDao {
     @Transaction
     @Query("SELECT * FROM flock WHERE id = :id")
     fun getFlocksWithWeight(id: Int): Flow<FlockWithWeight>
+
+    @Transaction
+    @Query("SELECT * FROM flock WHERE id = :id")
+    fun getFlocksWithHealth(id: Int): Flow<FlockWithHealth>
 }
