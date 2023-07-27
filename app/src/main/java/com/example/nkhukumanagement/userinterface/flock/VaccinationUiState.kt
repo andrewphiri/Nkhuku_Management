@@ -22,7 +22,6 @@ data class VaccinationUiState(
     val actionEnabled: Boolean = false
 ) : Parcelable {
 
-    val options = listOf("Gumburo", "Lasota")
     fun setDate(mDate: String) {
         date = mDate
     }
@@ -64,14 +63,14 @@ fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
  * Extension function to convert [Vaccination] to [VaccinationUiState]
  */
 @RequiresApi(Build.VERSION_CODES.O)
-fun Vaccination.toVaccinationUiState(enabled: Boolean = false) : VaccinationUiState = VaccinationUiState(
+fun Vaccination.toVaccinationUiState(enabled: Boolean = false, vaccinationNumber: Int = 1) : VaccinationUiState = VaccinationUiState(
     id = id,
     flockUniqueId = flockUniqueId,
     name = name,
     date = DateUtils().convertLocalDateToString(date),
     notes = notes,
     actionEnabled = enabled,
-    vaccinationNumber = id,
+    vaccinationNumber = vaccinationNumber
 )
 
 @RequiresApi(Build.VERSION_CODES.O)

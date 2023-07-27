@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.nkhukumanagement.userinterface.flock.VaccinationUiState
+import com.example.nkhukumanagement.userinterface.flock.WeightUiState
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -22,13 +23,13 @@ class DateUtils {
 
         //Convert the passed in date to a Long in millis
         val timeInMillis = LocalDate.parse(date.format(dateFormatter), dateFormatter)
-            .atStartOfDay(ZoneId.of("UTC"))
+            .atStartOfDay(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
 
         //Then convert the timeInMillis to a LocalDate object
         val dateSelectedInMillis = Instant.ofEpochMilli(timeInMillis)
-            .atZone(ZoneId.of("UTC")).toLocalDate()
+            .atZone(ZoneId.systemDefault()).toLocalDate()
 
         //Format dateSelectedInMillis to a string and Return
         return dateFormatter.format(
@@ -39,7 +40,7 @@ class DateUtils {
     @RequiresApi(Build.VERSION_CODES.O)
     fun convertMillisToLocalDate(millis: Long) : LocalDate {
         return Instant.ofEpochMilli(millis)
-            .atZone(ZoneId.of("UTC")).toLocalDate()
+            .atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
     /**
@@ -48,14 +49,13 @@ class DateUtils {
     @RequiresApi(Build.VERSION_CODES.O)
     fun stringToLocalDate(date: String?) : LocalDate {
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
-
         val timeInMillis = LocalDate.parse(date, dateFormatter)
-            .atStartOfDay(ZoneId.of("UTC"))
+            .atStartOfDay(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
 
            return Instant.ofEpochMilli(timeInMillis)
-               .atZone(ZoneId.of("UTC")).toLocalDate()
+               .atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
     /**
@@ -77,5 +77,16 @@ class DateUtils {
         Log.i("CALCULATED DATE", dateToString)
         Log.i("DATE SET", vaccinationUiState.getDate())
         return vaccinationUiState.getDate()
+    }
+
+    /**
+     * Function to set weight date
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun weightDate(date: LocalDate, day: Long, weightUiState: WeightUiState) : String {
+        val calculateDate = calculateDate(date = date, day = day)
+        val dateToString = convertLocalDateToString(calculateDate)
+        weightUiState.setDate(dateToString)
+        return weightUiState.getDate()
     }
 }

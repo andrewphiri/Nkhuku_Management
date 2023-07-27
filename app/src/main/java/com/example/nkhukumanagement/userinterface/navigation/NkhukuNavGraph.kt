@@ -35,16 +35,17 @@ import com.example.nkhukumanagement.userinterface.flock.FlockEditScreen
 import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import com.example.nkhukumanagement.userinterface.flock.FlockUiState
 import com.example.nkhukumanagement.userinterface.flock.VaccinationViewModel
+import com.example.nkhukumanagement.userinterface.flock.WeightScreen
+import com.example.nkhukumanagement.userinterface.flock.WeightScreenDestination
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NkhukuNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    vaccinationViewModel: VaccinationViewModel = hiltViewModel()
-
+    vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
+    flockEntryViewModel: FlockEntryViewModel = hiltViewModel()
 ) {
-    val flockEntryViewModel: FlockEntryViewModel = hiltViewModel()
     NavHost(
         navController = navController,
         startDestination = NavigationBarScreens.Home.route,
@@ -133,6 +134,9 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController,
                 },
                 navigateToVaccinationScreen = { id ->
                     navController.navigate("${AddVaccinationsDestination.route}/$id")
+                },
+                navigateToWeightScreen = { id ->
+                    navController.navigate(route = "${WeightScreenDestination.route}/$id")
                 }
             )
         }
@@ -142,6 +146,15 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController,
         ) {
             FlockEditScreen(
                 onNavigateUp = {navController.navigateUp()},
+                flockEntryViewModel = flockEntryViewModel
+            )
+        }
+        composable(
+            route = WeightScreenDestination.routeWithArgs,
+            arguments = WeightScreenDestination.arguments
+        ) {
+            WeightScreen(
+                onNavigateUp = { navController.navigateUp()},
                 flockEntryViewModel = flockEntryViewModel
             )
         }

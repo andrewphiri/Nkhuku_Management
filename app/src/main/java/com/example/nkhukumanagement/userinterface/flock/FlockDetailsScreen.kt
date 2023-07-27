@@ -86,6 +86,8 @@ fun FlockDetailsScreen(
     onNavigateUp: () -> Unit,
     navigateToFlockEdit: (Int) -> Unit = {},
     navigateToVaccinationScreen: (Int) -> Unit,
+    navigateToFeedScreen: (Int) -> Unit = {},
+    navigateToWeightScreen: (Int) -> Unit = {},
     flockEntryViewModel: FlockEntryViewModel,
     detailsViewModel: FlockDetailsViewModel = hiltViewModel()
 ){
@@ -130,14 +132,18 @@ fun FlockDetailsScreen(
                 flockWithFeed.feedList?.last()?.let {
                     FeedCard(
                         feed = it,
-                        flockUiState = flock.toFlockUiState(enabled = true)
+                        flockUiState = flock.toFlockUiState(enabled = true),
+                        onFeedCardClick = {id ->
+                            navigateToFeedScreen(id)
+                        }
                     )
                 }
             }
             item {
-                flockWithWeight.weights?.last()?.let { WeightCard(weight = it) }
+                flockWithWeight.weights?.last()?.let { WeightCard(weight = it,
+                    flock = flock,
+                    onWeightCardClick = { id -> navigateToWeightScreen(id) }) }
             }
-
         }
     }
 }
@@ -241,7 +247,8 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock, onHealthCardClick: (
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiState) {
+fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiState,
+             onFeedCardClick: (Int) -> Unit) {
     val feedUiState = Feed(
      id = feed.id,
      flockUniqueId = feed.flockUniqueId,
@@ -253,6 +260,7 @@ fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiSta
 
     ElevatedCard  (
         modifier = modifier
+            .clickable { onFeedCardClick(flockUiState.id) }
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -415,7 +423,7 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeightCard(modifier: Modifier = Modifier, weight: Weight) {
+fun WeightCard(modifier: Modifier = Modifier, weight: Weight, flock: Flock, onWeightCardClick: (Int) -> Unit) {
     val weightUiState = Weight(
         id = weight.id,
         flockUniqueId = weight.flockUniqueId,
@@ -425,7 +433,8 @@ fun WeightCard(modifier: Modifier = Modifier, weight: Weight) {
         measuredDate = weight.measuredDate
     ).toWeightUiState()
 
-    ElevatedCard (modifier = modifier) {
+    ElevatedCard (modifier = modifier
+        .clickable { onWeightCardClick(flock.id) }) {
         Column (
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
