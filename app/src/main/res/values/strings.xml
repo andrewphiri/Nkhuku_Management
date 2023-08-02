@@ -13,5 +13,6 @@
     <string name="edit_flock">Edit Flock</string>
     <string name="add_vaccinations">Add vaccinations</string>
     <string name="edit_vaccinations">Edit vaccinations</string>
+    <string name="vaccinations">Vaccinations</string>
     <string name="back">Back</string>
 </resources>

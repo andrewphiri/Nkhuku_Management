@@ -19,7 +19,8 @@ data class VaccinationUiState(
     private var name: String = "",
     private var date: String = "",
     val notes: String = "",
-    val actionEnabled: Boolean = false
+    val actionEnabled: Boolean = false,
+    var isExpanded: Boolean = false
 ) : Parcelable {
 
     fun setDate(mDate: String) {
