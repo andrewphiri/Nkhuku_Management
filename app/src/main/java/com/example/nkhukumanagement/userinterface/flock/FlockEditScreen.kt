@@ -251,8 +251,8 @@ fun FlockEditScreen(
                                 date = DateUtils().stringToLocalDate(flockUiState.getDate())
                             ))
                             Log.i("UPDATE_DATABASE", flockEntryViewModel.flockUiState.toFlock().toString())
-                        }
-                        onNavigateUp() }
+                        }.invokeOnCompletion { onNavigateUp() }
+                         }
                 ) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),

@@ -2,38 +2,68 @@ package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Details
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Scale
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
+import com.example.nkhukumanagement.data.Weight
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import kotlinx.coroutines.launch
 
 object WeightScreenDestination: NkhukuDestinations {
     override val icon: ImageVector
@@ -54,28 +84,111 @@ object WeightScreenDestination: NkhukuDestinations {
 @Composable
 fun WeightScreen(
     modifier: Modifier = Modifier,
-    navigateBack: () -> Unit = {},
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     weightViewModel: WeightViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel
 ) {
-    weightViewModel.setWeightList(flockEntryViewModel.flockUiState)
+    val scope = rememberCoroutineScope()
+    val flockWithWeights by weightViewModel.flockWithWeight.collectAsState()
+    val weightList: List<Weight> = flockWithWeights.weights ?: listOf()
+    val weightUiStateList:MutableList<WeightUiState> = mutableListOf()
+    var isEditable by remember { mutableStateOf(false) }
+    var isFABVisible by remember { mutableStateOf(true) }
+    var title by remember { mutableStateOf("") }
+    title = stringResource(WeightScreenDestination.resourceId)
+    val context = LocalContext.current
+
+    for (item in weightList) {
+        weightUiStateList.add(item.toWeightUiState())
+    }
+    weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
+
     Scaffold (
         topBar = {
             FlockManagementTopAppBar(
-                title = stringResource(WeightScreenDestination.resourceId),
+                title = title,
                 canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp,
             )
+        },
+        floatingActionButton = {
+            AnimatedVisibility(visible = isFABVisible,
+                enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
+                    initialOffset = {
+                        IntOffset(180, 90)
+                    }),
+                exit = slideOut(tween(200, easing = FastOutSlowInEasing)) {
+                    IntOffset(180, 90)
+                }) {
+                FloatingActionButton(onClick = {
+                    title = context.resources.getString(R.string.edit_weights)
+                    isEditable = true
+                    isFABVisible = false
+                },
+                    shape = ShapeDefaults.Small,
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    elevation = FloatingActionButtonDefaults.elevation()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit weights"
+                    )
+                }
+            }
         }
             ) { innerPadding ->
 
-        WeightInputList(
-            modifier = modifier.padding(innerPadding),
-            weightViewModel = weightViewModel,
-            onItemChange = weightViewModel::updateWeightState
-        )
+        Column(
+            modifier = Modifier.padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            WeightInputList(
+                weightViewModel = weightViewModel,
+                onItemChange = weightViewModel::updateWeightState,
+                isEditable = isEditable
+            )
+            if (isEditable) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)){
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            title = context.resources.getString(R.string.weight)
+                            isEditable = false
+                            isFABVisible = true
+                        }
+                    ) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Cancel",
+                            textAlign = TextAlign.Center)
+                    }
+
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            val weight = weightViewModel.getWeightList()
+                            val updatedWeights = mutableListOf<Weight>()
+                            weight.forEach {
+                                updatedWeights.add(it.toWeight())
+                            }
+                            scope.launch {
+                                weightViewModel.updateWeight(updatedWeights)
+                            }.invokeOnCompletion { onNavigateUp() }
+                        }
+                    ) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Update",
+                            textAlign = TextAlign.Center)
+                    }
+                }
+        }
+
+        }
     }
 }
 
@@ -84,12 +197,14 @@ fun WeightInputList(
     modifier: Modifier = Modifier,
     onItemChange: (Int, WeightUiState) -> Unit,
     weightViewModel: WeightViewModel,
+    isEditable: Boolean
 ) {
     Column(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
+            modifier = Modifier.height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.End
         ) {
             Text(modifier = Modifier.weight(1f),
@@ -97,6 +212,12 @@ fun WeightInputList(
             Text(modifier = Modifier.weight(1.5f, fill = true),
                 text = "ACTUAL",
             textAlign = TextAlign.Center)
+
+            Divider(
+                modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+            )
+
             Text( modifier = Modifier.weight(1.5f, fill = true),
                 text = "STANDARD",
             textAlign = TextAlign.Center)
@@ -106,7 +227,8 @@ fun WeightInputList(
                 WeightCard(weightUiState = weightItem,
                     onValueChanged = { weight ->
                         onItemChange(index, weight)
-                    }
+                    },
+                    isEditable = isEditable
                 )
             }
         }
@@ -115,8 +237,11 @@ fun WeightInputList(
 }
 
 @Composable
-fun WeightCard(modifier: Modifier = Modifier, weightUiState: WeightUiState, onValueChanged: (WeightUiState) -> Unit){
-    Row(modifier = modifier,
+fun WeightCard(modifier: Modifier = Modifier,
+               weightUiState: WeightUiState,
+               onValueChanged: (WeightUiState) -> Unit,
+               isEditable: Boolean){
+    Row(modifier = modifier.height(IntrinsicSize.Min),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.Center) {
         Text(
@@ -130,8 +255,13 @@ fun WeightCard(modifier: Modifier = Modifier, weightUiState: WeightUiState, onVa
             onValueChange = {
                 onValueChanged(weightUiState.copy(actualWeight = it))
             },
-            suffix = { Text( text = "grams") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            suffix = { Text(  text = "Kg",
+                color = LocalContentColor.current.copy(1f)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            enabled = isEditable,
+            colors = TextFieldDefaults.colors(
+                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = LocalContentColor.current.alpha),
+                disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha))
         )
 
         Divider(
@@ -145,8 +275,15 @@ fun WeightCard(modifier: Modifier = Modifier, weightUiState: WeightUiState, onVa
             onValueChange = {
                 onValueChanged(weightUiState.copy(standard = it))
             },
-            suffix = { Text("grams") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            suffix = { Text(
+                text = "Kg",
+                color = LocalContentColor.current.copy(1f)
+                ) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            enabled = false,
+            colors = TextFieldDefaults.colors(
+                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = LocalContentColor.current.alpha),
+                disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha))
         )
     }
 }

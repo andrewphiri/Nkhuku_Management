@@ -28,6 +28,8 @@ import com.example.nkhukumanagement.userinterface.flock.AddVaccinationsDestinati
 import com.example.nkhukumanagement.userinterface.flock.AddVaccinationsScreen
 import com.example.nkhukumanagement.userinterface.flock.EditFlockDestination
 import com.example.nkhukumanagement.userinterface.flock.EditFlockViewModel
+import com.example.nkhukumanagement.userinterface.flock.FeedScreen
+import com.example.nkhukumanagement.userinterface.flock.FeedScreenDestination
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsScreen
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
@@ -137,6 +139,9 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController,
                 },
                 navigateToWeightScreen = { id ->
                     navController.navigate(route = "${WeightScreenDestination.route}/$id")
+                },
+                navigateToFeedScreen = { id ->
+                    navController.navigate(route = "${FeedScreenDestination.route}/$id")
                 }
             )
         }
@@ -154,7 +159,16 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController,
             arguments = WeightScreenDestination.arguments
         ) {
             WeightScreen(
-                onNavigateUp = { navController.navigateUp()},
+                onNavigateUp = { navController.navigateUp() },
+                flockEntryViewModel = flockEntryViewModel
+            )
+        }
+        composable(
+            route = FeedScreenDestination.routeWithArgs,
+            arguments = FeedScreenDestination.arguments
+        ) {
+            FeedScreen(
+                onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel
             )
         }

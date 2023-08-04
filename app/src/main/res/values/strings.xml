@@ -15,4 +15,5 @@
     <string name="edit_vaccinations">Edit vaccinations</string>
     <string name="vaccinations">Vaccinations</string>
     <string name="back">Back</string>
+    <string name="edit_weights">Edit Weights</string>
 </resources>

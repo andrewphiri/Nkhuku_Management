@@ -38,8 +38,8 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
 
     override suspend fun updateFlock(flock: Flock) = flockDao.updateFlock(flock)
     override suspend fun updateVaccination(vaccination: Vaccination) = flockDao.updateVaccination(vaccination)
-    override suspend fun updateFeed(feed: Feed) = flockDao.updateFeed(feed)
+    override suspend fun updateFeed(feed: List<Feed>) = flockDao.updateFeed(feed)
 
-    override suspend fun updateWeight(weight: Weight) = flockDao.updateWeight(weight)
+    override suspend fun updateWeight(weight: List<Weight>) = flockDao.updateWeight(weight)
     override suspend fun updateFlockHealth(flockHealth: FlockHealth) = flockDao.updateFlockHealth(flockHealth)
 }

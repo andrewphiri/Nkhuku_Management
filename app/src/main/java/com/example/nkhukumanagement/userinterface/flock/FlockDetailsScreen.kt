@@ -1,7 +1,6 @@
 package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -32,7 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -140,9 +138,12 @@ fun FlockDetailsScreen(
                 }
             }
             item {
-                flockWithWeight.weights?.last()?.let { WeightCard(weight = it,
-                    flock = flock,
-                    onWeightCardClick = { id -> navigateToWeightScreen(id) }) }
+               val weight = flockWithWeight.weights?.filter { it.weight > 0.0 }?.lastOrNull() ?: flockWithWeight.weights?.first()
+                if (weight != null) {
+                    WeightCard(weight = weight,
+                        flock = flock,
+                        onWeightCardClick = { id -> navigateToWeightScreen(id) })
+                }
             }
         }
     }
@@ -253,6 +254,7 @@ fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiSta
      id = feed.id,
      flockUniqueId = feed.flockUniqueId,
      name = feed.name,
+        week = feed.week,
      type = feed.type,
      consumed = feed.consumed,
      feedingDate = feed.feedingDate
@@ -305,7 +307,7 @@ fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiSta
                         text = "${
                             String.format(
                                 "%.2f",
-                                feedUiState.consumed.toDouble() / flockUiState.getBirdsRemaining()
+                                feedUiState.actualConsumed.toDouble() / flockUiState.getBirdsRemaining()
                             )
                         } Kgs",
                         style = MaterialTheme.typography.bodySmall,
@@ -336,7 +338,7 @@ fun FeedCard(modifier: Modifier = Modifier, feed: Feed, flockUiState: FlockUiSta
                         Text(
                             modifier = Modifier.weight(1f).fillMaxWidth()
                                 .padding(2.dp),
-                            text = "${feedUiState.consumed} Kgs",
+                            text = "${feedUiState.actualConsumed} Kgs",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.tertiary,
                             textAlign = TextAlign.Start

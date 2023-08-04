@@ -3,6 +3,7 @@ package com.example.nkhukumanagement.utils
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.userinterface.flock.VaccinationUiState
 import com.example.nkhukumanagement.userinterface.flock.WeightUiState
 import java.time.Instant
@@ -88,5 +89,16 @@ class DateUtils {
         val dateToString = convertLocalDateToString(calculateDate)
         weightUiState.setDate(dateToString)
         return weightUiState.getDate()
+    }
+
+    /**
+     * Function to set weight date
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun feedDate(date: LocalDate, day: Long, feedUiState: FeedUiState) : String {
+        val calculateDate = calculateDate(date = date, day = day)
+        val dateToString = convertLocalDateToString(calculateDate)
+        feedUiState.setDate(dateToString)
+        return feedUiState.getDate()
     }
 }

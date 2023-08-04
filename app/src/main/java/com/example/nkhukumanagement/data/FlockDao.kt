@@ -32,10 +32,10 @@ interface FlockDao {
     suspend fun updateVaccination(vaccination: Vaccination)
 
     @Update
-    suspend fun updateFeed(feed: Feed)
+    suspend fun updateFeed(feed: List<Feed>)
 
     @Update
-    suspend fun updateWeight(weight: Weight)
+    suspend fun updateWeight(weight: List<Weight>)
 
     @Update
     suspend fun updateFlockHealth(flockHealth: FlockHealth)

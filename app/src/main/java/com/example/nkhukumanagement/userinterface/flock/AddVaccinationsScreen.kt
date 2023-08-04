@@ -110,13 +110,16 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                           onNavigateUp: () -> Unit,
                           vaccinationViewModel: VaccinationViewModel,
                           detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
-                          flockEntryViewModel: FlockEntryViewModel
+                          flockEntryViewModel: FlockEntryViewModel,
+                          weightViewModel: WeightViewModel = hiltViewModel(),
+                          feedViewModel: FeedViewModel = hiltViewModel()
 ){
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val flockWithVaccinations by detailsViewModel.detailsVaccinationUiState.collectAsState()
 
-    var title = stringResource(AddVaccinationsDestination.resourceId)
+    var title by remember { mutableStateOf("") }
+    title = stringResource(AddVaccinationsDestination.resourceId)
     var isEditingEnabled by remember { mutableStateOf(false) }
     var isFABVisible by remember { mutableStateOf(false) }
     var isDoneButtonShowing by remember { mutableStateOf(true) }
@@ -185,10 +188,16 @@ fun AddVaccinationsScreen(modifier: Modifier = Modifier,
                         val uniqueId = UUID.randomUUID().toString()
                         flockEntryViewModel.flockUiState.setUniqueId(uniqueID = uniqueId)
                         vaccinationViewModel.vaccinationUiState.setUniqueId(uniqueID = uniqueId)
+                        weightViewModel.setWeightList(weightViewModel.defaultWeight(flockEntryViewModel.flockUiState))
+                        feedViewModel.setFeedList(feedViewModel.defaultFeedInformationList(flockEntryViewModel.flockUiState))
                         coroutineScope.launch {
                             flockEntryViewModel.saveItem()
-                            vaccinationViewModel.saveInitialWeight()
-                            vaccinationViewModel.saveInitialFeed()
+                            weightViewModel.getWeightList().forEach {
+                                weightViewModel.saveInitialWeight(it)
+                            }
+                            feedViewModel.getFeedList().forEach {
+                                feedViewModel.saveFeed(it)
+                            }
                             vaccinationViewModel.getInitialVaccinationList().forEach {
                                 vaccinationViewModel.saveVaccination(it.copy(
                                     flockUniqueId = flockEntryViewModel.flockUiState.getUniqueId()))

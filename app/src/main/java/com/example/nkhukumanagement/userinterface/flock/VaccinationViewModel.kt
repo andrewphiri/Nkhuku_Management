@@ -10,18 +10,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.data.FlockRepository
-import com.example.nkhukumanagement.data.FlockWithVaccinations
 import com.example.nkhukumanagement.toFeed
 import com.example.nkhukumanagement.utils.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -77,7 +70,7 @@ class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandl
                 flockUniqueID = vaccinationUiState.getUniqueId(),
                 name = "N/A",
                 type = "Starter",
-                consumed = "0",
+                actualConsumed = "0",
                 feedingDate = DateUtils().convertLocalDateToString(LocalDate.now()),
             ).toFeed()
         )

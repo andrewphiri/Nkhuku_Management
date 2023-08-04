@@ -121,12 +121,12 @@ interface FlockRepository {
     /**
      * Update feed in the database
      */
-    suspend fun updateFeed(feed: Feed)
+    suspend fun updateFeed(feed: List<Feed>)
 
     /**
      * Update weight in the database
      */
-    suspend fun updateWeight(weight: Weight)
+    suspend fun updateWeight(weight: List<Weight>)
 
     /**
      * Update flockHealth in the database

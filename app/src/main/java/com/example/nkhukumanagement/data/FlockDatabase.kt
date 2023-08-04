@@ -9,7 +9,7 @@ import com.example.nkhukumanagement.utils.DateConverter
 /**
  * Database class with a singleton INSTANCE Object
  */
-@Database(entities = [Flock::class, Vaccination::class, Feed::class, Weight::class, FlockHealth::class], version = 7, exportSchema = false)
+@Database(entities = [Flock::class, Vaccination::class, Feed::class, Weight::class, FlockHealth::class], version = 8, exportSchema = false)
 @TypeConverters(DateConverter::class)
 abstract class FlockDatabase : RoomDatabase() {
 
