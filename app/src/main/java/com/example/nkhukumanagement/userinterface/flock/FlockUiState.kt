@@ -16,7 +16,7 @@ import kotlinx.parcelize.Parcelize
  */
 @Parcelize
 @RequiresApi(Build.VERSION_CODES.O)
-data class FlockUiState (
+data class FlockUiState(
     val id: Int = 0,
     private var uniqueId: String = "",
     val batchName: String = "",
@@ -28,7 +28,7 @@ data class FlockUiState (
     private var mortality: String = "0",
     val imageResourceId: Int = R.drawable.chicken,
     private var culls: String = "0",
-    val enabled : Boolean = false
+    val enabled: Boolean = false
 ) : Parcelable {
     val options = mutableListOf("Hybrid", "Ross", "Zamhatch")
 
@@ -49,7 +49,7 @@ data class FlockUiState (
     }
 
     fun setMortality(mMortality: String) {
-        mortality =  mMortality
+        mortality = mMortality
     }
 
     fun getMortality(): String {
@@ -72,60 +72,63 @@ data class FlockUiState (
         return stock
     }
 
-    fun getBirdsRemaining() : Int = getStock().toInt() - mortality.toInt()
+    fun getBirdsRemaining(): Int = getStock().toInt() - mortality.toInt()
 
 }
-    /**
-     * Extension function to convert [FlockUIState] to [Flock]
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun FlockUiState.toFlock(): Flock = Flock(
+
+/**
+ * Extension function to convert [FlockUIState] to [Flock]
+ */
+@RequiresApi(Build.VERSION_CODES.O)
+fun FlockUiState.toFlock(): Flock = Flock(
+    id = id,
+    uniqueId = getUniqueId(),
+    batchName = batchName,
+    breed = breed,
+    datePlaced = DateUtils().stringToLocalDate(getDate()),
+    numberOfChicksPlaced = quantity.toInt(),
+    donorFlock = donorFlock.toIntOrNull() ?: 0,
+    mortality = getMortality().toInt(),
+    stock = getStock().toInt(),
+    culls = getCulls().toInt()
+)
+
+/**
+ * Extension function to convert [Flock] to [FlockUiState]
+ */
+@RequiresApi(Build.VERSION_CODES.O)
+fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
+    FlockUiState(
         id = id,
-        uniqueId = getUniqueId(),
+        uniqueId = uniqueId,
         batchName = batchName,
         breed = breed,
-        datePlaced = DateUtils().stringToLocalDate(getDate()),
-        numberOfChicksPlaced = quantity.toInt(),
-        donorFlock = donorFlock.toIntOrNull() ?: 0,
-        mortality = getMortality().toInt(),
-        stock = getStock().toInt(),
-        culls = getCulls().toInt()
+        datePlaced = DateUtils().convertLocalDateToString(datePlaced),
+        quantity = numberOfChicksPlaced.toString(),
+        donorFlock = donorFlock.toString(),
+        mortality = mortality.toString(),
+        culls = culls.toString(),
+        stock = stock.toString(),
+        enabled = enabled
     )
 
-    /**
-     * Extension function to convert [Flock] to [FlockUiState]
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
-        FlockUiState(
-            id = id,
-            uniqueId = uniqueId,
-            batchName = batchName,
-            breed = breed,
-            datePlaced = DateUtils().convertLocalDateToString(datePlaced),
-            quantity = numberOfChicksPlaced.toString(),
-            donorFlock = donorFlock.toString(),
-            mortality = mortality.toString(),
-            culls = culls.toString(),
-            stock = stock.toString(),
-            enabled = enabled
-        )
 
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun FlockUiState.isValid() : Boolean {
-        Log.i("ENABLED", "breed = ${breed.isNotBlank()} " +
+@RequiresApi(Build.VERSION_CODES.O)
+fun FlockUiState.isValid(): Boolean {
+    Log.i(
+        "ENABLED", "breed = ${breed.isNotBlank()} " +
                 " Date = ${getDate().isNotBlank()} " +
                 " quantity = ${quantity.isNotBlank()} " +
-                " donor = ${donorFlock.isNotBlank()}")
-        return  breed.isNotBlank() &&
-                getDate().isNotBlank() &&
-                quantity.isNotBlank() &&
-                donorFlock.isNotBlank()
-                && batchName.isNotBlank()
-    }
+                " donor = ${donorFlock.isNotBlank()}"
+    )
+    return breed.isNotBlank() &&
+            getDate().isNotBlank() &&
+            quantity.isNotBlank() &&
+            donorFlock.isNotBlank()
+            && batchName.isNotBlank()
+}
 
-    fun FlockUiState.isSingleEntryValid(value: String): Boolean{
+fun FlockUiState.isSingleEntryValid(value: String): Boolean {
     return value.isBlank()
 }
 

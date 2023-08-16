@@ -56,7 +56,8 @@ fun NkhukuNavHost(
     ) {
         composable(route = NavigationBarScreens.Home.route) {
             HomeScreen(
-                navigateToAddFlock = { navController.navigate(AddFlockDestination.route)
+                navigateToAddFlock = {
+                    navController.navigate(AddFlockDestination.route)
                 },
                 navigateToFlockDetails = { id ->
                     navController.navigate("${FlockDetailsDestination.route}/$id")
@@ -89,7 +90,7 @@ fun NkhukuNavHost(
                 navigateToVaccinationsScreen = {
                     val id = it.id
                     navController.navigate(route = "${AddVaccinationsDestination.route}/$id")
-                                               },
+                },
                 viewModel = flockEntryViewModel
             )
         }
@@ -98,28 +99,34 @@ fun NkhukuNavHost(
             arguments = AddVaccinationsDestination.argument
         ) { navBackStackEntry ->
             AddVaccinationsScreen(
-                navigateBack = { navController.navigate(NavigationBarScreens.Home.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = false
+                navigateBack = {
+                    navController.navigate(NavigationBarScreens.Home.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = false
+                        }
+                        navController.popBackStack(
+                            NavigationBarScreens.Home.route,
+                            inclusive = true
+                        )
                     }
-                    navController.popBackStack(NavigationBarScreens.Home.route, inclusive = true)
-                    }
-                 },
-                onNavigateUp = {navController.navigateUp()},
+                },
+                onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
                 vaccinationViewModel = vaccinationViewModel
             )
         }
-        detailsGraph(navController = navController,
+        detailsGraph(
+            navController = navController,
             flockEntryViewModel = flockEntryViewModel,
-            )
+        )
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun NavGraphBuilder.detailsGraph (navController: NavHostController,
-                                  flockEntryViewModel: FlockEntryViewModel,
-                                  ) {
+fun NavGraphBuilder.detailsGraph(
+    navController: NavHostController,
+    flockEntryViewModel: FlockEntryViewModel,
+) {
     navigation(
         route = GraphRoutes.DETAILS,
         startDestination = FlockDetailsDestination.route
@@ -132,7 +139,7 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController,
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
                 navigateToFlockEdit = { id ->
-                   navController.navigate("${EditFlockDestination.route}/$id")
+                    navController.navigate("${EditFlockDestination.route}/$id")
                 },
                 navigateToVaccinationScreen = { id ->
                     navController.navigate("${AddVaccinationsDestination.route}/$id")
@@ -147,10 +154,10 @@ fun NavGraphBuilder.detailsGraph (navController: NavHostController,
         }
         composable(
             route = EditFlockDestination.routeWithArgs,
-        arguments = FlockDetailsDestination.arguments
+            arguments = FlockDetailsDestination.arguments
         ) {
             FlockEditScreen(
-                onNavigateUp = {navController.navigateUp()},
+                onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel
             )
         }

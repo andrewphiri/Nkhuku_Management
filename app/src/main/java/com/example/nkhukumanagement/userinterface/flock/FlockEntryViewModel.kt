@@ -24,7 +24,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 @RequiresApi(Build.VERSION_CODES.O)
-class FlockEntryViewModel @Inject constructor(private val flockRepository: FlockRepository, state: SavedStateHandle) : ViewModel() {
+class FlockEntryViewModel @Inject constructor(
+    private val flockRepository: FlockRepository,
+    state: SavedStateHandle
+) : ViewModel() {
     /**
      * Holds the current ui state
      */
@@ -32,7 +35,7 @@ class FlockEntryViewModel @Inject constructor(private val flockRepository: Flock
         private set
 
     fun updateUiState(newFlockUiState: FlockUiState) {
-        flockUiState =   newFlockUiState.copy(enabled = newFlockUiState.isValid())
+        flockUiState = newFlockUiState.copy(enabled = newFlockUiState.isValid())
     }
 
     suspend fun saveItem() {
@@ -55,6 +58,7 @@ class FlockEntryViewModel @Inject constructor(private val flockRepository: Flock
     suspend fun deleteFlockHealth(flockUniqueID: String) {
         flockRepository.deleteFlockHealth(flockUniqueID)
     }
+
     fun resetAll() {
         flockUiState = flockUiState.copy(
             id = 0,

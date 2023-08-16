@@ -26,6 +26,7 @@ data class VaccinationUiState(
     fun setDate(mDate: String) {
         date = mDate
     }
+
     fun getDate(): String {
         return date
     }
@@ -33,9 +34,11 @@ data class VaccinationUiState(
     fun setName(mName: String) {
         name = mName
     }
+
     fun getName(): String {
         return name
     }
+
     fun setUniqueId(uniqueID: String) {
         flockUniqueId = uniqueID
     }
@@ -47,7 +50,6 @@ data class VaccinationUiState(
 }
 
 
-
 /**
  * Extension function to convert [VaccinationUiState] to [Vaccination]
  */
@@ -55,7 +57,7 @@ data class VaccinationUiState(
 fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
     id = id,
     flockUniqueId = getUniqueId(),
-    name  = getName(),
+    name = getName(),
     date = DateUtils().stringToLocalDate(getDate()),
     notes = notes
 )
@@ -64,7 +66,10 @@ fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
  * Extension function to convert [Vaccination] to [VaccinationUiState]
  */
 @RequiresApi(Build.VERSION_CODES.O)
-fun Vaccination.toVaccinationUiState(enabled: Boolean = false, vaccinationNumber: Int = 1) : VaccinationUiState = VaccinationUiState(
+fun Vaccination.toVaccinationUiState(
+    enabled: Boolean = false,
+    vaccinationNumber: Int = 1
+): VaccinationUiState = VaccinationUiState(
     id = id,
     flockUniqueId = flockUniqueId,
     name = name,
@@ -75,7 +80,7 @@ fun Vaccination.toVaccinationUiState(enabled: Boolean = false, vaccinationNumber
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun VaccinationUiState.isValid() : Boolean {
+fun VaccinationUiState.isValid(): Boolean {
     return getName().isNotBlank() &&
             getDate().isNotBlank()
 }

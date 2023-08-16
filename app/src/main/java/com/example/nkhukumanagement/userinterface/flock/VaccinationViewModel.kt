@@ -20,8 +20,10 @@ import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
-class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandle,
-                                               private val flockRepository: FlockRepository): ViewModel() {
+class VaccinationViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val flockRepository: FlockRepository
+) : ViewModel() {
 
     companion object {
         private const val MILLIS = 5_000L
@@ -36,7 +38,8 @@ class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandl
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateUiState(index: Int, newVaccinationUiState: VaccinationUiState) {
-        initialVaccinationList[index] = newVaccinationUiState.copy(actionEnabled = newVaccinationUiState.isValid())
+        initialVaccinationList[index] =
+            newVaccinationUiState.copy(actionEnabled = newVaccinationUiState.isValid())
     }
 
     suspend fun saveVaccination(vaccinationUiState: VaccinationUiState) {
@@ -46,13 +49,15 @@ class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandl
     }
 
     suspend fun saveInitialWeight() {
-        flockRepository.insertWeight(WeightUiState(
-            flockUniqueID = vaccinationUiState.getUniqueId(),
-            week = "Initial Weight",
-            standard = "0.04",
-            actualWeight = "0.04",
-            dateMeasured = DateUtils().convertLocalDateToString(LocalDate.now())
-        ).toWeight())
+        flockRepository.insertWeight(
+            WeightUiState(
+                flockUniqueID = vaccinationUiState.getUniqueId(),
+                week = "Initial Weight",
+                standard = "0.04",
+                actualWeight = "0.04",
+                dateMeasured = DateUtils().convertLocalDateToString(LocalDate.now())
+            ).toWeight()
+        )
 
     }
 
@@ -75,6 +80,7 @@ class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandl
             ).toFeed()
         )
     }
+
     suspend fun deleteVaccination(flockUniqueID: String) {
         flockRepository.deleteVaccination(flockUniqueID)
     }
@@ -84,27 +90,58 @@ class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandl
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun setInitialDates(vaccinationUiStateList: SnapshotStateList<VaccinationUiState>)  {
-            initialVaccinationList = vaccinationUiStateList
+    fun setInitialDates(vaccinationUiStateList: SnapshotStateList<VaccinationUiState>) {
+        initialVaccinationList = vaccinationUiStateList
     }
 
     fun reset() {
         initialVaccinationList = mutableStateListOf()
     }
+
     /**
      * Default vaccination dates based on breed and date chicks received
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun defaultVaccinationDates(flockUiState: FlockUiState, vaccinationUiState: VaccinationUiState): SnapshotStateList<VaccinationUiState> {
+    fun defaultVaccinationDates(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
         Log.i("Breed selected ", flockUiState.breed)
         Log.i("Breed DATE ", flockUiState.getDate())
-        return when(flockUiState.breed) {
-            "Hybrid" -> { defaultHybridVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState) }
-            "Ross" -> {defaultRossVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState)}
-            "Zamhatch" -> {defaultZamhatchVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState)}
-            "Other" -> { defaultOtherVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState) }
+        return when (flockUiState.breed) {
+            "Hybrid" -> {
+                defaultHybridVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+
+            "Ross" -> {
+                defaultRossVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+
+            "Zamhatch" -> {
+                defaultZamhatchVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+
+            "Other" -> {
+                defaultOtherVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+
             else -> {
-                defaultOtherVaccinations(flockUiState = flockUiState, vaccinationUiState = vaccinationUiState)
+                defaultOtherVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
             }
         }
     }
@@ -113,22 +150,41 @@ class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandl
      * Default hybrid vaccination dates
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun defaultHybridVaccinations(flockUiState: FlockUiState, vaccinationUiState: VaccinationUiState) : SnapshotStateList<VaccinationUiState> {
+    fun defaultHybridVaccinations(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
 
         return mutableStateListOf(
-            VaccinationUiState(vaccinationNumber = 1, name = options[0],
-                date = DateUtils().vaccinationDate(date = dateReceived, day = 9,
-                    vaccinationUiState = vaccinationUiState )),
-            VaccinationUiState(vaccinationNumber = 2, name = options[1],
-                date = DateUtils().vaccinationDate(date = dateReceived, day = 13,
-                    vaccinationUiState = vaccinationUiState)),
-            VaccinationUiState(vaccinationNumber = 3, name = options[0],
-                date = DateUtils().vaccinationDate(date = dateReceived, day = 17,
-                    vaccinationUiState = vaccinationUiState)),
-            VaccinationUiState(vaccinationNumber = 4, name = options[1],
-                date = DateUtils().vaccinationDate(date = dateReceived, day = 20,
-                    vaccinationUiState = vaccinationUiState))
+            VaccinationUiState(
+                vaccinationNumber = 1, name = options[0],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 9,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 2, name = options[1],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 13,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 3, name = options[0],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 17,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 4, name = options[1],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 20,
+                    vaccinationUiState = vaccinationUiState
+                )
+            )
         )
     }
 
@@ -136,15 +192,26 @@ class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandl
      * Default Ross vaccination dates
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun defaultRossVaccinations(flockUiState: FlockUiState, vaccinationUiState: VaccinationUiState) : SnapshotStateList<VaccinationUiState> {
+    fun defaultRossVaccinations(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
         return mutableStateListOf(
-            VaccinationUiState(vaccinationNumber = 1, name = options[0],
-                date = DateUtils().vaccinationDate(date = dateReceived, day = 9,
-                    vaccinationUiState = vaccinationUiState)),
-            VaccinationUiState(vaccinationNumber = 2, name = options[1],
-                date = DateUtils().vaccinationDate(date = dateReceived, day = 11,
-                    vaccinationUiState = vaccinationUiState)),
+            VaccinationUiState(
+                vaccinationNumber = 1, name = options[0],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 9,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 2, name = options[1],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 11,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
         )
     }
 
@@ -152,25 +219,44 @@ class VaccinationViewModel @Inject constructor(savedStateHandle: SavedStateHandl
      * Default Ross vaccination dates
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun defaultZamhatchVaccinations(flockUiState: FlockUiState, vaccinationUiState: VaccinationUiState) : SnapshotStateList<VaccinationUiState> {
+    fun defaultZamhatchVaccinations(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
         return mutableStateListOf(
-            VaccinationUiState(vaccinationNumber = 1, name = options[0],
-                date = DateUtils().vaccinationDate(date = dateReceived, day = 9,
-                    vaccinationUiState = vaccinationUiState)),
-            VaccinationUiState(vaccinationNumber = 2, name = options[1],
-                date = DateUtils().vaccinationDate(date = dateReceived, day = 11,
-                    vaccinationUiState = vaccinationUiState)),
+            VaccinationUiState(
+                vaccinationNumber = 1, name = options[0],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 9,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 2, name = options[1],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 11,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
 
             )
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    fun defaultOtherVaccinations(flockUiState: FlockUiState, vaccinationUiState: VaccinationUiState) : SnapshotStateList<VaccinationUiState> {
+    fun defaultOtherVaccinations(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
         return mutableStateListOf(
-            VaccinationUiState(vaccinationNumber = 1,
-                date = DateUtils().vaccinationDate(date = dateReceived, day = 10,
-                    vaccinationUiState = vaccinationUiState)),
-            )
+            VaccinationUiState(
+                vaccinationNumber = 1,
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 10,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
+        )
     }
 }

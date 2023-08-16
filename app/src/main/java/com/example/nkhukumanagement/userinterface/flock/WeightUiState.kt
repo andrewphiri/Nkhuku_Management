@@ -15,7 +15,6 @@ data class WeightUiState(
     private var dateMeasured: String = "",
     val enabled: Boolean = false
 ) {
-
     fun setDate(date: String) {
         dateMeasured = date
     }
@@ -29,7 +28,7 @@ data class WeightUiState(
  * Extension function to convert [WeightUiState] to [Weight]
  */
 @RequiresApi(Build.VERSION_CODES.O)
-fun WeightUiState.toWeight(): Weight = Weight (
+fun WeightUiState.toWeight(): Weight = Weight(
     id = id,
     flockUniqueId = flockUniqueID,
     week = week,
@@ -51,8 +50,8 @@ fun Weight.toWeightUiState(): WeightUiState = WeightUiState(
     dateMeasured = DateUtils().convertLocalDateToString(measuredDate)
 )
 
-fun WeightUiState.isValid() : Boolean {
-    return  week.isNotBlank() &&
+fun WeightUiState.isValid(): Boolean {
+    return week.isNotBlank() &&
             getDate().isNotBlank() &&
             actualWeight.isNotBlank()
 }

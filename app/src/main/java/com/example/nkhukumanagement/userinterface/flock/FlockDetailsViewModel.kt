@@ -3,6 +3,7 @@ package com.example.nkhukumanagement.userinterface.flock
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
@@ -29,8 +30,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.WhileSubscribed
 
 @HiltViewModel
-class FlockDetailsViewModel @Inject constructor(savedStateHandle: SavedStateHandle,
-                                                private val flockRepository: FlockRepository) : ViewModel() {
+class FlockDetailsViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val flockRepository: FlockRepository
+) : ViewModel() {
     companion object {
         private const val MILLIS = 5_000L
     }
@@ -76,7 +79,7 @@ class FlockDetailsViewModel @Inject constructor(savedStateHandle: SavedStateHand
 
 
     fun updateWeightUiState(uiState: WeightUiState) {
-        weightUiState =   uiState.copy(enabled = uiState.isValid())
+        weightUiState = uiState.copy(enabled = uiState.isValid())
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -91,7 +94,7 @@ class FlockDetailsViewModel @Inject constructor(savedStateHandle: SavedStateHand
     }
 
     fun updateFeedUiState(uiState: FeedUiState) {
-        feedUiState =   uiState.copy(enabled = uiState.isValid())
+        feedUiState = uiState.copy(enabled = uiState.isValid())
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

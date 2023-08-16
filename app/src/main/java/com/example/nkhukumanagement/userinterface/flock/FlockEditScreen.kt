@@ -71,7 +71,7 @@ object EditFlockDestination : NkhukuDestinations {
         get() = R.string.edit_flock
     const val flockIdArg = "id"
     val routeWithArgs = "$route/{$flockIdArg}"
-    val arguments = listOf(navArgument(FlockDetailsDestination.flockIdArg)  {
+    val arguments = listOf(navArgument(FlockDetailsDestination.flockIdArg) {
         defaultValue = 1
         type = NavType.IntType
     })
@@ -87,29 +87,36 @@ fun FlockEditScreen(
     onValueChanged: (FlockUiState) -> Unit = {},
     editFlockViewModel: EditFlockViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel
-    ){
+) {
 
     val coroutineScope = rememberCoroutineScope()
 
     val flock by editFlockViewModel.flock.collectAsState(
         initial = flockEntryViewModel.flockUiState.copy(
-            datePlaced = DateUtils().convertLocalDateToString(LocalDate.now()), quantity = "0", donorFlock = "0"
-        ).toFlock())
+            datePlaced = DateUtils().convertLocalDateToString(LocalDate.now()),
+            quantity = "0",
+            donorFlock = "0"
+        ).toFlock()
+    )
 
     val flockUiState: FlockUiState = flock.toFlockUiState()
     flockEntryViewModel.updateUiState(flockUiState.copy(enabled = true))
-    var mortality by rememberSaveable{ mutableStateOf(0) }
-    var culls by rememberSaveable{ mutableStateOf(0) }
+    var mortality by rememberSaveable { mutableStateOf(0) }
+    var culls by rememberSaveable { mutableStateOf(0) }
 
-    var isCullsRemoveButtonEnabled by rememberSaveable{ mutableStateOf( false) }
-    var isMortalityRemoveButtonEnabled by rememberSaveable{ mutableStateOf( false) }
-    var isCullsAddButtonEnabled by rememberSaveable{ mutableStateOf(true) }
-    var isMortalityAddButtonEnabled by rememberSaveable{ mutableStateOf(true) }
+    var isCullsRemoveButtonEnabled by rememberSaveable { mutableStateOf(false) }
+    var isMortalityRemoveButtonEnabled by rememberSaveable { mutableStateOf(false) }
+    var isCullsAddButtonEnabled by rememberSaveable { mutableStateOf(true) }
+    var isMortalityAddButtonEnabled by rememberSaveable { mutableStateOf(true) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
-    var quantityRemaining by rememberSaveable{ mutableStateOf(flockEntryViewModel.flockUiState.getStock().toInt() - mortality) }
+    var quantityRemaining by rememberSaveable {
+        mutableStateOf(
+            flockEntryViewModel.flockUiState.getStock().toInt() - mortality
+        )
+    }
     quantityRemaining = flockEntryViewModel.flockUiState.getStock().toInt() - mortality
-    var isUpdateButtonEnabled by rememberSaveable{ mutableStateOf(true) }
+    var isUpdateButtonEnabled by rememberSaveable { mutableStateOf(culls > 0 || mortality > 0) }
 
     isMortalityAddButtonEnabled = mortality < quantityRemaining
     isMortalityRemoveButtonEnabled = mortality > 0
@@ -117,16 +124,17 @@ fun FlockEditScreen(
     isCullsRemoveButtonEnabled = culls > 0
     isUpdateButtonEnabled = flock != flockEntryViewModel.flockUiState.toFlock()
 
-    Scaffold (
-            modifier = modifier,
-            topBar = {
-                FlockManagementTopAppBar(
-                    title = stringResource(EditFlockDestination.resourceId),
-                    canNavigateBack = canNavigateBack,
-                    navigateUp = onNavigateUp
-                )
-            }
-        ){ innerPadding ->
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            FlockManagementTopAppBar(
+                title = stringResource(EditFlockDestination.resourceId),
+                canNavigateBack = canNavigateBack,
+                navigateUp = onNavigateUp
+            )
+        }
+    ) { innerPadding ->
+        isUpdateButtonEnabled = culls > 0 || mortality > 0
         Column(
             modifier = Modifier.padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -136,14 +144,15 @@ fun FlockEditScreen(
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
                     PickerDialog(
                         showDialog = showDialog,
                         onDismissed = { showDialog = false },
                         label = "Date",
                         flockUiState = flockUiState,
-                        updateShowDialogOnClick = {showDialog = true},
+                        updateShowDialogOnClick = { showDialog = true },
                         onValueChanged = onValueChanged,
                         saveDateSelected = { dateState ->
                             val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
@@ -165,36 +174,49 @@ fun FlockEditScreen(
                         readOnly = true,
                         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                         onValueChange = {
-                            flockEntryViewModel.flockUiState.setStock(quantityRemaining.toString(),
-                                flockEntryViewModel.flockUiState.donorFlock)
+                            flockEntryViewModel.flockUiState.setStock(
+                                quantityRemaining.toString(),
+                                flockEntryViewModel.flockUiState.donorFlock
+                            )
                         },
-                        label = { Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            text = "Stock")},
+                        label = {
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                text = "Stock"
+                            )
+                        },
                         enabled = true,
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        isError = flockEntryViewModel.flockUiState.isSingleEntryValid(flockEntryViewModel.flockUiState.quantity)
+                        isError = flockEntryViewModel.flockUiState.isSingleEntryValid(
+                            flockEntryViewModel.flockUiState.quantity
+                        )
                     )
 
                     EditCard(
                         value = mortality.toString(),
                         label = "Mortality",
                         onChangedValue = {
-                        } ,
+                        },
                         onReduce = {
                             mortality -= 1
-                            quantityRemaining = flockEntryViewModel.flockUiState.getStock().toInt() - mortality
+                            quantityRemaining =
+                                flockEntryViewModel.flockUiState.getStock().toInt() - mortality
                             isMortalityRemoveButtonEnabled = mortality > 0
-                            flockEntryViewModel.flockUiState.setStock(quantityRemaining.toString(),
-                                flockEntryViewModel.flockUiState.donorFlock)
+                            flockEntryViewModel.flockUiState.setStock(
+                                quantityRemaining.toString(),
+                                flockEntryViewModel.flockUiState.donorFlock
+                            )
                         },
                         onIncrease = {
                             mortality += 1
-                            quantityRemaining = flockEntryViewModel.flockUiState.getStock().toInt() - mortality
-                            flockEntryViewModel.flockUiState.setStock(quantityRemaining.toString(),
-                                flockEntryViewModel.flockUiState.donorFlock)
+                            quantityRemaining =
+                                flockEntryViewModel.flockUiState.getStock().toInt() - mortality
+                            flockEntryViewModel.flockUiState.setStock(
+                                quantityRemaining.toString(),
+                                flockEntryViewModel.flockUiState.donorFlock
+                            )
                             isMortalityAddButtonEnabled = mortality < quantityRemaining
                         },
                         isAddButtonEnabled = isMortalityAddButtonEnabled,
@@ -207,7 +229,7 @@ fun FlockEditScreen(
                         label = "Culls",
                         onChangedValue = {
                             flockEntryViewModel.flockUiState.setCulls(it)
-                        } ,
+                        },
                         onReduce = {
                             culls -= 1
                             isCullsRemoveButtonEnabled = culls > 0
@@ -222,7 +244,7 @@ fun FlockEditScreen(
                     )
                 }
             }
-            Row (horizontalArrangement = Arrangement.SpaceBetween){
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedButton(
                     modifier = Modifier.weight(1f),
                     onClick = onNavigateUp
@@ -235,24 +257,32 @@ fun FlockEditScreen(
                 }
                 Button(
                     modifier = Modifier.weight(1f),
+                    enabled = isUpdateButtonEnabled,
                     onClick = {
                         coroutineScope.launch {
                             flockEntryViewModel.updateItem(
-                                flockEntryViewModel.flockUiState.copy(mortality =
-                                (flockUiState.getMortality().toInt() + mortality).toString(),
+                                flockEntryViewModel.flockUiState.copy(
+                                    mortality =
+                                    (flockUiState.getMortality().toInt() + mortality).toString(),
                                     culls = (flockUiState.getCulls().toInt() + culls).toString(),
-                                    stock = quantityRemaining.toString())
+                                    stock = quantityRemaining.toString()
+                                )
                             )
 
-                            editFlockViewModel.insertHealth(FlockHealth(
-                                flockUniqueId = flockUiState.getUniqueId(),
-                                mortality = mortality,
-                                culls = culls,
-                                date = DateUtils().stringToLocalDate(flockUiState.getDate())
-                            ))
-                            Log.i("UPDATE_DATABASE", flockEntryViewModel.flockUiState.toFlock().toString())
+                            editFlockViewModel.insertHealth(
+                                FlockHealth(
+                                    flockUniqueId = flockUiState.getUniqueId(),
+                                    mortality = mortality,
+                                    culls = culls,
+                                    date = DateUtils().stringToLocalDate(flockUiState.getDate())
+                                )
+                            )
+                            Log.i(
+                                "UPDATE_DATABASE",
+                                flockEntryViewModel.flockUiState.toFlock().toString()
+                            )
                         }.invokeOnCompletion { onNavigateUp() }
-                         }
+                    }
                 ) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -266,59 +296,62 @@ fun FlockEditScreen(
 }
 
 @Composable
-fun EditCard(modifier: Modifier = Modifier,
-             value: String,
-             label: String,
-             onChangedValue: (String) -> Unit ,
-             onReduce: () -> Unit,
-             onIncrease: () -> Unit,
-             color: Color,
-             isRemoveButtonEnabled: Boolean = true,
-             isAddButtonEnabled: Boolean = true,
+fun EditCard(
+    modifier: Modifier = Modifier,
+    value: String,
+    label: String,
+    onChangedValue: (String) -> Unit,
+    onReduce: () -> Unit,
+    onIncrease: () -> Unit,
+    color: Color,
+    isRemoveButtonEnabled: Boolean = true,
+    isAddButtonEnabled: Boolean = true,
 ) {
-        Column (
-            modifier = modifier
+    Column(
+        modifier = modifier
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row (
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                OutlinedButton(
-                    modifier = Modifier.weight(0.5f),
-                    shape = CircleShape,
-                    onClick = onReduce,
-                    border = BorderStroke(1.dp, color = color),
-                    enabled = isRemoveButtonEnabled
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Remove,
-                        contentDescription = "Reduce"
-                    )
-                }
-                OutlinedTextField(
-                    modifier = Modifier.weight(1f),
-                    value = value,
-                    readOnly = true,
-                    onValueChange = onChangedValue,
-                    label = { Text(
+            OutlinedButton(
+                modifier = Modifier.weight(0.5f),
+                shape = CircleShape,
+                onClick = onReduce,
+                border = BorderStroke(1.dp, color = color),
+                enabled = isRemoveButtonEnabled
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Remove,
+                    contentDescription = "Reduce"
+                )
+            }
+            OutlinedTextField(
+                modifier = Modifier.weight(1f),
+                value = value,
+                readOnly = true,
+                onValueChange = onChangedValue,
+                label = {
+                    Text(
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         text = label
-                    )},
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
-                )
-
-                FilledIconButton(
-                    modifier = Modifier.weight(0.5f),
-                    onClick = onIncrease,
-                    enabled = isAddButtonEnabled
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Increase"
                     )
-                }
-            }
+                },
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
+            )
 
+            FilledIconButton(
+                modifier = Modifier.weight(0.5f),
+                onClick = onIncrease,
+                enabled = isAddButtonEnabled
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Increase"
+                )
+            }
         }
+
+    }
 }

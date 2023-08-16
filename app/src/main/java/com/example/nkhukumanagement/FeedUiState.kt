@@ -18,10 +18,12 @@ data class FeedUiState(
     private var feedingDate: String = "",
     val enabled: Boolean = false
 ) {
+    val options = mutableListOf("Pre-starter", "Starter", "Grower", "Finisher")
 
     fun setDate(date: String) {
         feedingDate = date
     }
+
     fun getDate(): String {
         return feedingDate
     }
@@ -31,7 +33,7 @@ data class FeedUiState(
  * Extension function to convert [FeedUiState] to [Feed]
  */
 @RequiresApi(Build.VERSION_CODES.O)
-fun FeedUiState.toFeed(): Feed = Feed (
+fun FeedUiState.toFeed(): Feed = Feed(
     id = id,
     flockUniqueId = flockUniqueID,
     name = name,
@@ -42,7 +44,7 @@ fun FeedUiState.toFeed(): Feed = Feed (
     actualConsumptionPerBird = actualConsumptionPerBird.toDouble(),
     standardConsumptionPerBird = standardConsumptionPerBird.toDouble(),
     feedingDate = DateUtils().stringToLocalDate(getDate())
-        )
+)
 
 /**
  * Extension function to convert [Feed] to [FeedUiState]
@@ -61,13 +63,13 @@ fun Feed.toFeedUiState(): FeedUiState = FeedUiState(
     feedingDate = DateUtils().convertLocalDateToString(feedingDate)
 )
 
-fun FeedUiState.isValid() : Boolean {
-    return  name.isNotBlank() &&
+fun FeedUiState.isValid(): Boolean {
+    return name.isNotBlank() &&
             getDate().isNotBlank() &&
             type.isNotBlank() &&
             actualConsumed.isNotBlank()
 }
 
 fun FeedUiState.isSingleEntryValid(value: String): Boolean {
-    return value.isBlank()
+    return value.isNotBlank()
 }

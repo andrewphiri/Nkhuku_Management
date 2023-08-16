@@ -19,7 +19,8 @@ import javax.inject.Inject
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class EditFlockViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle, private val flockRepository: FlockRepository) : ViewModel() {
+    savedStateHandle: SavedStateHandle, private val flockRepository: FlockRepository
+) : ViewModel() {
 
     private val id: Int = checkNotNull(savedStateHandle[EditFlockDestination.flockIdArg])
 

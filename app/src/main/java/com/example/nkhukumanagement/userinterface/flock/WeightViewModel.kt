@@ -1,6 +1,7 @@
 package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -24,8 +25,10 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
-class WeightViewModel @Inject constructor(val savedStateHandle: SavedStateHandle,
-                                          val flockRepository: FlockRepository) : ViewModel() {
+class WeightViewModel @Inject constructor(
+    val savedStateHandle: SavedStateHandle,
+    val flockRepository: FlockRepository
+) : ViewModel() {
 
     companion object {
         private const val MILLIS = 5_000L
@@ -60,57 +63,124 @@ class WeightViewModel @Inject constructor(val savedStateHandle: SavedStateHandle
         flockRepository.deleteWeight(flockUniqueId)
     }
 
-    fun getWeightList() : SnapshotStateList<WeightUiState> {
+    fun getWeightList(): SnapshotStateList<WeightUiState> {
         return initialWeightList
     }
+
+    fun isUpdateButtonEnabled(weights: List<WeightUiState>): Boolean {
+
+        Log.i("Weight_Get_List", initialWeightList.toMutableList().toString())
+        Log.i("Weight_LIST", weights.toString())
+        return initialWeightList.toMutableList() != weights
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    fun setWeightList(weightList: SnapshotStateList<WeightUiState>)  {
+    fun setWeightList(weightList: SnapshotStateList<WeightUiState>) {
         initialWeightList = weightList
     }
 
-    fun updateWeightState(index: Int, uiState: WeightUiState){
+    fun updateWeightState(index: Int, uiState: WeightUiState) {
         initialWeightList[index] = uiState
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun defaultWeight(flockUiState: FlockUiState) : SnapshotStateList<WeightUiState> {
+    fun defaultWeight(flockUiState: FlockUiState): SnapshotStateList<WeightUiState> {
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
         return mutableStateListOf(
             WeightUiState(
-                week = "Initial", flockUniqueID = flockUiState.getUniqueId(), actualWeight = "0", standard = "0.040",
+                week = "Initial",
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.040",
                 dateMeasured = flockUiState.getDate()
             ),
             WeightUiState(
-                week = "Week 1", flockUniqueID = flockUiState.getUniqueId(), actualWeight = "0", standard = "0.180",
-                dateMeasured = DateUtils().weightDate(date = dateReceived, day = 7, weightUiState = weightUiState)
+                week = "Week 1",
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.180",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 7,
+                    weightUiState = weightUiState
+                )
             ),
             WeightUiState(
-                week = "Week 2", flockUniqueID = flockUiState.getUniqueId(), actualWeight = "0", standard = "0.440",
-                dateMeasured = DateUtils().weightDate(date = dateReceived, day = 14, weightUiState = weightUiState)
+                week = "Week 2",
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.440",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 14,
+                    weightUiState = weightUiState
+                )
             ),
             WeightUiState(
-                week = "Week 3", flockUniqueID = flockUiState.getUniqueId(), actualWeight = "0", standard = "0.850",
-                dateMeasured = DateUtils().weightDate(date = dateReceived, day = 21, weightUiState = weightUiState)
+                week = "Week 3",
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.850",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 21,
+                    weightUiState = weightUiState
+                )
             ),
             WeightUiState(
-                week = "Week 4", flockUniqueID = flockUiState.getUniqueId(), actualWeight = "0", standard = "1.400",
-                dateMeasured = DateUtils().weightDate(date = dateReceived, day = 28, weightUiState = weightUiState)
+                week = "Week 4",
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.400",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 28,
+                    weightUiState = weightUiState
+                )
             ),
             WeightUiState(
-                week = "Week 5", flockUniqueID = flockUiState.getUniqueId(), actualWeight = "0", standard = "2.000",
-                dateMeasured = DateUtils().weightDate(date = dateReceived, day = 35, weightUiState = weightUiState)
+                week = "Week 5",
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "2.000",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 35,
+                    weightUiState = weightUiState
+                )
             ),
             WeightUiState(
-                week = "Week 6", flockUniqueID = flockUiState.getUniqueId(), actualWeight = "0", standard = "2.600",
-                dateMeasured = DateUtils().weightDate(date = dateReceived, day = 42, weightUiState = weightUiState)
+                week = "Week 6",
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "2.600",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 42,
+                    weightUiState = weightUiState
+                )
             ),
             WeightUiState(
-                week = "Week 7", flockUniqueID = flockUiState.getUniqueId(), actualWeight = "0", standard = "3.200",
-                dateMeasured = DateUtils().weightDate(date = dateReceived, day = 49, weightUiState = weightUiState)
+                week = "Week 7",
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "3.200",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 49,
+                    weightUiState = weightUiState
+                )
             ),
             WeightUiState(
-                week = "Week 8", flockUniqueID = flockUiState.getUniqueId(), actualWeight = "0", standard = "3.800",
-                dateMeasured = DateUtils().weightDate(date = dateReceived, day = 56, weightUiState = weightUiState)
+                week = "Week 8",
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "3.800",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 56,
+                    weightUiState = weightUiState
+                )
             )
         )
     }
