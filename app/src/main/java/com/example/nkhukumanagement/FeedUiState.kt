@@ -3,6 +3,8 @@ package com.example.nkhukumanagement
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.nkhukumanagement.data.Feed
+import com.example.nkhukumanagement.userinterface.flock.WeightUiState
+import com.example.nkhukumanagement.userinterface.flock.toWeight
 import com.example.nkhukumanagement.utils.DateUtils
 
 data class FeedUiState(
@@ -29,6 +31,15 @@ data class FeedUiState(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+fun checkNumberExceptions(feedUiState: FeedUiState): Boolean {
+    return try {
+        feedUiState.toFeed()
+        true
+    }catch (e: NumberFormatException) {
+        false
+    }
+}
 /**
  * Extension function to convert [FeedUiState] to [Feed]
  */

@@ -32,6 +32,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -41,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,6 +62,7 @@ import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.utils.DateUtils
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -79,7 +84,8 @@ fun AddFlockScreen(
     navigateToVaccinationsScreen: (FlockUiState) -> Unit,
     viewModel: FlockEntryViewModel
 ) {
-
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -88,14 +94,21 @@ fun AddFlockScreen(
                 navigateUp = { onNavigateUp() }
             )
         },
+        snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { innerPadding ->
         AddFlockBody(
             flockUiState = viewModel.flockUiState,
             modifier = modifier.padding(innerPadding),
             onItemValueChange = viewModel::updateUiState,
             onVaccinationsScreen = {
-                viewModel.flockUiState.setStock(it.quantity, it.donorFlock)
-                navigateToVaccinationsScreen(viewModel.flockUiState)
+                if (checkNumberExceptions(viewModel.flockUiState)) {
+                    viewModel.flockUiState.setStock(it.quantity, it.donorFlock)
+                    navigateToVaccinationsScreen(viewModel.flockUiState)
+                } else {
+                    coroutineScope.launch {
+                        snackBarHostState.showSnackbar(message = "Please enter a valid number." )
+                    }
+                }
             })
     }
 }

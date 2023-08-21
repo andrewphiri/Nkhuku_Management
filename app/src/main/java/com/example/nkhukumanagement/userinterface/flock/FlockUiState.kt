@@ -4,6 +4,9 @@ import android.os.Build
 import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Flock
@@ -92,6 +95,16 @@ fun FlockUiState.toFlock(): Flock = Flock(
     stock = getStock().toInt(),
     culls = getCulls().toInt()
 )
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun checkNumberExceptions(flockUiState: FlockUiState): Boolean {
+   return try {
+        flockUiState.toFlock()
+       true
+    }catch (e: NumberFormatException) {
+       false
+    }
+}
 
 /**
  * Extension function to convert [Flock] to [FlockUiState]

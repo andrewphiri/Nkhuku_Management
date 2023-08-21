@@ -36,6 +36,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -101,6 +103,7 @@ fun WeightScreen(
     var title by remember { mutableStateOf("") }
     title = stringResource(WeightScreenDestination.resourceId)
     val context = LocalContext.current
+    val snackBarHostState = remember { SnackbarHostState() }
 
     for (item in weightList) {
         weightUiStateList.add(item.toWeightUiState())
@@ -119,6 +122,7 @@ fun WeightScreen(
                 navigateUp = onNavigateUp,
             )
         },
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         floatingActionButton = {
             AnimatedVisibility(visible = isFABVisible,
                 enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
@@ -191,12 +195,19 @@ fun WeightScreen(
                         onClick = {
                             val weight = weightViewModel.getWeightList()
                             val updatedWeights = mutableListOf<Weight>()
-                            weight.forEach {
-                                updatedWeights.add(it.toWeight())
-                            }
+
+                            if (weight.all { checkNumberExceptions(it) }) {
+                                weight.forEach {
+                                    updatedWeights.add(it.toWeight())
+                                }
                             scope.launch {
                                 weightViewModel.updateWeight(updatedWeights)
                             }.invokeOnCompletion { onNavigateUp() }
+                        } else {
+                            scope.launch {
+                                snackBarHostState.showSnackbar("Please enter a valid number.")
+                            }
+                        }
                         }
                     ) {
                         Text(

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -33,6 +34,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -45,9 +48,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,6 +67,7 @@ import androidx.navigation.navArgument
 import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
+import com.example.nkhukumanagement.checkNumberExceptions
 import com.example.nkhukumanagement.data.Feed
 import com.example.nkhukumanagement.isSingleEntryValid
 import com.example.nkhukumanagement.toFeedUiState
@@ -100,6 +107,7 @@ fun FeedScreen(
     var showDialog by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     var isAddTypeDialogShowing by remember { mutableStateOf(false) }
+    val snackBarHostState = remember { SnackbarHostState() }
 
     for (feedUiState in feedList) {
         feedUiStateList.add(feedUiState.toFeedUiState())
@@ -114,7 +122,8 @@ fun FeedScreen(
                 canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding)) {
             FeedConsumptionList(
@@ -135,19 +144,15 @@ fun FeedScreen(
                 isAddFeedTypeDialogShowing = isAddTypeDialogShowing,
                 flockUiState = flockEntryViewModel.flockUiState,
                 onUpdateFeed = { feedUiState ->
-                    coroutineScope.launch {
-                        feedViewModel.updateFeed(feedUiState)
-                    }.invokeOnCompletion {
-                        showDialog = false
-                        feedUiState.copy(
-                            actualConsumptionPerBird =
-                            String
-                                .format(
-                                    "%.3f",
-                                    feedUiState.actualConsumed.toDouble() / flockEntryViewModel.flockUiState.getStock()
-                                        .toDouble()
-                                )
-                        )
+
+                    if (checkNumberExceptions(feedUiState)) {
+                        coroutineScope.launch {
+                            feedViewModel.updateFeed(feedUiState)
+                        }.invokeOnCompletion {
+                            showDialog = false
+                        }
+                } else {
+                    coroutineScope.launch { snackBarHostState.showSnackbar(message = "Please enter a valid number.") }
                     }
                 }
             )
@@ -259,16 +264,27 @@ fun FeedConsumptionList(
             feedUiState = feedViewModel.feedUiState,
             isAddFeedTypeDialogShowing = isAddFeedTypeDialogShowing,
             onChangedValue = {
-                feedViewModel.setFeedState(
-                    feedViewModel.feedUiState.copy(
-                        type = it.type,
-                        actualConsumed = it.actualConsumed, actualConsumptionPerBird = String
-                            .format(
-                                "%.3f",
-                                it.actualConsumed.toDouble() / flockUiState.getStock().toDouble()
-                            )
+                try {
+                    feedViewModel.setFeedState(
+                        feedViewModel.feedUiState.copy(
+                            type = it.type,
+                            actualConsumed = it.actualConsumed, actualConsumptionPerBird = String
+                                .format(
+                                    "%.3f",
+                                    it.actualConsumed.toDouble() / flockUiState.getStock().toDouble()
+                                )
+                        )
                     )
-                )
+                } catch (e: NumberFormatException) {
+                    feedViewModel.setFeedState(
+                        feedViewModel.feedUiState.copy(
+                            type = it.type,
+                            actualConsumed = it.actualConsumed
+                        )
+                    )
+                }
+
+
             },
             onUpdateFeed = onUpdateFeed
         )
@@ -387,7 +403,8 @@ fun FeedCardItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun UpdateFeedDialog(
     modifier: Modifier = Modifier,
@@ -402,11 +419,13 @@ fun UpdateFeedDialog(
     isAddFeedTypeDialogShowing: Boolean,
     onTypeDialogShowing: () -> Unit
 ) {
-
     var newFeedType by remember { mutableStateOf("") }
     var isSaveButtonEnabled by remember { mutableStateOf(true) }
-    isSaveButtonEnabled = feedUiState.isSingleEntryValid(feedUiState.type) &&
-            feedUiState.actualConsumed != "0.0" && feedUiState.actualConsumed.isNotBlank()
+    isSaveButtonEnabled = feedUiState.isSingleEntryValid(feedUiState.type)
+            && feedUiState.actualConsumed != "0.0"
+            && feedUiState.actualConsumed.isNotBlank()
+            && checkNumberExceptions(feedUiState)
+    val keyboardController = LocalSoftwareKeyboardController.current
     if (showDialog) {
         Dialog(
             onDismissRequest = onDismiss,
@@ -483,7 +502,10 @@ fun UpdateFeedDialog(
                         value = if (feedUiState.actualConsumed == "0.0") "" else feedUiState.actualConsumed,
                         onValueChange = { onChangedValue(feedUiState.copy(actualConsumed = it)) },
                         label = { Text("Quantity") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = {keyboardController?.hide()}
+                        )
                     )
 
                     AddNewEntryDialog(
