@@ -20,7 +20,10 @@ import androidx.navigation.navigation
 import com.example.nkhukumanagement.AccountsScreen
 import com.example.nkhukumanagement.home.HomeScreen
 import com.example.nkhukumanagement.OverviewScreen
+import com.example.nkhukumanagement.PlannerResultScreen
+import com.example.nkhukumanagement.PlannerResultsDestination
 import com.example.nkhukumanagement.PlannerScreen
+import com.example.nkhukumanagement.PlannerViewModel
 import com.example.nkhukumanagement.TipsScreen
 import com.example.nkhukumanagement.userinterface.flock.AddFlockDestination
 import com.example.nkhukumanagement.userinterface.flock.AddFlockScreen
@@ -46,7 +49,8 @@ fun NkhukuNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
-    flockEntryViewModel: FlockEntryViewModel = hiltViewModel()
+    flockEntryViewModel: FlockEntryViewModel = hiltViewModel(),
+    plannerViewModel: PlannerViewModel = viewModel()
 ) {
     NavHost(
         navController = navController,
@@ -72,7 +76,10 @@ fun NkhukuNavHost(
         }
 
         composable(route = NavigationBarScreens.Planner.route) {
-            PlannerScreen()
+            PlannerScreen(
+                navigateToResultsScreen = { navController.navigate(PlannerResultsDestination.route)},
+                plannerViewModel = plannerViewModel
+            )
         }
 
         composable(route = NavigationBarScreens.Tips.route) {
@@ -113,6 +120,12 @@ fun NkhukuNavHost(
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
                 vaccinationViewModel = vaccinationViewModel
+            )
+        }
+        composable(route = PlannerResultsDestination.route) {
+            PlannerResultScreen (
+                onNavigateUp = { navController.navigateUp() },
+                plannerViewModel = plannerViewModel
             )
         }
         detailsGraph(
