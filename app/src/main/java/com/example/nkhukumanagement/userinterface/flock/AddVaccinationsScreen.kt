@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.nkhukumanagement.AccountsViewModel
 import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
@@ -114,7 +115,8 @@ fun AddVaccinationsScreen(
     detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
     weightViewModel: WeightViewModel = hiltViewModel(),
-    feedViewModel: FeedViewModel = hiltViewModel()
+    feedViewModel: FeedViewModel = hiltViewModel(),
+    accountsViewModel: AccountsViewModel = hiltViewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -212,6 +214,10 @@ fun AddVaccinationsScreen(
                         )
                         coroutineScope.launch {
                             flockEntryViewModel.saveItem()
+                            accountsViewModel.insertAccounts(accountsViewModel
+                                .Accounts(flockEntryViewModel.flockUiState))
+                            accountsViewModel.insertExpense(accountsViewModel
+                                .ExpenseToInsert(flockEntryViewModel.flockUiState))
                             weightViewModel.getWeightList().forEach {
                                 weightViewModel.saveInitialWeight(it)
                             }

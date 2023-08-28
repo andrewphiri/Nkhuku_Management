@@ -6,6 +6,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +16,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
@@ -86,6 +91,7 @@ fun AddFlockScreen(
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -96,20 +102,22 @@ fun AddFlockScreen(
         },
         snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { innerPadding ->
-        AddFlockBody(
-            flockUiState = viewModel.flockUiState,
-            modifier = modifier.padding(innerPadding),
-            onItemValueChange = viewModel::updateUiState,
-            onVaccinationsScreen = {
-                if (checkNumberExceptions(viewModel.flockUiState)) {
-                    viewModel.flockUiState.setStock(it.quantity, it.donorFlock)
-                    navigateToVaccinationsScreen(viewModel.flockUiState)
-                } else {
-                    coroutineScope.launch {
-                        snackBarHostState.showSnackbar(message = "Please enter a valid number." )
+        Column( modifier = modifier.padding(innerPadding).verticalScroll(scrollState)) {
+            AddFlockBody(
+                flockUiState = viewModel.flockUiState,
+
+                onItemValueChange = viewModel::updateUiState,
+                onVaccinationsScreen = {
+                    if (checkNumberExceptions(viewModel.flockUiState)) {
+                        viewModel.flockUiState.setStock(it.quantity, it.donorFlock)
+                        navigateToVaccinationsScreen(viewModel.flockUiState)
+                    } else {
+                        coroutineScope.launch {
+                            snackBarHostState.showSnackbar(message = "Please enter a valid number.")
+                        }
                     }
-                }
-            })
+                })
+        }
     }
 }
 
@@ -278,6 +286,17 @@ fun AddFlockInputForm(
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             isError = flockUiState.isSingleEntryValid(flockUiState.quantity)
+        )
+
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = flockUiState.cost,
+            onValueChange = { onValueChanged(flockUiState.copy(cost = it)) },
+            label = { Text("Price Per Bird") },
+            enabled = true,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            isError = flockUiState.isSingleEntryValid(flockUiState.cost)
         )
 
         OutlinedTextField(

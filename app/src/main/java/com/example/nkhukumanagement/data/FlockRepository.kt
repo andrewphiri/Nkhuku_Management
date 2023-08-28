@@ -1,6 +1,7 @@
 package com.example.nkhukumanagement.data
 
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -21,6 +22,11 @@ interface FlockRepository {
      * Retrieve all flock entries from data source
      */
     fun getAllWeightItems(): Flow<List<Weight>>
+
+    /**
+     * Retrieve all flock entries from data source
+     */
+    fun getAllAccountsItems(): Flow<List<AccountsSummary>>
 
     /**
      * Retrieve all flocksWithVaccinations from data source
@@ -58,9 +64,44 @@ interface FlockRepository {
     fun getVaccinationItem(id: Int): Flow<Vaccination>
 
     /**
+     * Retrieve income item from data source
+     */
+    fun getIncomeItem(id: Int): Flow<Income>
+
+    /**
+     * Retrieve income item from data source
+     */
+    fun getExpenseItem(id: Int): Flow<Expense>
+
+    fun getFlockAndAccountSummary(id: Int): Flow<FlockAndAccountSummary>
+
+    fun getFlockWithIncome(id: Int) : Flow<FlockWithIncome>
+
+    fun getFlockWithExpenses(id: Int) : Flow<FlockWithExpenses>
+
+    fun getAccountsWithIncome(id: Int): Flow<AccountsWithIncome>
+
+    fun getAccountsWithExpense(id: Int): Flow<AccountsWithExpense>
+
+    /**
      * Insert flock in the database
      */
     suspend fun insertFlock(flock: Flock)
+
+    /**
+     * Insert flock in the database
+     */
+    suspend fun insertAccounts(accountsSummary: AccountsSummary)
+
+    /**
+     * Insert income in the database
+     */
+    suspend fun insertIncome(income: Income)
+
+    /**
+     * Insert expense in the database
+     */
+    suspend fun insertExpense(expense: Expense)
 
     /**
      * Insert vaccination in the database
@@ -98,6 +139,11 @@ interface FlockRepository {
     suspend fun deleteFeed(flockUniqueID: String)
 
     /**
+     * Delete accountsSummary from the database
+     */
+    suspend fun deleteAccounts(flockUniqueID: String)
+
+    /**
      * Delete weight from the database
      */
     suspend fun deleteWeight(flockUniqueID: String)
@@ -105,8 +151,17 @@ interface FlockRepository {
     /**
      * Delete flockHealth from the database
      */
-    @Query("DELETE FROM health WHERE flockUniqueId = :flockUniqueID")
     suspend fun deleteFlockHealth(flockUniqueID: String)
+
+    /**
+     * Delete income from the database
+     */
+    suspend fun deleteIncome(income: Income)
+
+    /**
+     * Delete expense from the database
+     */
+    suspend fun deleteExpense(expense: Expense)
 
     /**
      * Update flock in the database
@@ -124,6 +179,11 @@ interface FlockRepository {
     suspend fun updateFeed(feed: Feed)
 
     /**
+     * Update accounts in the database
+     */
+    suspend fun updateAccounts(accountsSummary: AccountsSummary)
+
+    /**
      * Update weight in the database
      */
     suspend fun updateWeight(weight: List<Weight>)
@@ -132,4 +192,14 @@ interface FlockRepository {
      * Update flockHealth in the database
      */
     suspend fun updateFlockHealth(flockHealth: FlockHealth)
+
+    /**
+     * Update income in the database
+     */
+    suspend fun updateIncome(income: Income)
+
+    /**
+     * Update income in the database
+     */
+    suspend fun updateExpense(expense: Expense)
 }

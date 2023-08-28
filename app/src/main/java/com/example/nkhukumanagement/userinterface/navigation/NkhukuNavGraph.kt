@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -25,6 +26,8 @@ import com.example.nkhukumanagement.PlannerResultsDestination
 import com.example.nkhukumanagement.PlannerScreen
 import com.example.nkhukumanagement.PlannerViewModel
 import com.example.nkhukumanagement.TipsScreen
+import com.example.nkhukumanagement.TransactionScreen
+import com.example.nkhukumanagement.TransactionsScreenDestination
 import com.example.nkhukumanagement.userinterface.flock.AddFlockDestination
 import com.example.nkhukumanagement.userinterface.flock.AddFlockScreen
 import com.example.nkhukumanagement.userinterface.flock.AddVaccinationsDestination
@@ -72,7 +75,11 @@ fun NkhukuNavHost(
         }
 
         composable(route = NavigationBarScreens.Accounts.route) {
-            AccountsScreen()
+            AccountsScreen(
+                navigateToTransactionsScreen = {id ->
+                    navController.navigate("${TransactionsScreenDestination.route}/$id")
+                }
+            )
         }
 
         composable(route = NavigationBarScreens.Planner.route) {
@@ -132,6 +139,9 @@ fun NkhukuNavHost(
             navController = navController,
             flockEntryViewModel = flockEntryViewModel,
         )
+        accountDetailsGraph(
+            navController = navController
+        )
     }
 }
 
@@ -190,6 +200,22 @@ fun NavGraphBuilder.detailsGraph(
             FeedScreen(
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel
+            )
+        }
+    }
+}
+
+fun NavGraphBuilder.accountDetailsGraph(navController: NavHostController) {
+    navigation(
+        route = GraphRoutes.ACCOUNT_DETAILS,
+        startDestination = TransactionsScreenDestination.route
+    ) {
+        composable(
+            route = TransactionsScreenDestination.routeWithArgs,
+            arguments = TransactionsScreenDestination.arguments
+        ) {
+            TransactionScreen(
+                onNavigateUp = { navController.navigateUp() }
             )
         }
     }

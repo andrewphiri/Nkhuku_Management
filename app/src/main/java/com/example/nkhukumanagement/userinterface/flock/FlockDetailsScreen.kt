@@ -97,7 +97,8 @@ fun FlockDetailsScreen(
         initial = flockEntryViewModel.flockUiState.copy(
             datePlaced = DateUtils().convertLocalDateToString(LocalDate.now()),
             quantity = "0",
-            donorFlock = "0"
+            donorFlock = "0",
+            cost = "0"
         ).toFlock()
     )
 
@@ -172,6 +173,7 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock, onHealthCardClick: (
         datePlaced = flock.datePlaced,
         mortality = flock.mortality,
         numberOfChicksPlaced = flock.numberOfChicksPlaced,
+        costPerBird = flock.costPerBird,
         culls = flock.culls,
         stock = flock.stock,
         donorFlock = flock.donorFlock

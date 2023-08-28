@@ -17,4 +17,7 @@
     <string name="back">Back</string>
     <string name="edit_weights">Edit Weights</string>
     <string name="estimation">Estimation</string>
+    <string name="income">Income</string>
+    <string name="expense">Expense</string>
+    <string name="transactions">Transactions</string>
 </resources>

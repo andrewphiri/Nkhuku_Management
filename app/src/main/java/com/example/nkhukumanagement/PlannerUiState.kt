@@ -39,7 +39,7 @@ data class PlannerUiState(
         return calculateStarterBags() + calculateGrowerBags() + calculateGrowerBags()
     }
     fun calculateChickTrays(): Int {
-        return ((quantityToOrder.toDouble()/100) * 2).roundToInt()
+        return ((quantityToOrder.toDouble()/100) * 3).roundToInt()
     }
     fun calculateSmallFeeders(): Int {
         return ((quantityToOrder.toDouble()/100) * 3).roundToInt()

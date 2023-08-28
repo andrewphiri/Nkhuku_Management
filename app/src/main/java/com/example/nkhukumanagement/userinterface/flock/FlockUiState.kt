@@ -26,6 +26,7 @@ data class FlockUiState(
     val breed: String = "",
     private var datePlaced: String = "",
     val quantity: String = "",
+    val cost: String = "",
     val donorFlock: String = "",
     private var stock: String = "0",
     private var mortality: String = "0",
@@ -74,7 +75,13 @@ data class FlockUiState(
     fun getStock(): String {
         return stock
     }
+    fun totalCostOfBirds() : Double {
+        return quantity.toDouble() * cost.toDouble()
+    }
 
+    fun variance() : Double {
+        return 0.0 - totalCostOfBirds()
+    }
     fun getBirdsRemaining(): Int = getStock().toInt() - mortality.toInt()
 
 }
@@ -90,6 +97,7 @@ fun FlockUiState.toFlock(): Flock = Flock(
     breed = breed,
     datePlaced = DateUtils().stringToLocalDate(getDate()),
     numberOfChicksPlaced = quantity.toInt(),
+    costPerBird = cost.toDouble(),
     donorFlock = donorFlock.toIntOrNull() ?: 0,
     mortality = getMortality().toInt(),
     stock = getStock().toInt(),
@@ -118,6 +126,7 @@ fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
         breed = breed,
         datePlaced = DateUtils().convertLocalDateToString(datePlaced),
         quantity = numberOfChicksPlaced.toString(),
+        cost = costPerBird.toString(),
         donorFlock = donorFlock.toString(),
         mortality = mortality.toString(),
         culls = culls.toString(),
@@ -125,18 +134,12 @@ fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
         enabled = enabled
     )
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 fun FlockUiState.isValid(): Boolean {
-    Log.i(
-        "ENABLED", "breed = ${breed.isNotBlank()} " +
-                " Date = ${getDate().isNotBlank()} " +
-                " quantity = ${quantity.isNotBlank()} " +
-                " donor = ${donorFlock.isNotBlank()}"
-    )
     return breed.isNotBlank() &&
             getDate().isNotBlank() &&
             quantity.isNotBlank() &&
+            cost.isNotBlank() &&
             donorFlock.isNotBlank()
             && batchName.isNotBlank()
 }

@@ -25,6 +25,15 @@ interface FlockDao {
     @Insert
     suspend fun insertFlockHealth(flockHealth: FlockHealth)
 
+    @Insert
+    suspend fun insertAccounts(accountsSummary: AccountsSummary)
+
+    @Insert
+    suspend fun insertIncome(income: Income)
+
+    @Insert
+    suspend fun insertExpense(expense: Expense)
+
     @Update
     suspend fun updateFlock(flock: Flock)
 
@@ -40,6 +49,14 @@ interface FlockDao {
     @Update
     suspend fun updateFlockHealth(flockHealth: FlockHealth)
 
+    @Update
+    suspend fun updateAccounts(accountsSummary: AccountsSummary)
+
+    @Update
+    suspend fun updateIncome(income: Income)
+
+    @Update
+    suspend fun updateExpense(expense: Expense)
 
     @Query("DELETE FROM flock WHERE uniqueId = :flockUniqueID")
     suspend fun deleteFlock(flockUniqueID: String)
@@ -56,8 +73,23 @@ interface FlockDao {
     @Query("DELETE FROM health WHERE flockUniqueId = :flockUniqueID")
     suspend fun deleteFlockHealth(flockUniqueID: String)
 
+    @Query("DELETE FROM accounts_summary WHERE flockUniqueID = :flockUniqueID")
+    suspend fun deleteAccounts(flockUniqueID: String)
+
+    @Delete
+    suspend fun deleteIncome(income: Income)
+
+    @Delete
+    suspend fun deleteExpense(expense: Expense)
+
     @Query("SELECT * FROM flock WHERE id = :id")
     fun retrieveFlock(id: Int) : Flow<Flock>
+
+    @Query("SELECT * FROM income WHERE id = :id")
+    fun retrieveIncome(id: Int) : Flow<Income>
+
+    @Query("SELECT * FROM expense WHERE id = :id")
+    fun retrieveExpense(id: Int) : Flow<Expense>
 
     @Query("SELECT * FROM vaccinations WHERE id = :id")
     fun retrieveVaccination(id: Int) : Flow<Vaccination>
@@ -74,6 +106,10 @@ interface FlockDao {
     @Query("SELECT * FROM weight")
     fun getAllWeightItems() : Flow<List<Weight>>
 
+    @Query("SELECT * FROM accounts_summary")
+    fun getAllAccountItems() : Flow<List<AccountsSummary>>
+
+
     @Transaction
     @Query("SELECT * FROM flock WHERE id = :id")
     fun getFlocksWithVaccinations(id: Int): Flow<FlockWithVaccinations>
@@ -89,4 +125,24 @@ interface FlockDao {
     @Transaction
     @Query("SELECT * FROM flock WHERE id = :id")
     fun getFlocksWithHealth(id: Int): Flow<FlockWithHealth>
+
+    @Transaction
+    @Query("SELECT * FROM flock WHERE id = :id")
+    fun getFlocksAndAccountSummary(id: Int): Flow<FlockAndAccountSummary>
+
+    @Transaction
+    @Query("SELECT * FROM flock WHERE id = :id")
+    fun getFlocksWithIncome(id: Int): Flow<FlockWithIncome>
+
+    @Transaction
+    @Query("SELECT * FROM flock WHERE id = :id")
+    fun getFlocksWithExpense(id: Int): Flow<FlockWithExpenses>
+
+    @Transaction
+    @Query("SELECT * FROM accounts_summary WHERE id = :id")
+    fun getAccountsWithIncome(id: Int): Flow<AccountsWithIncome>
+
+    @Transaction
+    @Query("SELECT * FROM accounts_summary WHERE id = :id")
+    fun getAccountsWithExpense(id: Int): Flow<AccountsWithExpense>
 }

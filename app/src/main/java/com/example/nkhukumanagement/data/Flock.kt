@@ -17,6 +17,8 @@ data class Flock(
     val datePlaced: LocalDate,
     @ColumnInfo(name = "quantity")
     val numberOfChicksPlaced: Int,
+    @ColumnInfo(name = "Price/bird")
+    val costPerBird: Double,
     val stock: Int,
     @ColumnInfo(name = "donor")
     val donorFlock: Int,

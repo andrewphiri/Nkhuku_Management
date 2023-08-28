@@ -17,7 +17,9 @@ import com.example.nkhukumanagement.R
 
 sealed class NavigationBarScreens(val route: String,
                                   @StringRes val resourceId: Int,
-                                  val icon: ImageVector, val iconSelected: ImageVector, var isIconSelected: Boolean = false) {
+                                  val icon: ImageVector,
+                                  val iconSelected: ImageVector,
+                                  var isIconSelected: Boolean = false) {
     object Home: NavigationBarScreens(route = "Home", resourceId = R.string.home,
         icon = Icons.Outlined.Home, iconSelected = Icons.Default.Home )
     object Accounts: NavigationBarScreens(route = "Accounts", resourceId =R.string.accounts,
