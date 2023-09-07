@@ -41,15 +41,16 @@ import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreen
 import kotlinx.coroutines.launch
 
 @Composable
-fun PlannerScreen(modifier: Modifier = Modifier,
-                  canNavigateBack: Boolean = false,
-                  plannerViewModel: PlannerViewModel,
-                  navigateToResultsScreen: () -> Unit = {}
-){
+fun PlannerScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = false,
+    plannerViewModel: PlannerViewModel,
+    navigateToResultsScreen: () -> Unit = {}
+) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var isCalculateButtonEnabled by remember { mutableStateOf(false) }
-    Scaffold (
+    Scaffold(
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Planner.resourceId),
@@ -57,7 +58,7 @@ fun PlannerScreen(modifier: Modifier = Modifier,
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ){ innerPadding ->
+    ) { innerPadding ->
         isCalculateButtonEnabled = plannerViewModel.plannerUiState.isValid()
         PlannerCardEntry(
             modifier = modifier.padding(innerPadding),
@@ -70,20 +71,22 @@ fun PlannerScreen(modifier: Modifier = Modifier,
                         snackbarHostState.showSnackbar(message = "Please enter a valid number.")
                     }
                 }
-                 },
+            },
             plannerUiState = plannerViewModel.plannerUiState,
             onValueChanged = plannerViewModel::updateUiState
         )
     }
 
 }
+
 @Composable
 fun PlannerCardEntry(
     modifier: Modifier = Modifier,
     onCalculate: () -> Unit = {},
     isCalculateButtonEnabled: Boolean,
     plannerUiState: PlannerUiState,
-    onValueChanged: (PlannerUiState) -> Unit = {}) {
+    onValueChanged: (PlannerUiState) -> Unit = {}
+) {
     //Define dependent checkboxes states
     val (checkboxState, onStateChange) = rememberSaveable { mutableStateOf(false) }
     val (checkboxState2, onStateChange2) = rememberSaveable { mutableStateOf(false) }
@@ -91,7 +94,7 @@ fun PlannerCardEntry(
     //TriStateCheckbox state reflects state of dependent checkboxes
     val parentState = remember(checkboxState, checkboxState2) {
         if (checkboxState && checkboxState2) ToggleableState.On
-        else if(!checkboxState && !checkboxState2) ToggleableState.Off
+        else if (!checkboxState && !checkboxState2) ToggleableState.Off
         else ToggleableState.Indeterminate
     }
     //click on ParentCheckbox to set state for child checkboxes
@@ -99,39 +102,49 @@ fun PlannerCardEntry(
         val state = parentState != ToggleableState.On
         onStateChange(state)
         onStateChange2(state)
-        onValueChanged(plannerUiState.copy(areDrinkersAvailable = state, areFeedersAvailable = state))
+        onValueChanged(
+            plannerUiState.copy(
+                areDrinkersAvailable = state,
+                areFeedersAvailable = state
+            )
+        )
 
     }
-    Column(modifier = modifier.padding(16.dp),
+    Column(
+        modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+    ) {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = plannerUiState.quantityToOrder,
             onValueChange = { onValueChanged(plannerUiState.copy(quantityToOrder = it)) },
-            label = { Text("How many chicks would you like to order?")},
+            label = { Text("How many chicks would you like to order?") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
         Column {
-            Row (
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ){
+            ) {
                 TriStateCheckbox(
                     state = parentState,
                     onClick = onParentClick
                 )
-                Text("Check what you have")
+                Text("Tick what you have")
             }
 
             Spacer(modifier = Modifier.size(16.dp))
 
-            Column(modifier = Modifier
-                .padding(start = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Row (horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically){
+            Column(
+                modifier = Modifier
+                    .padding(start = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Checkbox(checked = checkboxState,
                         onCheckedChange = {
                             onStateChange(it)
@@ -139,8 +152,10 @@ fun PlannerCardEntry(
                         })
                     Text("Feeders")
                 }
-                Row (horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically){
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Checkbox(checked = checkboxState2,
                         onCheckedChange = {
                             onStateChange2(it)
@@ -161,7 +176,8 @@ fun PlannerCardEntry(
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = "Calculate",
-                textAlign = TextAlign.Center)
+                textAlign = TextAlign.Center
+            )
         }
 
     }

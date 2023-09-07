@@ -55,7 +55,7 @@ class VaccinationViewModel @Inject constructor(
                 week = "Initial Weight",
                 standard = "0.04",
                 actualWeight = "0.04",
-                dateMeasured = DateUtils().convertLocalDateToString(LocalDate.now())
+                dateMeasured = DateUtils().dateToStringLongFormat(LocalDate.now())
             ).toWeight()
         )
 
@@ -76,7 +76,7 @@ class VaccinationViewModel @Inject constructor(
                 name = "N/A",
                 type = "Starter",
                 actualConsumed = "0",
-                feedingDate = DateUtils().convertLocalDateToString(LocalDate.now()),
+                feedingDate = DateUtils().dateToStringLongFormat(LocalDate.now()),
             ).toFeed()
         )
     }

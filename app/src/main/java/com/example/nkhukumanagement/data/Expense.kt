@@ -11,8 +11,10 @@ data class Expense(
     val flockUniqueID: String,
     val date: LocalDate,
     val expenseName: String,
+    val supplier: String,
     val costPerItem: Double,
-    val quantity: Double,
+    val quantity: Int,
     val totalExpense: Double,
-    val cumulativeTotalExpense: Double
+    val cumulativeTotalExpense: Double,
+    val notes: String
 )

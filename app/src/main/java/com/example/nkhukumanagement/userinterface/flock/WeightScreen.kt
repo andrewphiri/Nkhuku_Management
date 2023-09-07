@@ -200,14 +200,14 @@ fun WeightScreen(
                                 weight.forEach {
                                     updatedWeights.add(it.toWeight())
                                 }
-                            scope.launch {
-                                weightViewModel.updateWeight(updatedWeights)
-                            }.invokeOnCompletion { onNavigateUp() }
-                        } else {
-                            scope.launch {
-                                snackBarHostState.showSnackbar("Please enter a valid number.")
+                                scope.launch {
+                                    weightViewModel.updateWeight(updatedWeights)
+                                }.invokeOnCompletion { onNavigateUp() }
+                            } else {
+                                scope.launch {
+                                    snackBarHostState.showSnackbar("Please enter a valid number.")
+                                }
                             }
-                        }
                         }
                     ) {
                         Text(

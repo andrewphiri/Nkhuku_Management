@@ -4,7 +4,7 @@ import androidx.room.Embedded
 import androidx.room.Relation
 
 data class AccountsWithExpense(
-    @Embedded val accountsSummary: AccountsSummary?,
+    @Embedded val accountsSummary: AccountsSummary,
     @Relation(
         parentColumn = "flockUniqueID",
         entityColumn = "flockUniqueID"

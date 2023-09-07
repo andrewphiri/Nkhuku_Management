@@ -83,31 +83,31 @@ interface FlockDao {
     suspend fun deleteExpense(expense: Expense)
 
     @Query("SELECT * FROM flock WHERE id = :id")
-    fun retrieveFlock(id: Int) : Flow<Flock>
+    fun retrieveFlock(id: Int): Flow<Flock>
 
     @Query("SELECT * FROM income WHERE id = :id")
-    fun retrieveIncome(id: Int) : Flow<Income>
+    fun retrieveIncome(id: Int): Flow<Income>
 
     @Query("SELECT * FROM expense WHERE id = :id")
-    fun retrieveExpense(id: Int) : Flow<Expense>
+    fun retrieveExpense(id: Int): Flow<Expense>
 
     @Query("SELECT * FROM vaccinations WHERE id = :id")
-    fun retrieveVaccination(id: Int) : Flow<Vaccination>
+    fun retrieveVaccination(id: Int): Flow<Vaccination>
 
     @Query("SELECT * FROM flock")
-    fun getAllFlockItems() : Flow<List<Flock>>
+    fun getAllFlockItems(): Flow<List<Flock>>
 
     @Query("SELECT * FROM vaccinations")
-    fun getAllVaccinationItems() : Flow<List<Vaccination>>
+    fun getAllVaccinationItems(): Flow<List<Vaccination>>
 
     @Query("SELECT * FROM feed")
-    fun getAllFeedItems() : Flow<List<Feed>>
+    fun getAllFeedItems(): Flow<List<Feed>>
 
     @Query("SELECT * FROM weight")
-    fun getAllWeightItems() : Flow<List<Weight>>
+    fun getAllWeightItems(): Flow<List<Weight>>
 
     @Query("SELECT * FROM accounts_summary")
-    fun getAllAccountItems() : Flow<List<AccountsSummary>>
+    fun getAllAccountItems(): Flow<List<AccountsSummary>>
 
 
     @Transaction

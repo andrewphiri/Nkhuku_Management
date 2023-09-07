@@ -151,8 +151,8 @@ fun FeedScreen(
                         }.invokeOnCompletion {
                             showDialog = false
                         }
-                } else {
-                    coroutineScope.launch { snackBarHostState.showSnackbar(message = "Please enter a valid number.") }
+                    } else {
+                        coroutineScope.launch { snackBarHostState.showSnackbar(message = "Please enter a valid number.") }
                     }
                 }
             )
@@ -271,7 +271,8 @@ fun FeedConsumptionList(
                             actualConsumed = it.actualConsumed, actualConsumptionPerBird = String
                                 .format(
                                     "%.3f",
-                                    it.actualConsumed.toDouble() / flockUiState.getStock().toDouble()
+                                    it.actualConsumed.toDouble() / flockUiState.getStock()
+                                        .toDouble()
                                 )
                         )
                     )
@@ -283,7 +284,6 @@ fun FeedConsumptionList(
                         )
                     )
                 }
-
 
             },
             onUpdateFeed = onUpdateFeed
@@ -502,9 +502,12 @@ fun UpdateFeedDialog(
                         value = if (feedUiState.actualConsumed == "0.0") "" else feedUiState.actualConsumed,
                         onValueChange = { onChangedValue(feedUiState.copy(actualConsumed = it)) },
                         label = { Text("Quantity") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
                         keyboardActions = KeyboardActions(
-                            onDone = {keyboardController?.hide()}
+                            onDone = { keyboardController?.hide() }
                         )
                     )
 
@@ -527,7 +530,10 @@ fun UpdateFeedDialog(
                     ) {
                         OutlinedButton(
                             modifier = Modifier.weight(1f),
-                            border = BorderStroke(2.dp, color = MaterialTheme.colorScheme.primary),
+                            border = BorderStroke(
+                                Dp.Hairline,
+                                color = MaterialTheme.colorScheme.primary
+                            ),
                             onClick = onDismiss
                         ) {
                             Text(

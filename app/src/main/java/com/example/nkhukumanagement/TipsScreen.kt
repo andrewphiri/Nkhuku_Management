@@ -9,19 +9,22 @@ import androidx.compose.ui.res.stringResource
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 
 @Composable
-fun TipsScreen(modifier: Modifier = Modifier,
-               canNavigateBack: Boolean = false
-){
-    Scaffold (
+fun TipsScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = false
+) {
+    Scaffold(
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Tips.resourceId),
                 canNavigateBack = canNavigateBack
             )
         }
-    ){ innerPadding ->
-        Text(text = "Tips",
-            modifier = modifier.padding(innerPadding))
+    ) { innerPadding ->
+        Text(
+            text = "Tips",
+            modifier = modifier.padding(innerPadding)
+        )
     }
 
 }

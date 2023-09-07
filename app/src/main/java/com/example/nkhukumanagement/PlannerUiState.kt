@@ -13,9 +13,11 @@ data class PlannerUiState(
     fun calculateStarter(): Double {
         return quantityToOrder.toDouble() * 1.0
     }
+
     fun calculateGrower(): Double {
         return quantityToOrder.toDouble() * 1.5
     }
+
     fun calculateFinisher(): Double {
         return quantityToOrder.toDouble() * 1.5
     }
@@ -24,52 +26,61 @@ data class PlannerUiState(
         return String.format("%.2f", calculateStarter() + calculateGrower() + calculateFinisher())
     }
 
-    fun calculateStarterBags() : Int {
-        return (calculateStarter()/50).roundToInt()
+    fun calculateStarterBags(): Int {
+        return (calculateStarter() / 50).roundToInt()
     }
 
-    fun calculateGrowerBags() : Int {
-        return (calculateGrower()/50).roundToInt()
+    fun calculateGrowerBags(): Int {
+        return (calculateGrower() / 50).roundToInt()
     }
 
-    fun calculateFinisherBags() : Int {
-        return (calculateFinisher()/50).roundToInt()
+    fun calculateFinisherBags(): Int {
+        return (calculateFinisher() / 50).roundToInt()
     }
-    fun totalBags() : Int {
+
+    fun totalBags(): Int {
         return calculateStarterBags() + calculateGrowerBags() + calculateGrowerBags()
     }
+
     fun calculateChickTrays(): Int {
-        return ((quantityToOrder.toDouble()/100) * 3).roundToInt()
+        return ((quantityToOrder.toDouble() / 100) * 3).roundToInt()
     }
+
     fun calculateSmallFeeders(): Int {
-        return ((quantityToOrder.toDouble()/100) * 3).roundToInt()
+        return ((quantityToOrder.toDouble() / 100) * 3).roundToInt()
     }
+
     fun calculateBigFeeders(): Int {
-        return ((quantityToOrder.toDouble()/100) * 3).roundToInt()
+        return ((quantityToOrder.toDouble() / 100) * 3).roundToInt()
     }
+
     fun calculateSmallDrinkers(): Int {
-        return ((quantityToOrder.toDouble()/100) * 3).roundToInt()
+        return ((quantityToOrder.toDouble() / 100) * 3).roundToInt()
     }
+
     fun calculateBigDrinkers(): Int {
-        return ((quantityToOrder.toDouble()/100) * 3).roundToInt()
+        return ((quantityToOrder.toDouble() / 100) * 3).roundToInt()
     }
+
     fun calculateAutomaticDrinkers(): Int {
-        return ((quantityToOrder.toDouble()/100) * 1).roundToInt()
+        return ((quantityToOrder.toDouble() / 100) * 1).roundToInt()
     }
+
     fun calculateNippleDrinkers(): Int {
-        return ((quantityToOrder.toDouble()/100) * 10).roundToInt()
+        return ((quantityToOrder.toDouble() / 100) * 10).roundToInt()
     }
 }
+
 fun checkNumberExceptions(plannerUiState: PlannerUiState): Boolean {
     return try {
         plannerUiState.toPlanner()
         true
-    }catch (e: NumberFormatException) {
+    } catch (e: NumberFormatException) {
         false
     }
 }
 
-fun PlannerUiState.toPlanner() : Planner = Planner(
+fun PlannerUiState.toPlanner(): Planner = Planner(
     quantityToOrder = quantityToOrder.toInt(),
     areFeedersAvailable = areFeedersAvailable,
     areDrinkersAvailable = areDrinkersAvailable,

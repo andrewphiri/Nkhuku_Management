@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 
-class PlannerViewModel: ViewModel() {
+class PlannerViewModel : ViewModel() {
 
     var plannerUiState by mutableStateOf(PlannerUiState())
 

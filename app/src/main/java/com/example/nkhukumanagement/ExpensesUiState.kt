@@ -8,50 +8,91 @@ import com.example.nkhukumanagement.utils.DateUtils
 data class ExpensesUiState(
     val id: Int = 0,
     val flockUniqueID: String = "",
-    val date: String = "",
+    private var date: String = "",
     val expenseName: String = "",
+    val supplier: String = "",
     val costPerItem: String = "",
     val quantity: String = "",
-    val totalExpense: String = "",
-    val cumulativeTotalExpense: String = ""
-)
+    val initialItemExpense: String = "0",
+    val totalExpense: String = calculateTotalExpense(quantity, costPerItem).toString(),
+    val cumulativeTotalExpense: String = "0",
+    val notes: String = "",
+    val isEnabled: Boolean = false
+) {
+    fun setDate(newDate: String) {
+        date = newDate
+    }
+
+    fun getDate(): String {
+        return date
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun ExpensesUiState.toExpense() : Expense = Expense(
+fun ExpensesUiState.toExpense(): Expense = Expense(
     id = id,
     flockUniqueID = flockUniqueID,
-    date = DateUtils().stringToLocalDate(date),
+    date = DateUtils().stringToLocalDateShortFormat(getDate()),
     expenseName = expenseName,
-    costPerItem= costPerItem.toDouble(),
-    quantity = quantity.toDouble(),
+    supplier = supplier,
+    costPerItem = costPerItem.toDouble(),
+    quantity = quantity.toInt(),
     totalExpense = calculateTotalExpense(quantity, costPerItem),
     cumulativeTotalExpense = calculateCumulativeExpense(cumulativeTotalExpense, totalExpense),
+    notes = notes
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun Expense.toExpenseUiState(): ExpensesUiState = ExpensesUiState(
+fun Expense.toExpenseUiState(enabled: Boolean = false): ExpensesUiState = ExpensesUiState(
     id = id,
     flockUniqueID = flockUniqueID,
-    date = DateUtils().convertLocalDateToString(date),
+    date = DateUtils().dateToStringShortFormat(date),
     expenseName = expenseName,
+    supplier = supplier,
     costPerItem = costPerItem.toString(),
     quantity = quantity.toString(),
+    initialItemExpense = totalExpense.toString(),
     totalExpense = totalExpense.toString(),
-    cumulativeTotalExpense = cumulativeTotalExpense.toString()
+    cumulativeTotalExpense = cumulativeTotalExpense.toString(),
+    notes = notes,
+    isEnabled = enabled
 )
 
 fun calculateTotalExpense(quantity: String, pricePerItem: String): Double {
-    return quantity.toDouble() * pricePerItem.toDouble()
+    return try {
+        if (quantity.isEmpty()) 0.0 else quantity.toInt() *
+                if (pricePerItem.isEmpty()) 0.0 else pricePerItem.toDouble()
+    } catch (e: NumberFormatException) {
+        0.0
+    }
 }
 
 fun calculateCumulativeExpense(initialExpense: String, totalExpense: String): Double {
     return initialExpense.toDouble() + totalExpense.toDouble()
 }
 
+fun calculateCumulativeExpenseUpdate(
+    initialExpense: String,
+    totalExpense: String,
+    initialItemExpense: String
+): Double {
+    return (initialExpense.toDouble() + totalExpense.toDouble()) - initialItemExpense.toDouble()
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 fun ExpensesUiState.isValid(): Boolean {
-    return date.isNotBlank() &&
+    return getDate().isNotBlank() &&
             expenseName.isNotBlank() &&
             quantity.isNotBlank() &&
             costPerItem.isNotBlank()
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun handleNumberExceptions(expensesUiState: ExpensesUiState): Boolean {
+    return try {
+        expensesUiState.toExpense()
+        true
+    } catch (e: NumberFormatException) {
+        false
+    }
 }

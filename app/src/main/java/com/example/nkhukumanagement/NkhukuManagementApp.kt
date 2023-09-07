@@ -44,7 +44,7 @@ import com.example.nkhukumanagement.userinterface.navigation.NkhukuNavHost
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NkhukuApp(navHostController: NavHostController = rememberNavController()){
+fun NkhukuApp(navHostController: NavHostController = rememberNavController()) {
 //    var title by remember { mutableStateOf("") }
 //    LaunchedEffect(navHostController.currentBackStackEntryFlow) {
 //        navHostController.currentBackStackEntryFlow.collect {
@@ -91,7 +91,7 @@ fun BottomNavigationForApp(navController: NavController) {
                 NavigationBarItem(
                     icon = {
                         isIconSelected = currentDestination?.route == screen.route
-                        if (isIconSelected){
+                        if (isIconSelected) {
                             Icon(screen.iconSelected, contentDescription = screen.route)
                         } else {
                             Icon(screen.icon, contentDescription = screen.route)
@@ -136,7 +136,7 @@ fun FlockManagementTopAppBar(
     onClickAdd: () -> Unit = {},
     isAddShowing: Boolean = false,
     isDoneShowing: Boolean = false,
-    isDoneEnabled:Boolean = true,
+    isDoneEnabled: Boolean = true,
     onSaveToDatabase: () -> Unit = {}
 ) {
     if (canNavigateBack) {
@@ -156,7 +156,8 @@ fun FlockManagementTopAppBar(
 
                 if (isRemoveShowing) {
                     IconButton(
-                        onClick = onClickRemove) {
+                        onClick = onClickRemove
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Remove,
                             contentDescription = "Remove Vaccination"
@@ -166,7 +167,8 @@ fun FlockManagementTopAppBar(
 
                 if (isAddShowing) {
                     IconButton(
-                        onClick = onClickAdd) {
+                        onClick = onClickAdd
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Add Vaccination"

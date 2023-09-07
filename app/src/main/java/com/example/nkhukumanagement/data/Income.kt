@@ -11,8 +11,10 @@ data class Income(
     val flockUniqueID: String,
     val date: LocalDate,
     val incomeName: String,
+    val customer: String,
     val pricePerItem: Double,
-    val quantity: Double,
+    val quantity: Int,
     val totalIncome: Double,
-    val cumulativeTotalIncome: Double
+    val cumulativeTotalIncome: Double,
+    val notes: String
 )

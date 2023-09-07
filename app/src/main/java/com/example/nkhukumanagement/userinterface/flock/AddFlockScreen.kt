@@ -6,8 +6,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -37,7 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -102,10 +98,9 @@ fun AddFlockScreen(
         },
         snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { innerPadding ->
-        Column( modifier = modifier.padding(innerPadding).verticalScroll(scrollState)) {
+        Column(modifier = modifier.padding(innerPadding).verticalScroll(scrollState)) {
             AddFlockBody(
                 flockUiState = viewModel.flockUiState,
-
                 onItemValueChange = viewModel::updateUiState,
                 onVaccinationsScreen = {
                     if (checkNumberExceptions(viewModel.flockUiState)) {
@@ -270,7 +265,7 @@ fun AddFlockInputForm(
                     )
                 }
                 val localDateToString = millisToLocalDate?.let { date ->
-                    DateUtils().convertLocalDateToString(
+                    DateUtils().dateToStringLongFormat(
                         date
                     )
                 }

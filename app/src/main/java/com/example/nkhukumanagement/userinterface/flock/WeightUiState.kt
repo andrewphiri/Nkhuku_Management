@@ -23,15 +23,17 @@ data class WeightUiState(
         return dateMeasured
     }
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 fun checkNumberExceptions(weightUiState: WeightUiState): Boolean {
     return try {
         weightUiState.toWeight()
         true
-    }catch (e: NumberFormatException) {
+    } catch (e: NumberFormatException) {
         false
     }
 }
+
 /**
  * Extension function to convert [WeightUiState] to [Weight]
  */
@@ -55,7 +57,7 @@ fun Weight.toWeightUiState(): WeightUiState = WeightUiState(
     week = week,
     actualWeight = weight.toString(),
     standard = expectedWeight.toString(),
-    dateMeasured = DateUtils().convertLocalDateToString(measuredDate)
+    dateMeasured = DateUtils().dateToStringLongFormat(measuredDate)
 )
 
 fun WeightUiState.isValid(): Boolean {

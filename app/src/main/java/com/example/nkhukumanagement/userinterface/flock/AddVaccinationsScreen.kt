@@ -1,8 +1,6 @@
 package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
-import android.text.Editable
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -10,7 +8,6 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MedicalServices
@@ -50,15 +46,12 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,15 +65,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.nkhukumanagement.AccountsViewModel
-import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
-import com.example.nkhukumanagement.data.FlockWithVaccinations
 import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 import kotlin.String
@@ -190,7 +180,7 @@ fun AddVaccinationsScreen(
                         vaccinationViewModel.getInitialVaccinationList().last().getDate()
                     )
                     val vaccineDate =
-                        DateUtils().convertLocalDateToString(DateUtils().calculateDate(newDate, 7))
+                        DateUtils().dateToStringLongFormat(DateUtils().calculateDate(newDate, 7))
                     vaccinationViewModel.getInitialVaccinationList().add(
                         vaccinationDates.last().copy(
                             vaccinationNumber = listSize, name = "", date = vaccineDate
@@ -214,10 +204,14 @@ fun AddVaccinationsScreen(
                         )
                         coroutineScope.launch {
                             flockEntryViewModel.saveItem()
-                            accountsViewModel.insertAccounts(accountsViewModel
-                                .Accounts(flockEntryViewModel.flockUiState))
-                            accountsViewModel.insertExpense(accountsViewModel
-                                .ExpenseToInsert(flockEntryViewModel.flockUiState))
+                            accountsViewModel.insertAccounts(
+                                accountsViewModel
+                                    .Accounts(flockEntryViewModel.flockUiState)
+                            )
+                            accountsViewModel.insertExpense(
+                                accountsViewModel
+                                    .ExpenseToInsert(flockEntryViewModel.flockUiState)
+                            )
                             weightViewModel.getWeightList().forEach {
                                 weightViewModel.saveInitialWeight(it)
                             }
@@ -493,7 +487,7 @@ fun StatefulPickDateDialog(
                 )
             }
             val localDateToString = millisToLocalDate?.let { date ->
-                DateUtils().convertLocalDateToString(
+                DateUtils().dateToStringLongFormat(
                     date
                 )
             }

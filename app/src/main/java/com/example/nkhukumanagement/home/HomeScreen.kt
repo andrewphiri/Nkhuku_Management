@@ -1,7 +1,6 @@
 package com.example.nkhukumanagement.home
 
 import android.os.Build
-import android.view.MotionEvent
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -11,7 +10,6 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +21,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -34,7 +31,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -56,27 +52,24 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Flock
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
-import com.example.nkhukumanagement.userinterface.flock.DownMenu
 import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import com.example.nkhukumanagement.userinterface.flock.VaccinationViewModel
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import com.example.nkhukumanagement.utils.DateUtils
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -98,19 +91,20 @@ fun HomeScreen(
         }
     }
 
-    Scaffold( modifier = modifier,
+    Scaffold(
+        modifier = modifier,
         topBar = {
-                 FlockManagementTopAppBar(
-                     stringResource(NavigationBarScreens.Home.resourceId),
-                     canNavigateBack = false
-                 )
+            FlockManagementTopAppBar(
+                stringResource(NavigationBarScreens.Home.resourceId),
+                canNavigateBack = false
+            )
         },
         floatingActionButton = {
             AnimatedVisibility(visible = listState.isScrollingUp(),
-            enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
-                initialOffset = {
-                    IntOffset(180, 90)
-            }),
+                enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
+                    initialOffset = {
+                        IntOffset(180, 90)
+                    }),
                 exit = slideOut(tween(200, easing = FastOutSlowInEasing)) {
                     IntOffset(180, 90)
                 }
@@ -131,13 +125,13 @@ fun HomeScreen(
             }
 
         },
-    ) {innerPadding ->
+    ) { innerPadding ->
         FlockBody(
             modifier = Modifier.padding(innerPadding),
             flockList = homeUiState.flockList,
             onItemClick = navigateToFlockDetails,
             listState = listState,
-            onDelete = {index ->
+            onDelete = { index ->
                 coroutineScope.launch {
                     val uniqueId = homeUiState.flockList[index].uniqueId
                     flockEntryViewModel.deleteFlock(uniqueId)
@@ -162,16 +156,21 @@ fun FlockBody(
     onDelete: (Int) -> Unit
 ) {
     if (flockList.isEmpty()) {
-        Box(modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center) {  Text(
-            modifier = modifier.align(Alignment.Center),
-            text = stringResource(R.string.no_flocks_description),
-            style = MaterialTheme.typography.bodyMedium
-        ) }
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                modifier = modifier.align(Alignment.Center),
+                text = stringResource(R.string.no_flocks_description),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     } else {
-        FlockList(modifier = modifier,
-            flockList = flockList, 
-            onItemClick = {onItemClick(it.id)}, 
+        FlockList(
+            modifier = modifier,
+            flockList = flockList,
+            onItemClick = { onItemClick(it.id) },
             listState = listState, onDelete = onDelete
         )
     }
@@ -184,9 +183,9 @@ fun FlockBody(
 @Composable
 private fun LazyListState.isScrollingUp(): Boolean {
     var previousIndex by remember(this) {
-        mutableStateOf(firstVisibleItemIndex) }
+        mutableStateOf(firstVisibleItemIndex)
+    }
     var previousScrollOffset by remember(this) { mutableStateOf(firstVisibleItemScrollOffset) }
-    var listTouched by remember ( this ) { mutableStateOf(isScrollInProgress) }
 
     return remember(this) {
         derivedStateOf {
@@ -194,7 +193,7 @@ private fun LazyListState.isScrollingUp(): Boolean {
                 previousIndex > firstVisibleItemIndex
             } else {
                 previousScrollOffset >= firstVisibleItemScrollOffset
-            }. also {
+            }.also {
                 previousIndex = firstVisibleItemIndex
                 previousScrollOffset = firstVisibleItemScrollOffset
             }
@@ -211,12 +210,12 @@ fun FlockList(
     onItemClick: (Flock) -> Unit,
     listState: LazyListState, onDelete: (Int) -> Unit
 ) {
-    LazyColumn (
-        modifier = modifier, 
+    LazyColumn(
+        modifier = modifier,
         state = listState
     ) {
-        itemsIndexed(flockList) {index ,flock ->
-            FlockCard(flock = flock, onItemClick = onItemClick, onDelete = {onDelete(index)})
+        itemsIndexed(flockList) { index, flock ->
+            FlockCard(flock = flock, onItemClick = onItemClick, onDelete = { onDelete(index) })
         }
     }
 }
@@ -235,28 +234,29 @@ fun FlockCard(
     OutlinedCard(
         modifier = modifier.padding(8.dp)
             .clickable { onItemClick(flock) },
-        elevation = CardDefaults.cardElevation()) {
+        elevation = CardDefaults.cardElevation()
+    ) {
         Column {
             ShowOverflowMenu(
                 modifier = modifier.align(Alignment.End),
                 menuExpanded = isMenuShowing,
                 showAlertDialog = isAlertDialogShowing,
-                onDismissAlertDialog = { isAlertDialogShowing = false},
-                onShowMenu = {isMenuShowing = true},
+                onDismissAlertDialog = { isAlertDialogShowing = false },
+                onShowMenu = { isMenuShowing = true },
                 onShowAlertDialog = { isAlertDialogShowing = true },
-                onDismiss = { isMenuShowing = false},
+                onDismiss = { isMenuShowing = false },
                 onDelete = {
                     onDelete()
                     isAlertDialogShowing = false
                     isMenuShowing = false
                 })
-            Row (
+            Row(
                 modifier = Modifier.padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column (
+                Column(
                     modifier = Modifier.weight(1f).fillMaxHeight()
-                ){
+                ) {
                     Image(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         painter = painterResource(flock.imageResourceId),
@@ -264,33 +264,37 @@ fun FlockCard(
                         contentScale = ContentScale.Crop
                     )
                 }
-                Column (
+                Column(
                     modifier = Modifier.weight(3f),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row  {
-                        Text("Batch name: ",
+                    Row {
+                        Text(
+                            "Batch name: ",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier
                                 .padding(2.dp),
                             textAlign = TextAlign.Justify
                         )
-                        Text(text = flock.batchName,
+                        Text(
+                            text = flock.batchName,
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier
                                 .padding(2.dp),
                             textAlign = TextAlign.Start
                         )
                     }
-                    Row  {
-                        Text("Breed: ",
+                    Row {
+                        Text(
+                            "Breed: ",
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier
                                 .padding(2.dp),
                             textAlign = TextAlign.Justify
                         )
-                        Text(text = flock.breed,
+                        Text(
+                            text = flock.breed,
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier
                                 .padding(2.dp),
@@ -298,55 +302,15 @@ fun FlockCard(
                         )
                     }
                     Row {
-                        Text("Date: ",
+                        Text(
+                            "Date: ",
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier
                                 .padding(2.dp),
                             textAlign = TextAlign.Justify
                         )
-                        Text(text = DateUtils().convertLocalDateToString(flock.datePlaced),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                    Row  {
-                        Text("Quantity: ",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Justify
-                        )
-                        Text(text = (flock.numberOfChicksPlaced + flock.donorFlock).toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                    Row  {
-                        Text("Mortality: ",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Justify
-                        )
-                        Text(text = flock.mortality.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                    Row {
-                        Text("Culls: ",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Justify
-                        )
-                        Text(text = flock.culls.toString(),
+                        Text(
+                            text = DateUtils().dateToStringLongFormat(flock.datePlaced),
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier
                                 .padding(2.dp),
@@ -354,8 +318,78 @@ fun FlockCard(
                         )
                     }
 
-                    Row (modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End) {
+                    Row {
+                        Text(
+                            "Age: ",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .padding(2.dp),
+                            textAlign = TextAlign.Justify
+                        )
+                        Text(
+                            text = "${
+                                DateUtils().calculateAge(
+                                    birthDate = flock.datePlaced,
+                                    today = LocalDate.now()
+                                ).toString()
+                            } day/s",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .padding(2.dp),
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                    Row {
+                        Text(
+                            "Quantity: ",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .padding(2.dp),
+                            textAlign = TextAlign.Justify
+                        )
+                        Text(
+                            text = (flock.numberOfChicksPlaced + flock.donorFlock).toString(),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .padding(2.dp),
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                    Row {
+                        Text(
+                            "Mortality: ",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .padding(2.dp),
+                            textAlign = TextAlign.Justify
+                        )
+                        Text(
+                            text = flock.mortality.toString(),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .padding(2.dp),
+                            textAlign = TextAlign.Start
+                        )
+                    }
+//                    Row {
+//                        Text("Culls: ",
+//                            style = MaterialTheme.typography.bodySmall,
+//                            modifier = Modifier
+//                                .padding(2.dp),
+//                            textAlign = TextAlign.Justify
+//                        )
+//                        Text(text = flock.culls.toString(),
+//                            style = MaterialTheme.typography.bodySmall,
+//                            modifier = Modifier
+//                                .padding(2.dp),
+//                            textAlign = TextAlign.Start
+//                        )
+//                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
                         Text(
                             text = "Stock: ${(flock.stock)}",
                             style = MaterialTheme.typography.titleMedium,
@@ -372,26 +406,33 @@ fun FlockCard(
 }
 
 @Composable
-fun ShowOverflowMenu(modifier: Modifier = Modifier,
-                     menuExpanded: Boolean = false,
-                     showAlertDialog: Boolean = false,
-                     onDismissAlertDialog: () -> Unit = {},
-                     onShowMenu: () -> Unit = {},
-                     onShowAlertDialog: () -> Unit,
-                     onDismiss: () -> Unit,
-                     onDelete: () -> Unit = {}) {
+fun ShowOverflowMenu(
+    modifier: Modifier = Modifier,
+    menuExpanded: Boolean = false,
+    showAlertDialog: Boolean = false,
+    onDismissAlertDialog: () -> Unit = {},
+    onShowMenu: () -> Unit = {},
+    onShowAlertDialog: () -> Unit,
+    onDismiss: () -> Unit,
+    onDelete: () -> Unit = {}
+) {
 
     ShowAlertDialog(
         onDismissAlertDialog = onDismissAlertDialog,
         onDelete = onDelete,
         isAlertDialogShowing = showAlertDialog
     )
-    Box(modifier = modifier,
-    contentAlignment = Alignment.TopEnd) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.TopEnd
+    ) {
         IconButton(
-            onClick = onShowMenu) {
-            Icon(imageVector = Icons.Default.MoreVert,
-                contentDescription = "Show overflow menu")
+            onClick = onShowMenu
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "Show overflow menu"
+            )
         }
         DropdownMenu(
             modifier = modifier,
@@ -408,7 +449,7 @@ fun ShowOverflowMenu(modifier: Modifier = Modifier,
             )
             DropdownMenuItem(
                 text = { Text("Edit") },
-                onClick = {  }
+                onClick = { }
             )
         }
     }
@@ -416,10 +457,12 @@ fun ShowOverflowMenu(modifier: Modifier = Modifier,
 }
 
 @Composable
-fun ShowAlertDialog(modifier: Modifier = Modifier,
-                    onDismissAlertDialog: () -> Unit,
-                    onDelete: () -> Unit,
-                    isAlertDialogShowing: Boolean) {
+fun ShowAlertDialog(
+    modifier: Modifier = Modifier,
+    onDismissAlertDialog: () -> Unit,
+    onDelete: () -> Unit,
+    isAlertDialogShowing: Boolean
+) {
     if (isAlertDialogShowing) {
         AlertDialog(
             modifier = modifier,
@@ -439,6 +482,7 @@ fun ShowAlertDialog(modifier: Modifier = Modifier,
     }
 
 }
+
 @Composable
 private fun FlockDetails(label: String, entry: String) {
     Row(verticalAlignment = Alignment.Top) {

@@ -19,18 +19,20 @@ class DateUtils {
      * @param date to a string
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun convertLocalDateToString(date: LocalDate): String {
+    fun dateToStringLongFormat(date: LocalDate): String {
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
 
-        //Convert the passed in date to a Long in millis
-        val timeInMillis = LocalDate.parse(date.format(dateFormatter), dateFormatter)
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
+        val dateSelectedInMillis = convertLocalDate(date, dateFormatter)
 
-        //Then convert the timeInMillis to a LocalDate object
-        val dateSelectedInMillis = Instant.ofEpochMilli(timeInMillis)
-            .atZone(ZoneId.systemDefault()).toLocalDate()
+//        //Convert the passed in date to a Long in millis
+//        val timeInMillis = LocalDate.parse(date.format(dateFormatter), dateFormatter)
+//            .atStartOfDay(ZoneId.systemDefault())
+//            .toInstant()
+//            .toEpochMilli()
+//
+//        //Then convert the timeInMillis to a LocalDate object
+//        val dateSelectedInMillis = Instant.ofEpochMilli(timeInMillis)
+//            .atZone(ZoneId.systemDefault()).toLocalDate()
 
         //Format dateSelectedInMillis to a string and Return
         return dateFormatter.format(
@@ -39,7 +41,31 @@ class DateUtils {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun convertMillisToLocalDate(millis: Long) : LocalDate {
+    fun dateToStringShortFormat(date: LocalDate): String {
+        val dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", Locale.getDefault())
+
+        val dateSelectedInMillis = convertLocalDate(date, dateFormatter)
+
+        return dateFormatter.format(
+            dateSelectedInMillis
+        )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun convertLocalDate(date: LocalDate, dateFormatter: DateTimeFormatter): LocalDate {
+        //Convert the passed in date to a Long in millis
+        val timeInMillis = LocalDate.parse(date.format(dateFormatter), dateFormatter)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+
+        //Then convert the timeInMillis to a LocalDate object
+        return Instant.ofEpochMilli(timeInMillis)
+            .atZone(ZoneId.systemDefault()).toLocalDate()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun convertMillisToLocalDate(millis: Long): LocalDate {
         return Instant.ofEpochMilli(millis)
             .atZone(ZoneId.systemDefault()).toLocalDate()
     }
@@ -48,22 +74,37 @@ class DateUtils {
      * Convert a string to a local date object
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun stringToLocalDate(date: String?) : LocalDate {
+    fun stringToLocalDate(date: String?): LocalDate {
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
         val timeInMillis = LocalDate.parse(date, dateFormatter)
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
 
-           return Instant.ofEpochMilli(timeInMillis)
-               .atZone(ZoneId.systemDefault()).toLocalDate()
+        return Instant.ofEpochMilli(timeInMillis)
+            .atZone(ZoneId.systemDefault()).toLocalDate()
+    }
+
+    /**
+     * Convert a string to a local date object
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun stringToLocalDateShortFormat(myDate: String): LocalDate {
+        val dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", Locale.getDefault())
+        val timeInMillis = LocalDate.parse(myDate, dateFormatter)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+
+        return Instant.ofEpochMilli(timeInMillis)
+            .atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
     /**
      * Function to calculate vaccination dates based on date
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun calculateDate(date: LocalDate, day: Long) : LocalDate {
+    fun calculateDate(date: LocalDate, day: Long): LocalDate {
         return date.plusDays(day)
     }
 
@@ -71,9 +112,13 @@ class DateUtils {
      * Function to set vaccination date
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun vaccinationDate(date: LocalDate, day: Long, vaccinationUiState: VaccinationUiState) : String {
+    fun vaccinationDate(
+        date: LocalDate,
+        day: Long,
+        vaccinationUiState: VaccinationUiState
+    ): String {
         val calculateDate = calculateDate(date = date, day = day)
-        val dateToString = convertLocalDateToString(calculateDate)
+        val dateToString = dateToStringLongFormat(calculateDate)
         vaccinationUiState.setDate(dateToString)
         Log.i("CALCULATED DATE", dateToString)
         Log.i("DATE SET", vaccinationUiState.getDate())
@@ -84,9 +129,9 @@ class DateUtils {
      * Function to set weight date
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun weightDate(date: LocalDate, day: Long, weightUiState: WeightUiState) : String {
+    fun weightDate(date: LocalDate, day: Long, weightUiState: WeightUiState): String {
         val calculateDate = calculateDate(date = date, day = day)
-        val dateToString = convertLocalDateToString(calculateDate)
+        val dateToString = dateToStringLongFormat(calculateDate)
         weightUiState.setDate(dateToString)
         return weightUiState.getDate()
     }
@@ -95,10 +140,15 @@ class DateUtils {
      * Function to set weight date
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun feedDate(date: LocalDate, day: Long, feedUiState: FeedUiState) : String {
+    fun feedDate(date: LocalDate, day: Long, feedUiState: FeedUiState): String {
         val calculateDate = calculateDate(date = date, day = day)
-        val dateToString = convertLocalDateToString(calculateDate)
+        val dateToString = dateToStringLongFormat(calculateDate)
         feedUiState.setDate(dateToString)
         return feedUiState.getDate()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun calculateAge(birthDate: LocalDate, today: LocalDate): Int {
+        return today.compareTo(birthDate.minusDays(1))
     }
 }

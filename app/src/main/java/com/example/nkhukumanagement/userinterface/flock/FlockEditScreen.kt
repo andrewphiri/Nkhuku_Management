@@ -1,6 +1,5 @@
 package com.example.nkhukumanagement.userinterface.flock
 
-import android.graphics.drawable.shapes.OvalShape
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -8,7 +7,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -18,24 +16,20 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -51,15 +45,12 @@ import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
 import java.time.LocalDate
 import kotlin.String
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.text.style.TextAlign
 import com.example.nkhukumanagement.data.FlockHealth
-import com.example.nkhukumanagement.ui.theme.Shapes
 import kotlinx.coroutines.launch
 
 object EditFlockDestination : NkhukuDestinations {
@@ -93,7 +84,7 @@ fun FlockEditScreen(
 
     val flock by editFlockViewModel.flock.collectAsState(
         initial = flockEntryViewModel.flockUiState.copy(
-            datePlaced = DateUtils().convertLocalDateToString(LocalDate.now()),
+            datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
             quantity = "0",
             donorFlock = "0"
         ).toFlock()
@@ -161,7 +152,7 @@ fun FlockEditScreen(
                                 )
                             }
                             val localDateToString = millisToLocalDate?.let { date ->
-                                DateUtils().convertLocalDateToString(
+                                DateUtils().dateToStringLongFormat(
                                     date
                                 )
                             }

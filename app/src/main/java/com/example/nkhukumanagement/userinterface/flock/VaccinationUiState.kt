@@ -2,11 +2,7 @@ package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
 import android.os.Parcelable
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.utils.DateUtils
 import kotlinx.parcelize.Parcelize
@@ -73,7 +69,7 @@ fun Vaccination.toVaccinationUiState(
     id = id,
     flockUniqueId = flockUniqueId,
     name = name,
-    date = DateUtils().convertLocalDateToString(date),
+    date = DateUtils().dateToStringLongFormat(date),
     notes = notes,
     actionEnabled = enabled,
     vaccinationNumber = vaccinationNumber

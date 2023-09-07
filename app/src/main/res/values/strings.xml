@@ -20,4 +20,11 @@
     <string name="income">Income</string>
     <string name="expense">Expense</string>
     <string name="transactions">Transactions</string>
+    <string name="add_income">Add Income</string>
+    <string name="edit_expense">Edit Expense</string>
+    <string name="edit_income">Edit Income</string>
+    <string name="add_expense">Add Expense</string>
+    <string name="no_records">No records</string>
+    <string name="no_income_recorded">No income recorded</string>
+    <string name="no_expense_recorded">No expense recorded</string>
 </resources>

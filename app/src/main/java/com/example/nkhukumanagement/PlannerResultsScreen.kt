@@ -34,7 +34,7 @@ import com.example.nkhukumanagement.ui.theme.Shapes
 import com.example.nkhukumanagement.userinterface.flock.EditFlockDestination
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 
-object PlannerResultsDestination: NkhukuDestinations {
+object PlannerResultsDestination : NkhukuDestinations {
     override val icon: ImageVector
         get() = Icons.Default.Calculate
     override val route: String
@@ -73,27 +73,31 @@ fun PlannerResultScreen(
             if (!plannerViewModel.plannerUiState.areFeedersAvailable) {
                 item {
                     FeedersResultsCard(
-                        planner = plannerViewModel.plannerUiState.toPlanner())
-                     }
+                        planner = plannerViewModel.plannerUiState.toPlanner()
+                    )
                 }
+            }
             if (!plannerViewModel.plannerUiState.areDrinkersAvailable) {
                 item {
                     DrinkersResultsCard(planner = plannerViewModel.plannerUiState.toPlanner())
-                    }
                 }
             }
         }
-
     }
+
+}
 
 @Composable
 fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
 
-    Card(modifier = modifier,
-        shape = Shapes.large) {
+    Card(
+        modifier = modifier,
+        shape = Shapes.large
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = "Feed",
@@ -107,7 +111,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 color = MaterialTheme.colorScheme.tertiary
             )
 
-            Column (
+            Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -119,7 +123,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text ="Quantity",
+                        text = "Quantity",
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
@@ -138,8 +142,9 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text ="${String.format("%.2f", planner.starterNeeded)} Kg",
-                        textAlign = TextAlign.Center)
+                        text = "${String.format("%.2f", planner.starterNeeded)} Kg",
+                        textAlign = TextAlign.Center
+                    )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
                         text = planner.totalStarterBags.toString(),
@@ -154,8 +159,9 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text ="${String.format("%.2f", planner.growerNeeded)} Kg",
-                        textAlign = TextAlign.Center)
+                        text = "${String.format("%.2f", planner.growerNeeded)} Kg",
+                        textAlign = TextAlign.Center
+                    )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
                         text = planner.totalGrowerBags.toString(),
@@ -170,8 +176,9 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text ="${String.format("%.2f", planner.finisherNeeded)} Kg",
-                        textAlign = TextAlign.Center)
+                        text = "${String.format("%.2f", planner.finisherNeeded)} Kg",
+                        textAlign = TextAlign.Center
+                    )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
                         text = planner.totalFinisherBags.toString(),
@@ -189,7 +196,8 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                         modifier = Modifier.weight(weight = 1f, fill = true),
                         text = planner.totalFeed.toString(),
                         textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold)
+                        fontWeight = FontWeight.Bold
+                    )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
                         text = planner.totalBags.toString(),
@@ -324,119 +332,126 @@ fun FeedersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
     }
 }
 
-    @Composable
-    fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
-        Card(modifier = modifier,
-            shape = Shapes.large) {
+@Composable
+fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
+    Card(
+        modifier = modifier,
+        shape = Shapes.large
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Drinkers",
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center
+            )
+            Divider(
+                modifier = Modifier.fillMaxWidth()
+                    .align(Alignment.CenterHorizontally),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "Drinkers",
-                    style = MaterialTheme.typography.headlineMedium,
-                    textAlign = TextAlign.Center
-                )
-                Divider(
-                    modifier = Modifier.fillMaxWidth()
-                        .align(Alignment.CenterHorizontally),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = "Age(Days)",
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "Type",
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "Quantity",
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = "1 - 21",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "Chick drinkers",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.smallDrinkersNeeded.toString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = "21 - market",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "10L Manual feeders",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.bigDrinkersNeeded.toString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-                Column (
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            modifier = Modifier.weight(weight = 2f, fill = true),
-                            text = "Age(Days)",
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text ="Type",
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text = "Quantity",
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Row (verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            modifier = Modifier.weight(weight = 2f, fill = true),
-                            text = "1 - 21",
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text ="Chick drinkers",
-                            textAlign = TextAlign.Center)
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text = planner.smallDrinkersNeeded.toString(),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            modifier = Modifier.weight(weight = 2f, fill = true),
-                            text = "21 - market",
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text ="10L Manual feeders",
-                            textAlign = TextAlign.Center)
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text = planner.bigDrinkersNeeded.toString(),
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = "21 - market",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "Automatic drinkers",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.automaticDrinkers.toString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            modifier = Modifier.weight(weight = 2f, fill = true),
-                            text = "21 - market",
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text ="Automatic drinkers",
-                            textAlign = TextAlign.Center)
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text = planner.automaticDrinkers.toString(),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            modifier = Modifier.weight(weight = 2f, fill = true),
-                            text = "21 - market",
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text ="Nipple drinkers",
-                            textAlign = TextAlign.Center)
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text = planner.nippleDrinkers.toString(),
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = "21 - market",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "Nipple drinkers",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.nippleDrinkers.toString(),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }
     }
+}
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Preview(showBackground = true)

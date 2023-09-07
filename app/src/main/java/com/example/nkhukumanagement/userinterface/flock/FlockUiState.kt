@@ -2,11 +2,7 @@ package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
 import android.os.Parcelable
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Flock
@@ -75,13 +71,15 @@ data class FlockUiState(
     fun getStock(): String {
         return stock
     }
-    fun totalCostOfBirds() : Double {
+
+    fun totalCostOfBirds(): Double {
         return quantity.toDouble() * cost.toDouble()
     }
 
-    fun variance() : Double {
+    fun variance(): Double {
         return 0.0 - totalCostOfBirds()
     }
+
     fun getBirdsRemaining(): Int = getStock().toInt() - mortality.toInt()
 
 }
@@ -106,11 +104,11 @@ fun FlockUiState.toFlock(): Flock = Flock(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun checkNumberExceptions(flockUiState: FlockUiState): Boolean {
-   return try {
+    return try {
         flockUiState.toFlock()
-       true
-    }catch (e: NumberFormatException) {
-       false
+        true
+    } catch (e: NumberFormatException) {
+        false
     }
 }
 
@@ -124,7 +122,7 @@ fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
         uniqueId = uniqueId,
         batchName = batchName,
         breed = breed,
-        datePlaced = DateUtils().convertLocalDateToString(datePlaced),
+        datePlaced = DateUtils().dateToStringLongFormat(datePlaced),
         quantity = numberOfChicksPlaced.toString(),
         cost = costPerBird.toString(),
         donorFlock = donorFlock.toString(),

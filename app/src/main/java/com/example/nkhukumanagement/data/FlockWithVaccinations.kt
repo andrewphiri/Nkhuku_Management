@@ -3,7 +3,7 @@ package com.example.nkhukumanagement.data
 import androidx.room.Embedded
 import androidx.room.Relation
 
-class FlockWithVaccinations (
+class FlockWithVaccinations(
     @Embedded val flock: Flock?,
     @Relation(
         parentColumn = "uniqueId",

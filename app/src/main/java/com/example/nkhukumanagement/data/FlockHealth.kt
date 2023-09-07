@@ -8,7 +8,7 @@ import java.time.LocalDate
 data class FlockHealth(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val flockUniqueId:String,
+    val flockUniqueId: String,
     val mortality: Int,
     val culls: Int,
     val date: LocalDate

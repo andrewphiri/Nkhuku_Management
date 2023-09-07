@@ -15,19 +15,35 @@ import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.nkhukumanagement.R
 
-sealed class NavigationBarScreens(val route: String,
-                                  @StringRes val resourceId: Int,
-                                  val icon: ImageVector,
-                                  val iconSelected: ImageVector,
-                                  var isIconSelected: Boolean = false) {
-    object Home: NavigationBarScreens(route = "Home", resourceId = R.string.home,
-        icon = Icons.Outlined.Home, iconSelected = Icons.Default.Home )
-    object Accounts: NavigationBarScreens(route = "Accounts", resourceId =R.string.accounts,
-       icon = Icons.Outlined.AttachMoney, iconSelected = Icons.Default.AttachMoney )
-    object Planner: NavigationBarScreens(route = "Planner",resourceId = R.string.planner,
-        icon = Icons.Outlined.Calculate, iconSelected = Icons.Default.Calculate)
-    object Tips: NavigationBarScreens(route = "Tips", resourceId =R.string.tips,
-        icon = Icons.Outlined.TipsAndUpdates, Icons.Default.TipsAndUpdates)
-    object Overview: NavigationBarScreens(route = "Overview",resourceId = R.string.overview,
-        icon = Icons.Outlined.PieChart, iconSelected = Icons.Default.PieChart)
+sealed class NavigationBarScreens(
+    val route: String,
+    @StringRes val resourceId: Int,
+    val icon: ImageVector,
+    val iconSelected: ImageVector,
+    var isIconSelected: Boolean = false
+) {
+    object Home : NavigationBarScreens(
+        route = "Home", resourceId = R.string.home,
+        icon = Icons.Outlined.Home, iconSelected = Icons.Default.Home
+    )
+
+    object Accounts : NavigationBarScreens(
+        route = "Accounts", resourceId = R.string.accounts,
+        icon = Icons.Outlined.AttachMoney, iconSelected = Icons.Default.AttachMoney
+    )
+
+    object Planner : NavigationBarScreens(
+        route = "Planner", resourceId = R.string.planner,
+        icon = Icons.Outlined.Calculate, iconSelected = Icons.Default.Calculate
+    )
+
+    object Tips : NavigationBarScreens(
+        route = "Tips", resourceId = R.string.tips,
+        icon = Icons.Outlined.TipsAndUpdates, Icons.Default.TipsAndUpdates
+    )
+
+    object Overview : NavigationBarScreens(
+        route = "Overview", resourceId = R.string.overview,
+        icon = Icons.Outlined.PieChart, iconSelected = Icons.Default.PieChart
+    )
 }

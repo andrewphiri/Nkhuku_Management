@@ -19,6 +19,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.nkhukumanagement.AccountsScreen
+import com.example.nkhukumanagement.AddExpenseScreen
+import com.example.nkhukumanagement.AddExpenseScreenDestination
+import com.example.nkhukumanagement.AddIncomeScreen
+import com.example.nkhukumanagement.AddIncomeScreenDestination
+import com.example.nkhukumanagement.ExpenseViewModel
+import com.example.nkhukumanagement.IncomeViewModel
 import com.example.nkhukumanagement.home.HomeScreen
 import com.example.nkhukumanagement.OverviewScreen
 import com.example.nkhukumanagement.PlannerResultScreen
@@ -53,7 +59,9 @@ fun NkhukuNavHost(
     modifier: Modifier = Modifier,
     vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel = hiltViewModel(),
-    plannerViewModel: PlannerViewModel = viewModel()
+    plannerViewModel: PlannerViewModel = viewModel(),
+    expenseViewModel: ExpenseViewModel = hiltViewModel(),
+    incomeViewModel: IncomeViewModel = hiltViewModel()
 ) {
     NavHost(
         navController = navController,
@@ -76,7 +84,7 @@ fun NkhukuNavHost(
 
         composable(route = NavigationBarScreens.Accounts.route) {
             AccountsScreen(
-                navigateToTransactionsScreen = {id ->
+                navigateToTransactionsScreen = { id ->
                     navController.navigate("${TransactionsScreenDestination.route}/$id")
                 }
             )
@@ -84,7 +92,7 @@ fun NkhukuNavHost(
 
         composable(route = NavigationBarScreens.Planner.route) {
             PlannerScreen(
-                navigateToResultsScreen = { navController.navigate(PlannerResultsDestination.route)},
+                navigateToResultsScreen = { navController.navigate(PlannerResultsDestination.route) },
                 plannerViewModel = plannerViewModel
             )
         }
@@ -130,7 +138,7 @@ fun NkhukuNavHost(
             )
         }
         composable(route = PlannerResultsDestination.route) {
-            PlannerResultScreen (
+            PlannerResultScreen(
                 onNavigateUp = { navController.navigateUp() },
                 plannerViewModel = plannerViewModel
             )
@@ -140,7 +148,9 @@ fun NkhukuNavHost(
             flockEntryViewModel = flockEntryViewModel,
         )
         accountDetailsGraph(
-            navController = navController
+            navController = navController,
+            expenseViewModel = expenseViewModel,
+            incomeViewModel = incomeViewModel
         )
     }
 }
@@ -205,7 +215,12 @@ fun NavGraphBuilder.detailsGraph(
     }
 }
 
-fun NavGraphBuilder.accountDetailsGraph(navController: NavHostController) {
+@RequiresApi(Build.VERSION_CODES.O)
+fun NavGraphBuilder.accountDetailsGraph(
+    navController: NavHostController,
+    expenseViewModel: ExpenseViewModel,
+    incomeViewModel: IncomeViewModel
+) {
     navigation(
         route = GraphRoutes.ACCOUNT_DETAILS,
         startDestination = TransactionsScreenDestination.route
@@ -215,8 +230,33 @@ fun NavGraphBuilder.accountDetailsGraph(navController: NavHostController) {
             arguments = TransactionsScreenDestination.arguments
         ) {
             TransactionScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                navigateToAddIncomeScreen = { id ->
+                    navController.navigate("${AddIncomeScreenDestination.route}/$id")
+                },
+                navigateToAddExpenseScreen = { id ->
+                    navController.navigate("${AddExpenseScreenDestination.route}/$id")
+                }
+            )
+        }
+        composable(
+            route = AddIncomeScreenDestination.routeWithArgs,
+            arguments = AddIncomeScreenDestination.arguments
+        ) {
+            AddIncomeScreen(
+                onNavigateUp = { navController.navigateUp() },
+                incomeViewModel = incomeViewModel
+            )
+        }
+        composable(
+            route = AddExpenseScreenDestination.routeWithArgs,
+            arguments = AddExpenseScreenDestination.arguments
+        ) {
+            AddExpenseScreen(
+                onNavigateUp = { navController.navigateUp() },
+                expenseViewModel = expenseViewModel
             )
         }
     }
 }
+

@@ -10,19 +10,22 @@ import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreen
 import java.lang.reflect.Modifier
 
 @Composable
-fun OverviewScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
-                   canNavigateBack: Boolean = false
-){
-    Scaffold (
+fun OverviewScreen(
+    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
+    canNavigateBack: Boolean = false
+) {
+    Scaffold(
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Overview.resourceId),
                 canNavigateBack = canNavigateBack
             )
         }
-    ){ innerPadding ->
-        Text(text = "Overview",
-            modifier = modifier.padding(innerPadding))
+    ) { innerPadding ->
+        Text(
+            text = "Overview",
+            modifier = modifier.padding(innerPadding)
+        )
     }
 
 }

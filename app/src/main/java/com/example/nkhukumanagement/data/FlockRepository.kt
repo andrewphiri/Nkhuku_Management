@@ -75,9 +75,9 @@ interface FlockRepository {
 
     fun getFlockAndAccountSummary(id: Int): Flow<FlockAndAccountSummary>
 
-    fun getFlockWithIncome(id: Int) : Flow<FlockWithIncome>
+    fun getFlockWithIncome(id: Int): Flow<FlockWithIncome>
 
-    fun getFlockWithExpenses(id: Int) : Flow<FlockWithExpenses>
+    fun getFlockWithExpenses(id: Int): Flow<FlockWithExpenses>
 
     fun getAccountsWithIncome(id: Int): Flow<AccountsWithIncome>
 

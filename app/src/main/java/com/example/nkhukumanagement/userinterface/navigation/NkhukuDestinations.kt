@@ -11,6 +11,7 @@ import com.example.nkhukumanagement.R
 interface NkhukuDestinations {
     val icon: ImageVector
     val route: String
+
     @get:StringRes
     val resourceId: Int
 }

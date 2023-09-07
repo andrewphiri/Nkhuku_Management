@@ -16,7 +16,7 @@ data class Planner(
     val bigDrinkersNeeded: Int,
     val smallFeedersNeeded: Int,
     val bigFeedersNeeded: Int,
-    val automaticDrinkers : Int,
+    val automaticDrinkers: Int,
     val nippleDrinkers: Int,
     val chicksTray: Int
 )

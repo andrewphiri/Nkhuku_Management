@@ -49,11 +49,9 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
-import com.example.nkhukumanagement.data.Feed
 import com.example.nkhukumanagement.data.Flock
 import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.data.Weight
-import com.example.nkhukumanagement.toFeedUiState
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
@@ -95,13 +93,12 @@ fun FlockDetailsScreen(
     val flockWithWeight by detailsViewModel.detailsWeightUiState.collectAsState()
     val flock by detailsViewModel.flock.collectAsState(
         initial = flockEntryViewModel.flockUiState.copy(
-            datePlaced = DateUtils().convertLocalDateToString(LocalDate.now()),
+            datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
             quantity = "0",
             donorFlock = "0",
             cost = "0"
         ).toFlock()
     )
-
 
     flockEntryViewModel.updateUiState(flock.toFlockUiState(true))
     Scaffold(
