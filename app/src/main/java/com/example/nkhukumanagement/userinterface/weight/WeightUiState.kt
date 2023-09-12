@@ -1,11 +1,13 @@
-package com.example.nkhukumanagement.userinterface.flock
+package com.example.nkhukumanagement.userinterface.weight
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.nkhukumanagement.data.Weight
 import com.example.nkhukumanagement.utils.DateUtils
 
-
+/**
+ * Represents the UI state for [WeightScreen].
+ */
 data class WeightUiState(
     val id: Int = 0,
     val flockUniqueID: String = "",
@@ -24,6 +26,9 @@ data class WeightUiState(
     }
 }
 
+/**
+ * Handle [NumberFormatException]
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun checkNumberExceptions(weightUiState: WeightUiState): Boolean {
     return try {
@@ -60,6 +65,9 @@ fun Weight.toWeightUiState(): WeightUiState = WeightUiState(
     dateMeasured = DateUtils().dateToStringLongFormat(measuredDate)
 )
 
+/**
+ * Check if entry is valid
+ */
 fun WeightUiState.isValid(): Boolean {
     return week.isNotBlank() &&
             getDate().isNotBlank() &&

@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement.home
+package com.example.nkhukumanagement.userinterface.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -65,9 +65,10 @@ import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Flock
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
-import com.example.nkhukumanagement.userinterface.flock.VaccinationViewModel
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
+import com.example.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
 import com.example.nkhukumanagement.utils.DateUtils
+import com.example.nkhukumanagement.utils.SingleRowItem
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -269,122 +270,35 @@ fun FlockCard(
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row {
-                        Text(
-                            "Batch name: ",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Justify
-                        )
-                        Text(
-                            text = flock.batchName,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                    Row {
-                        Text(
-                            "Breed: ",
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Justify
-                        )
-                        Text(
-                            text = flock.breed,
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                    Row {
-                        Text(
-                            "Date: ",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Justify
-                        )
-                        Text(
-                            text = DateUtils().dateToStringLongFormat(flock.datePlaced),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Start
-                        )
-                    }
+                    SingleRowItem(
+                        label = "Batch name: ",
+                        value = flock.batchName,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    SingleRowItem(
+                        label = "Breed: ",
+                        value = flock.breed,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    SingleRowItem(
+                        label = "Date: ",
+                        value = DateUtils().dateToStringLongFormat(flock.datePlaced)
+                    )
+                    SingleRowItem(
+                        label = "Age: ",
+                        value = "${
+                            DateUtils().calculateAge(
+                                birthDate = flock.datePlaced,
+                                today = LocalDate.now()
+                            )
+                        } day/s",
+                    )
 
-                    Row {
-                        Text(
-                            "Age: ",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Justify
-                        )
-                        Text(
-                            text = "${
-                                DateUtils().calculateAge(
-                                    birthDate = flock.datePlaced,
-                                    today = LocalDate.now()
-                                ).toString()
-                            } day/s",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                    Row {
-                        Text(
-                            "Quantity: ",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Justify
-                        )
-                        Text(
-                            text = (flock.numberOfChicksPlaced + flock.donorFlock).toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                    Row {
-                        Text(
-                            "Mortality: ",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Justify
-                        )
-                        Text(
-                            text = flock.mortality.toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .padding(2.dp),
-                            textAlign = TextAlign.Start
-                        )
-                    }
-//                    Row {
-//                        Text("Culls: ",
-//                            style = MaterialTheme.typography.bodySmall,
-//                            modifier = Modifier
-//                                .padding(2.dp),
-//                            textAlign = TextAlign.Justify
-//                        )
-//                        Text(text = flock.culls.toString(),
-//                            style = MaterialTheme.typography.bodySmall,
-//                            modifier = Modifier
-//                                .padding(2.dp),
-//                            textAlign = TextAlign.Start
-//                        )
-//                    }
+                    SingleRowItem(
+                        label = "Quantity: ",
+                        value = (flock.numberOfChicksPlaced + flock.donorFlock).toString()
+                    )
+                    SingleRowItem(label = "Mortality: ", value = flock.mortality.toString())
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -404,6 +318,7 @@ fun FlockCard(
         }
     }
 }
+
 
 @Composable
 fun ShowOverflowMenu(

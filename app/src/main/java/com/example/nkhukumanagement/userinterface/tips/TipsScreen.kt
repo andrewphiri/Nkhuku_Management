@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.tips
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 
 @Composable

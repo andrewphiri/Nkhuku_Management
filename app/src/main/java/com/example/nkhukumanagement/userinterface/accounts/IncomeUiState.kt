@@ -1,10 +1,13 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.accounts
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.nkhukumanagement.data.Income
 import com.example.nkhukumanagement.utils.DateUtils
 
+/**
+ * Represents the UI state for [AddIncomeScreen]
+ */
 data class IncomeUiState(
     val id: Int = 0,
     val flockUniqueID: String = "",
@@ -28,6 +31,9 @@ data class IncomeUiState(
     }
 }
 
+/**
+ * Extension function to convert [IncomeUiState] to [Income]
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun IncomeUiState.toIncome(): Income = Income(
     id = id,
@@ -42,6 +48,9 @@ fun IncomeUiState.toIncome(): Income = Income(
     notes = notes
 )
 
+/**
+ * Extension function to convert [Income] to [IncomeUiState]
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun Income.toIncomeUiState(enabled: Boolean = false): IncomeUiState = IncomeUiState(
     id = id,
@@ -58,6 +67,9 @@ fun Income.toIncomeUiState(enabled: Boolean = false): IncomeUiState = IncomeUiSt
     enabled = enabled
 )
 
+/**
+ * Calculate total income earned
+ */
 fun calculateTotalIncome(quantity: String, pricePerItem: String): Double {
     return try {
         if (quantity.isEmpty()) 0.0 else quantity.toInt() *
@@ -67,10 +79,17 @@ fun calculateTotalIncome(quantity: String, pricePerItem: String): Double {
     }
 }
 
+/**
+ * Add the [calculateTotalIncome] to the initial income
+ */
 fun calculateCumulativeIncome(initialIncome: String, totalIncome: String): Double {
     return initialIncome.toDouble() + totalIncome.toDouble()
 }
 
+/**
+ * Used to update the AccountsSummary and Income when an income is being updated.
+ * Add the updated income earned to the current cumulative income, then subtract the initial item Income being updated
+ */
 fun calculateCumulativeIncomeUpdate(
     initialIncome: String,
     totalIncome: String,
@@ -79,6 +98,9 @@ fun calculateCumulativeIncomeUpdate(
     return (initialIncome.toDouble() + totalIncome.toDouble()) - initialItemIncome.toDouble()
 }
 
+/**
+ * Check if entry is valid
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun IncomeUiState.isValid(): Boolean {
     return getDate().isNotBlank() &&
@@ -87,6 +109,9 @@ fun IncomeUiState.isValid(): Boolean {
             pricePerItem.isNotBlank()
 }
 
+/**
+ * Handle [NumberFormatException]
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun handleNumberExceptions(incomeUiState: IncomeUiState): Boolean {
     return try {

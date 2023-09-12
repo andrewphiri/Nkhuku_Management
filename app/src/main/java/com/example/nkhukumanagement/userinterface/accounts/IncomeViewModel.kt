@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.accounts
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -22,6 +22,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+/**
+ * ViewModel to insert, retrieve, update and delete an Income item from the [FlockRepository]'s data source.
+ */
 @HiltViewModel
 class IncomeViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
@@ -58,29 +61,33 @@ class IncomeViewModel @Inject constructor(
                 )
             )
 
-    fun setIncomeList(incomeList: SnapshotStateList<IncomeUiState>) {
-        incomeListState = incomeList
-    }
-
-    fun getIncomeList(): SnapshotStateList<IncomeUiState> {
-        return incomeListState
-    }
-
+    /**
+     * Update Income Ui State
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateState(incomeState: IncomeUiState) {
         incomeUiState = incomeState.copy(enabled = incomeState.isValid())
     }
 
+    /**
+     * Insert an Income Item into the database
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun insertIncome(incomeUiState: IncomeUiState) {
         flockRepository.insertIncome(incomeUiState.toIncome())
     }
 
+    /**
+     * Update an Income Item from the database
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun updateIncome(uiState: IncomeUiState) {
         flockRepository.updateIncome(uiState.toIncome())
     }
 
+    /**
+     * Delete an Expense Item from the database
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun deleteIncome(uiState: IncomeUiState) {
         flockRepository.deleteIncome(uiState.toIncome())

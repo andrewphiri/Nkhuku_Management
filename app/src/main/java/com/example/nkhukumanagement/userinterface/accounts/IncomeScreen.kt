@@ -1,9 +1,8 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.accounts
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,12 +24,10 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
@@ -50,23 +46,25 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.nkhukumanagement.data.Expense
+import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Income
-import com.example.nkhukumanagement.ui.theme.Shapes
+import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import java.time.LocalDate
 
-object ExpenseScreenDestination : NkhukuDestinations {
+object IncomeScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
         get() = Icons.Default.Inventory
     override val route: String
-        get() = "expense"
+        get() = "income"
     override val resourceId: Int
-        get() = R.string.expense
+        get() = R.string.income
     const val flockIdArg = "id"
     val routeWithArgs = "$route/{$flockIdArg}"
     val arguments = listOf(navArgument(flockIdArg) {
@@ -77,12 +75,13 @@ object ExpenseScreenDestination : NkhukuDestinations {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ExpenseScreen(
-    navigateToAddExpenseScreen: (Int) -> Unit = {},
-    expenseViewModel: ExpenseViewModel = hiltViewModel()
+fun IncomeScreen(
+    modifier: Modifier = Modifier,
+    navigateToAddIncomeScreen: (Int) -> Unit = {},
+    incomeViewModel: IncomeViewModel = hiltViewModel()
 ) {
     val listState = rememberLazyListState()
-    val accountsWithExpense by expenseViewModel.accountsWithExpense.collectAsState()
+    val incomeList by incomeViewModel.accountsWithIncome.collectAsState()
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -90,7 +89,7 @@ fun ExpenseScreen(
                 elevation = FloatingActionButtonDefaults.elevation(),
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-                onClick = { navigateToAddExpenseScreen(expenseViewModel.expenseUiState.id) }) {
+                onClick = { navigateToAddIncomeScreen(incomeViewModel.incomeUiState.id) }) {
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -98,7 +97,7 @@ fun ExpenseScreen(
                     )
                     AnimatedVisibility(visible = listState.isScrollingUp()) {
                         Text(
-                            text = "Expense",
+                            text = "Income",
                             modifier = Modifier.padding(start = 8.dp, top = 3.dp)
                         )
                     }
@@ -107,15 +106,14 @@ fun ExpenseScreen(
             }
         }
     ) { innerPadding ->
-        ExpenseList(
-            modifier = Modifier.padding(innerPadding),
-            expenseList = accountsWithExpense.expenseList,
-            onItemClick = { expense ->
-                navigateToAddExpenseScreen(expense.id)
+        IncomeList(
+            modifier = modifier.padding(innerPadding),
+            incomeList = incomeList.incomeList,
+            onItemClick = { income ->
+                navigateToAddIncomeScreen(income.id)
             }
         )
     }
-
 }
 
 /**
@@ -141,19 +139,19 @@ private fun LazyListState.isScrollingUp(): Boolean {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ExpenseList(
+fun IncomeList(
     modifier: Modifier = Modifier,
-    expenseList: List<Expense>,
-    onItemClick: (Expense) -> Unit
+    incomeList: List<Income>,
+    onItemClick: (Income) -> Unit
 ) {
-    if (expenseList.isEmpty()) {
+    if (incomeList.isEmpty()) {
         Box(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 modifier = modifier.align(Alignment.Center),
-                text = stringResource(R.string.no_expense_recorded),
+                text = stringResource(R.string.no_income_recorded),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -162,10 +160,10 @@ fun ExpenseList(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            itemsIndexed(expenseList) { index, expenseItem ->
-                ExpenseCardItem(
-                    expense = expenseItem,
-                    onItemClick = { onItemClick(expenseItem) }
+            itemsIndexed(incomeList) { index, incomeItem ->
+                IncomeCardItem(
+                    income = incomeItem,
+                    onItemClick = { onItemClick(incomeItem) }
                 )
             }
         }
@@ -174,12 +172,12 @@ fun ExpenseList(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ExpenseCardItem(
+fun IncomeCardItem(
     modifier: Modifier = Modifier,
-    expense: Expense,
+    income: Income,
     onItemClick: () -> Unit = {}
 ) {
-    val expensesUiState = expense.toExpenseUiState()
+    val incomeUiState = income.toIncomeUiState()
     ElevatedCard(
         modifier = modifier
             .clickable(onClick = onItemClick)
@@ -189,13 +187,13 @@ fun ExpenseCardItem(
             Divider(
                 modifier = Modifier.weight(0.02f).fillMaxHeight(),
                 thickness = 2.dp,
-                color = Color.Red
+                color = Color(0xFF023020)
             )
-
             Column(modifier = Modifier.weight(1f).padding(16.dp)) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = expensesUiState.expenseName,
+                    text = incomeUiState.incomeName.split(" ")
+                        .joinToString(" ") { it.replaceFirstChar { it.uppercase() } },
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Row(
@@ -212,22 +210,21 @@ fun ExpenseCardItem(
 
                     Text(
                         modifier = Modifier.weight(1.5f),
-                        text = expensesUiState.getDate(),
-                        style = MaterialTheme.typography.bodySmall
+                        text = incomeUiState.getDate(),
+                        style = MaterialTheme.typography.bodySmall,
                     )
-
 
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Supplier",
+                        text = "Customer",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = expensesUiState.supplier,
-                        style = MaterialTheme.typography.bodySmall
+                        text = incomeUiState.customer,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
 
@@ -245,8 +242,8 @@ fun ExpenseCardItem(
 
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = expensesUiState.costPerItem,
-                        style = MaterialTheme.typography.bodySmall
+                        text = incomeUiState.pricePerItem,
+                        style = MaterialTheme.typography.bodySmall,
                     )
 
                     Text(
@@ -258,41 +255,60 @@ fun ExpenseCardItem(
 
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = expensesUiState.quantity,
-                        style = MaterialTheme.typography.bodySmall
+                        text = incomeUiState.quantity,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
-
-                if (expensesUiState.notes.isNotBlank()) {
+                if (incomeUiState.notes.isNotBlank()) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             modifier = Modifier.fillMaxWidth().weight(1f),
-                            text = "Notes",
+                            text = "NOTES",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            modifier = Modifier.fillMaxWidth().weight(weight = 3f, fill = true),
-                            text = expensesUiState.notes,
+                            modifier = Modifier.fillMaxWidth().weight(weight = 1f, fill = true),
+                            text = incomeUiState.notes,
                             style = MaterialTheme.typography.bodySmall,
                             fontStyle = FontStyle.Italic
                         )
                     }
-                }
 
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = expensesUiState.totalExpense,
-                        color = Color.Red,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.bodySmall
+                        text = incomeUiState.totalIncome,
+                        color = Color.Green,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
         }
     }
 
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Preview(name = "Income Card", showBackground = true)
+@Composable
+fun IncomeCardPreview() {
+    NkhukuManagementTheme {
+        IncomeCardItem(
+            income = Income(
+                date = LocalDate.now(),
+                incomeName = "Flock Sale",
+                customer = "Shoprite",
+                pricePerItem = 100.00,
+                quantity = 108,
+                totalIncome = 10800.00,
+                flockUniqueID = "",
+                cumulativeTotalIncome = 10000.25,
+                notes = ""
+            )
+        )
+    }
 }

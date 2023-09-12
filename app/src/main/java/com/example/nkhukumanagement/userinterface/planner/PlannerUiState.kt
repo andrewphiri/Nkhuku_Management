@@ -1,9 +1,10 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.planner
 
-import com.example.nkhukumanagement.userinterface.flock.FlockUiState
-import com.example.nkhukumanagement.userinterface.flock.toFlock
 import kotlin.math.roundToInt
 
+/**
+ * Represents the Ui State of the [PlannerScreen]
+ */
 data class PlannerUiState(
     val quantityToOrder: String = "",
     val areFeedersAvailable: Boolean = false,
@@ -71,6 +72,9 @@ data class PlannerUiState(
     }
 }
 
+/**
+ * Handle [NumberFormatException]
+ */
 fun checkNumberExceptions(plannerUiState: PlannerUiState): Boolean {
     return try {
         plannerUiState.toPlanner()
@@ -80,6 +84,9 @@ fun checkNumberExceptions(plannerUiState: PlannerUiState): Boolean {
     }
 }
 
+/**
+ * Extension function to convert [PlannerUiState] to [Planner]
+ */
 fun PlannerUiState.toPlanner(): Planner = Planner(
     quantityToOrder = quantityToOrder.toInt(),
     areFeedersAvailable = areFeedersAvailable,
@@ -101,6 +108,9 @@ fun PlannerUiState.toPlanner(): Planner = Planner(
     totalStarterBags = calculateStarterBags(),
 )
 
+/**
+ * Check if quantityToOrder is not blank
+ */
 fun PlannerUiState.isValid(): Boolean {
     return quantityToOrder.isNotBlank()
 }

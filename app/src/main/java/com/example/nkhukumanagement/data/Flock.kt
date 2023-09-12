@@ -6,6 +6,9 @@ import androidx.room.PrimaryKey
 import com.example.nkhukumanagement.R
 import java.time.LocalDate
 
+/**
+ * Data class that represent the a table in the database.
+ */
 @Entity(tableName = "flock")
 data class Flock(
     @PrimaryKey(autoGenerate = true)

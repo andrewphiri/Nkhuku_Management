@@ -8,6 +8,9 @@ import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Data access object to query the database.
+ */
 @Dao
 interface FlockDao {
     @Insert

@@ -4,6 +4,9 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.time.LocalDate
 
+/**
+ * Data class that represent the a table in the database.
+ */
 @Entity(tableName = "expense")
 data class Expense(
     @PrimaryKey(autoGenerate = true)

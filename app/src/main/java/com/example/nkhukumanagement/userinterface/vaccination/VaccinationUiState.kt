@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement.userinterface.flock
+package com.example.nkhukumanagement.userinterface.vaccination
 
 import android.os.Build
 import android.os.Parcelable
@@ -7,6 +7,9 @@ import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.utils.DateUtils
 import kotlinx.parcelize.Parcelize
 
+/**
+ * Represents the UI state for [AddVaccinationsScreen].
+ */
 @Parcelize
 data class VaccinationUiState(
     val id: Int = 0,
@@ -75,6 +78,9 @@ fun Vaccination.toVaccinationUiState(
     vaccinationNumber = vaccinationNumber
 )
 
+/**
+ * Check if entry entered is valid
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun VaccinationUiState.isValid(): Boolean {
     return getName().isNotBlank() &&

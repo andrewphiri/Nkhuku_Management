@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement.userinterface.flock
+package com.example.nkhukumanagement.userinterface.feed
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -64,15 +64,14 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
-import com.example.nkhukumanagement.checkNumberExceptions
 import com.example.nkhukumanagement.data.Feed
-import com.example.nkhukumanagement.isSingleEntryValid
-import com.example.nkhukumanagement.toFeedUiState
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
+import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
+import com.example.nkhukumanagement.userinterface.flock.FlockUiState
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import com.example.nkhukumanagement.utils.AddNewEntryDialog
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -517,7 +516,7 @@ fun UpdateFeedDialog(
                         onValueChanged = { newFeedType = it },
                         onDismissed = onInnerDialogDismiss,
                         label = "Feed type",
-                        onSaveBreed = {
+                        onSaveEntry = {
                             feedUiState.options.add(newFeedType)
                             onChangedValue(feedUiState.copy(type = newFeedType))
                             onInnerDialogDismiss()

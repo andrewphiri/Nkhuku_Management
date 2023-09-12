@@ -7,13 +7,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -41,8 +37,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -54,9 +48,11 @@ import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.data.Weight
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import com.example.nkhukumanagement.userinterface.vaccination.toVaccinationUiState
+import com.example.nkhukumanagement.userinterface.weight.toWeightUiState
 import com.example.nkhukumanagement.utils.DateUtils
+import com.example.nkhukumanagement.utils.SingleRowEntry
 import java.time.LocalDate
-import kotlin.String
 import kotlin.math.roundToInt
 
 object FlockDetailsDestination : NkhukuDestinations {
@@ -88,9 +84,9 @@ fun FlockDetailsScreen(
     flockEntryViewModel: FlockEntryViewModel,
     detailsViewModel: FlockDetailsViewModel = hiltViewModel()
 ) {
-    val flockWithVaccinations by detailsViewModel.detailsVaccinationUiState.collectAsState()
-    val flockWithFeed by detailsViewModel.detailsFeedUiState.collectAsState()
-    val flockWithWeight by detailsViewModel.detailsWeightUiState.collectAsState()
+    val flockWithVaccinations by detailsViewModel.flockWithVaccinationsStateFlow.collectAsState()
+    val flockWithFeed by detailsViewModel.flockWithFeedStateFlow.collectAsState()
+    val flockWithWeight by detailsViewModel.flockWithWeightStateFlow.collectAsState()
     val flock by detailsViewModel.flock.collectAsState(
         initial = flockEntryViewModel.flockUiState.copy(
             datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
@@ -200,62 +196,18 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock, onHealthCardClick: (
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
-            Card {
-                Row(
-                    modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.weight(2f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "Mortality",
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Start
-                    )
+            SingleRowEntry(
+                label = "Mortality",
+                value = flockUiState.getMortality(),
+                weightA = 2f
+            )
 
-                    Divider(
-                        modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                        thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                    )
+            SingleRowEntry(
+                label = "Culls",
+                value = flockUiState.getCulls(),
+                weightA = 2f
+            )
 
-                    Text(
-                        modifier = Modifier.weight(1f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = flockUiState.getMortality(),
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Start
-                    )
-                }
-            }
-            Card {
-                Row(
-                    modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.weight(2f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "Culls",
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Start
-                    )
-
-                    Divider(
-                        modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                        thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = flockUiState.getCulls(),
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Start
-                    )
-                }
-            }
         }
     }
 }
@@ -267,15 +219,7 @@ fun FeedCard(
     flockUiState: FlockUiState,
     onFeedCardClick: (Int) -> Unit
 ) {
-//    val feedUiState = Feed(
-//     id = feed.id,
-//     flockUniqueId = feed.flockUniqueId,
-//     name = feed.name,
-//        week = feed.week,
-//     type = feed.type,
-//     consumed = feed.consumed,
-//     feedingDate = feed.feedingDate
-//    ).toFeedUiState()
+
 
     ElevatedCard(
         modifier = modifier
@@ -302,64 +246,14 @@ fun FeedCard(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
-            Card {
-                Row(
-                    modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "Bags(50Kg)",
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Start
-                    )
-
-                    Divider(
-                        modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                        thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "${(quantityConsumed / 50).roundToInt()}",
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Start
-                    )
-                }
-            }
-            Card {
-                Row(
-                    modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "Total Feed Consumed:",
-                        style = MaterialTheme.typography.bodySmall,
-
-                        textAlign = TextAlign.Start
-                    )
-
-                    Divider(
-                        modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                        thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "${String.format("%.2f", quantityConsumed)} Kg",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        textAlign = TextAlign.Start
-                    )
-                }
-            }
+            SingleRowEntry(
+                label = "Bags(50Kg)",
+                value = "${(quantityConsumed / 50).roundToInt()}"
+            )
+            SingleRowEntry(
+                label = "Total Feed Consumed",
+                value = "${String.format("%.2f", quantityConsumed)} Kg"
+            )
         }
     }
 }
@@ -412,32 +306,12 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
 
     Card(modifier = modifier) {
         Column {
-            Row(
-                modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                        .padding(2.dp), text = vaccinationUiState.getDate(),
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start
-                )
 
-                Divider(
-                    modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                    thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                )
-
-                Text(
-                    modifier = Modifier.weight(1f).fillMaxWidth()
-                        .padding(2.dp), text = vaccinationUiState.getName(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.tertiary,
-                    fontSize = TextUnit(value = 10f, type = TextUnitType.Sp),
-                    textAlign = TextAlign.Start
-                )
-            }
+            SingleRowEntry(
+                label = vaccinationUiState.getDate(),
+                value = vaccinationUiState.getName(),
+                style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 }
@@ -492,67 +366,20 @@ fun WeightCard(
                 textAlign = TextAlign.Center
             )
 
-            Card {
-                Row(
-                    modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1.5f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "Actual",
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Start
-                    )
-                    Divider(
-                        modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                        thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                    )
+            SingleRowEntry(
+                label = "Actual",
+                value = "${weightUiState.actualWeight} Kg",
+                weightA = 1.5f,
+            )
 
-                    Text(
-                        modifier = Modifier.weight(1f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "${weightUiState.actualWeight} Kg",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        textAlign = TextAlign.Start
-                    )
-                }
-            }
-
-            Card {
-                Row(
-                    modifier = Modifier.height(IntrinsicSize.Min).padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1.5f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "Standard",
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Start
-                    )
-                    Divider(
-                        modifier = Modifier.weight(0.01f).fillMaxHeight(),
-                        thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f).fillMaxWidth()
-                            .padding(2.dp),
-                        text = "${weightUiState.standard} Kg",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        textAlign = TextAlign.Start
-                    )
-                }
-            }
+            SingleRowEntry(
+                label = "Standard",
+                value = "${weightUiState.standard} Kg",
+                weightA = 1.5f
+            )
         }
     }
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)

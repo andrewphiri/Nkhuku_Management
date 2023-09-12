@@ -1,7 +1,6 @@
-package com.example.nkhukumanagement.userinterface.flock
+package com.example.nkhukumanagement.userinterface.vaccination
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -10,14 +9,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.example.nkhukumanagement.FeedUiState
 import com.example.nkhukumanagement.data.FlockRepository
-import com.example.nkhukumanagement.toFeed
+import com.example.nkhukumanagement.userinterface.flock.FlockUiState
 import com.example.nkhukumanagement.utils.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.LocalDate
 import javax.inject.Inject
 
+/**
+ * ViewModel to insert, retrieve, update and delete a vaccination item from the [FlockRepository]'s data source.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class VaccinationViewModel @Inject constructor(
@@ -30,67 +30,69 @@ class VaccinationViewModel @Inject constructor(
     }
 
     private var initialVaccinationList: SnapshotStateList<VaccinationUiState> = mutableStateListOf()
+
+    /**
+     * Holds the current Vaccination UI state
+     */
     var vaccinationUiState by mutableStateOf(VaccinationUiState())
         private set
-    val options = listOf("Gumburo", "Lasota")
-    private val flockID: Int = savedStateHandle[AddVaccinationsDestination.flockIdArg] ?: -1
 
+    //Dropdown menu items for the vaccination entry
+    val options = mutableListOf("Gumburo", "Lasota")
 
+    /**
+     * Update the VaccinationUiState List at the specified index
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateUiState(index: Int, newVaccinationUiState: VaccinationUiState) {
         initialVaccinationList[index] =
             newVaccinationUiState.copy(actionEnabled = newVaccinationUiState.isValid())
     }
 
+    /**
+     * Insert the Vaccination Item into the database
+     */
     suspend fun saveVaccination(vaccinationUiState: VaccinationUiState) {
         if (vaccinationUiState.isValid()) {
             flockRepository.insertVaccination(vaccinationUiState.toVaccination())
         }
     }
 
-    suspend fun saveInitialWeight() {
-        flockRepository.insertWeight(
-            WeightUiState(
-                flockUniqueID = vaccinationUiState.getUniqueId(),
-                week = "Initial Weight",
-                standard = "0.04",
-                actualWeight = "0.04",
-                dateMeasured = DateUtils().dateToStringLongFormat(LocalDate.now())
-            ).toWeight()
-        )
 
-    }
-
+    /**
+     * Delete weight items from the database
+     */
     suspend fun deleteWeight(flockUniqueId: String) {
         flockRepository.deleteWeight(flockUniqueId)
     }
 
+    /**
+     * Delete feed items from the database
+     */
     suspend fun deleteFeed(flockUniqueId: String) {
         flockRepository.deleteFeed(flockUniqueId)
     }
 
-    suspend fun saveInitialFeed() {
-        flockRepository.insertFeed(
-            FeedUiState(
-                flockUniqueID = vaccinationUiState.getUniqueId(),
-                name = "N/A",
-                type = "Starter",
-                actualConsumed = "0",
-                feedingDate = DateUtils().dateToStringLongFormat(LocalDate.now()),
-            ).toFeed()
-        )
-    }
 
+    /**
+     * Delete vaccination items from the database
+     */
     suspend fun deleteVaccination(flockUniqueID: String) {
         flockRepository.deleteVaccination(flockUniqueID)
     }
 
+    /**
+     * Get vaccination list
+     */
     fun getInitialVaccinationList(): SnapshotStateList<VaccinationUiState> {
         return initialVaccinationList
     }
 
+    /**
+     * Set initial vaccination dates. This will be based on the breed selected
+     */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun setInitialDates(vaccinationUiStateList: SnapshotStateList<VaccinationUiState>) {
+    fun setInitialVaccinationDates(vaccinationUiStateList: SnapshotStateList<VaccinationUiState>) {
         initialVaccinationList = vaccinationUiStateList
     }
 
@@ -106,8 +108,7 @@ class VaccinationViewModel @Inject constructor(
         flockUiState: FlockUiState,
         vaccinationUiState: VaccinationUiState
     ): SnapshotStateList<VaccinationUiState> {
-        Log.i("Breed selected ", flockUiState.breed)
-        Log.i("Breed DATE ", flockUiState.getDate())
+
         return when (flockUiState.breed) {
             "Hybrid" -> {
                 defaultHybridVaccinations(
@@ -243,6 +244,9 @@ class VaccinationViewModel @Inject constructor(
             )
     }
 
+    /**
+     * Default Other vaccination dates
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun defaultOtherVaccinations(
         flockUiState: FlockUiState,

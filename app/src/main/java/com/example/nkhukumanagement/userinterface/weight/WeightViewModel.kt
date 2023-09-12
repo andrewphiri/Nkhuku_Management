@@ -1,7 +1,6 @@
-package com.example.nkhukumanagement.userinterface.flock
+package com.example.nkhukumanagement.userinterface.weight
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -12,18 +11,20 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nkhukumanagement.data.FlockRepository
-import com.example.nkhukumanagement.data.FlockWithVaccinations
 import com.example.nkhukumanagement.data.FlockWithWeight
 import com.example.nkhukumanagement.data.Weight
+import com.example.nkhukumanagement.userinterface.flock.FlockUiState
 import com.example.nkhukumanagement.utils.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.time.LocalDate
 import javax.inject.Inject
 
+/**
+ * ViewModel to insert, retrieve, update and delete a weight item from the [FlockRepository]'s data source.
+ */
 @HiltViewModel
 class WeightViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
@@ -34,6 +35,9 @@ class WeightViewModel @Inject constructor(
         private const val MILLIS = 5_000L
     }
 
+    /**
+     * Holds the current Ui State
+     */
     var weightUiState by mutableStateOf(WeightUiState())
         private set
 
@@ -50,39 +54,53 @@ class WeightViewModel @Inject constructor(
                 initialValue = FlockWithWeight(flock = null, weights = listOf())
             )
 
+    /**
+     * Insert a weight item into the database
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun saveInitialWeight(weightUiState: WeightUiState) {
         flockRepository.insertWeight(weightUiState.toWeight())
     }
 
+    /**
+     * Update a weight item in the database
+     */
     suspend fun updateWeight(weights: List<Weight>) {
         flockRepository.updateWeight(weights)
     }
 
+    /**
+     * Deletes a weight item from the database
+     */
     suspend fun deleteWeight(flockUniqueId: String) {
         flockRepository.deleteWeight(flockUniqueId)
     }
 
+    /**
+     * Get the weightlist
+     */
     fun getWeightList(): SnapshotStateList<WeightUiState> {
         return initialWeightList
     }
 
-    fun isUpdateButtonEnabled(weights: List<WeightUiState>): Boolean {
-
-        Log.i("Weight_Get_List", initialWeightList.toMutableList().toString())
-        Log.i("Weight_LIST", weights.toString())
-        return initialWeightList.toMutableList() != weights
-    }
-
+    /**
+     * Set the initial weightlist to [@param weightList]
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun setWeightList(weightList: SnapshotStateList<WeightUiState>) {
         initialWeightList = weightList
     }
 
+    /**
+     * Update the WeightUiState List at the specified index
+     */
     fun updateWeightState(index: Int, uiState: WeightUiState) {
         initialWeightList[index] = uiState
     }
 
+    /**
+     * Standard weekly weights for broilers
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun defaultWeight(flockUiState: FlockUiState): SnapshotStateList<WeightUiState> {
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())

@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement.userinterface.flock
+package com.example.nkhukumanagement.userinterface.vaccination
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -8,31 +8,24 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -40,22 +33,20 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -64,16 +55,22 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.nkhukumanagement.AccountsViewModel
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Vaccination
+import com.example.nkhukumanagement.userinterface.accounts.AccountsViewModel
+import com.example.nkhukumanagement.userinterface.feed.FeedViewModel
+import com.example.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
+import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import com.example.nkhukumanagement.userinterface.weight.WeightViewModel
+import com.example.nkhukumanagement.utils.AddNewEntryDialog
 import com.example.nkhukumanagement.utils.DateUtils
+import com.example.nkhukumanagement.utils.DropDownMenuDialog
+import com.example.nkhukumanagement.utils.PickerDateDialog
 import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.util.UUID
-import kotlin.String
 
 
 object AddVaccinationsDestination : NkhukuDestinations {
@@ -110,7 +107,7 @@ fun AddVaccinationsScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-    val flockWithVaccinations by detailsViewModel.detailsVaccinationUiState.collectAsState()
+    val flockWithVaccinations by detailsViewModel.flockWithVaccinationsStateFlow.collectAsState()
     var vaccinesList: List<Vaccination> = listOf()
     val vaccinesStateList: MutableList<VaccinationUiState> = mutableListOf()
 
@@ -127,7 +124,7 @@ fun AddVaccinationsScreen(
 
 
     if (flockEntryViewModel.flockUiState.id == 0) {
-        vaccinationViewModel.setInitialDates(
+        vaccinationViewModel.setInitialVaccinationDates(
             vaccinationViewModel.defaultVaccinationDates(
                 flockEntryViewModel.flockUiState, vaccinationViewModel.vaccinationUiState
             )
@@ -148,7 +145,7 @@ fun AddVaccinationsScreen(
                 )
             )
         }
-        vaccinationViewModel.setInitialDates(vaccinesStateList.toMutableStateList())
+        vaccinationViewModel.setInitialVaccinationDates(vaccinesStateList.toMutableStateList())
     }
 
 
@@ -311,7 +308,7 @@ fun VaccinationInputList(
     flockEntryViewModel: FlockEntryViewModel,
     isListValid: (Boolean) -> Unit,
     isEditingEnabled: Boolean,
-    options: List<String>
+    options: MutableList<String>
 ) {
     LazyColumn(modifier = modifier) {
         itemsIndexed(vaccinationViewModel.getInitialVaccinationList()) { index, vaccinationUiState ->
@@ -337,7 +334,7 @@ fun VaccinationCardEntry(
     vaccinationUiState: VaccinationUiState,
     onValueChanged: (VaccinationUiState) -> Unit,
     isEditable: Boolean,
-    options: List<String>
+    options: MutableList<String>
 ) {
     //var expand by remember { mutableStateOf(vaccinationUiState.isExpanded) }
     OutlinedCard(
@@ -391,69 +388,69 @@ fun VaccinationCardEntry(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PickDateDialog(
-    modifier: Modifier = Modifier,
-    showDialog: Boolean,
-    onDismissed: () -> Unit,
-    updateShowDialogOnClick: (Boolean) -> Unit,
-    vaccinationUiState: VaccinationUiState,
-    saveDateSelected: (DatePickerState) -> String,
-    state: DatePickerState,
-    isEditable: Boolean
-) {
-    vaccinationUiState.setDate(saveDateSelected(state))
-    OutlinedTextField(
-        modifier = modifier.fillMaxWidth(),
-        textStyle = MaterialTheme.typography.bodySmall,
-        value = vaccinationUiState.getDate(),
-        onValueChange = { vaccinationUiState.setDate(saveDateSelected(state)) },
-        label = { Text(text = "Vaccination date", style = MaterialTheme.typography.bodySmall) },
-        singleLine = true,
-        readOnly = true,
-        enabled = isEditable,
-        colors = TextFieldDefaults.colors(
-            cursorColor = Color.Unspecified,
-            errorCursorColor = Color.Unspecified,
-            disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha),
-            disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(LocalContentColor.current.alpha)
-        ),
-        isError = vaccinationUiState.isSingleEntryValid(vaccinationUiState.getDate()),
-        interactionSource = remember { MutableInteractionSource() }
-            .also { interactionSource ->
-                LaunchedEffect(interactionSource) {
-                    interactionSource.interactions.collect {
-                        if (it is PressInteraction.Release) {
-                            updateShowDialogOnClick(showDialog)
-                        }
-                    }
-                }
-            }
-    )
-    if (showDialog) {
-        DatePickerDialog(
-            onDismissRequest = onDismissed,
-            confirmButton = {
-                Button(
-                    onClick = onDismissed
-                ) { Text("OK") }
-            },
-            dismissButton = {
-                Button(onClick = onDismissed) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DatePicker(
-                state = state,
-                modifier = Modifier,
-                showModeToggle = false,
-            )
-        }
-    }
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun PickDateDialog(
+//    modifier: Modifier = Modifier,
+//    showDialog: Boolean,
+//    onDismissed: () -> Unit,
+//    updateShowDialogOnClick: (Boolean) -> Unit,
+//    vaccinationUiState: VaccinationUiState,
+//    saveDateSelected: (DatePickerState) -> String,
+//    state: DatePickerState,
+//    isEditable: Boolean
+//) {
+//    vaccinationUiState.setDate(saveDateSelected(state))
+//    OutlinedTextField(
+//        modifier = modifier.fillMaxWidth(),
+//        textStyle = MaterialTheme.typography.bodySmall,
+//        value = vaccinationUiState.getDate(),
+//        onValueChange = { vaccinationUiState.setDate(saveDateSelected(state)) },
+//        label = { Text(text = "Vaccination date", style = MaterialTheme.typography.bodySmall) },
+//        singleLine = true,
+//        readOnly = true,
+//        enabled = isEditable,
+//        colors = TextFieldDefaults.colors(
+//            cursorColor = Color.Unspecified,
+//            errorCursorColor = Color.Unspecified,
+//            disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha),
+//            disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(LocalContentColor.current.alpha)
+//        ),
+//        isError = vaccinationUiState.isSingleEntryValid(vaccinationUiState.getDate()),
+//        interactionSource = remember { MutableInteractionSource() }
+//            .also { interactionSource ->
+//                LaunchedEffect(interactionSource) {
+//                    interactionSource.interactions.collect {
+//                        if (it is PressInteraction.Release) {
+//                            updateShowDialogOnClick(showDialog)
+//                        }
+//                    }
+//                }
+//            }
+//    )
+//    if (showDialog) {
+//        DatePickerDialog(
+//            onDismissRequest = onDismissed,
+//            confirmButton = {
+//                Button(
+//                    onClick = onDismissed
+//                ) { Text("OK") }
+//            },
+//            dismissButton = {
+//                Button(onClick = onDismissed) {
+//                    Text("Cancel")
+//                }
+//            }
+//        ) {
+//            DatePicker(
+//                state = state,
+//                modifier = Modifier,
+//                showModeToggle = false,
+//            )
+//        }
+//    }
+//}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -472,14 +469,15 @@ fun StatefulPickDateDialog(
 
     var showDialog by remember { mutableStateOf(false) }
 
-    PickDateDialog(
-        modifier = modifier,
+    PickerDateDialog(
+        label = "Vaccination Date",
         showDialog = showDialog,
         onDismissed = { showDialog = false },
         updateShowDialogOnClick = { showDialog = true },
-        vaccinationUiState = vaccinationUiState,
-        state = state,
+        date = vaccinationUiState.getDate(),
+        datePickerState = state,
         isEditable = isEditable,
+        onValueChanged = { vaccinationUiState.setDate(it) },
         saveDateSelected = { dateState ->
             val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
                 DateUtils().convertMillisToLocalDate(
@@ -495,108 +493,71 @@ fun StatefulPickDateDialog(
         })
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DownMenu(
-    modifier: Modifier = Modifier,
-    vaccinationUiState: VaccinationUiState,
-    expanded: Boolean, onExpand: (Boolean) -> Unit,
-    optionSelected: String, onOptionSelected: (String) -> Unit,
-    onValueChanged: (VaccinationUiState) -> Unit,
-    onDismissed: () -> Unit,
-    isEditable: Boolean,
-    options: List<String>
-) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.TopCenter
-    ) {
-        ExposedDropdownMenuBox(
-            expanded = if (isEditable) expanded else false,
-            onExpandedChange = onExpand
-        ) {
-            TextField(
-                modifier = Modifier.fillMaxWidth().menuAnchor(),
-                textStyle = MaterialTheme.typography.bodySmall,
-                readOnly = true,
-                value = vaccinationUiState.getName(),
-                onValueChange = {
-                    vaccinationUiState.setName(optionSelected)
-                },
-                label = {
-                    Text(
-                        text = "Vaccination name",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                },
-                isError = vaccinationUiState.isSingleEntryValid(vaccinationUiState.getName()),
-                trailingIcon = {
-                    if (isEditable) {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    }
-                },
-                colors = ExposedDropdownMenuDefaults.textFieldColors(
-                    disabledTextColor = LocalContentColor.current.copy(alpha = LocalContentColor.current.alpha),
-                    disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(
-                        LocalContentColor.current.alpha
-                    )
-                ),
-                enabled = isEditable
-            )
-
-            ExposedDropdownMenu(
-                modifier = Modifier.exposedDropdownSize(true),
-                expanded = if (!isEditable and expanded) false else expanded,
-                onDismissRequest = onDismissed
-            ) {
-                options.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(text = option) },
-                        onClick = {
-                            onOptionSelected(option)
-                            onValueChanged(vaccinationUiState.copy(name = option))
-                            onExpand(false)
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
 @Composable
 fun StatefulDropDownMenu(
     modifier: Modifier,
     vaccinationUiState: VaccinationUiState,
     onValueChanged: (VaccinationUiState) -> Unit,
     isEditable: Boolean,
-    options: List<String>
+    options: MutableList<String>
 ) {
     var expanded by remember { mutableStateOf(false) }
     val editable by rememberUpdatedState(isEditable)
+    var isVaccinationDialogShowing by rememberSaveable { mutableStateOf(false) }
+    var newVaccinationEntry by rememberSaveable { mutableStateOf(vaccinationUiState.getName()) }
 
     var optionSelected by remember { mutableStateOf(vaccinationUiState.getName()) }
 
     vaccinationUiState.setName(optionSelected)
-    DownMenu(
-        modifier = modifier,
-        vaccinationUiState = vaccinationUiState,
-        expanded = vaccinationUiState.isExpanded,
-        onExpand = {
-            expanded = if (editable) !expanded else false
-            onValueChanged(vaccinationUiState.copy(isExpanded = expanded))
+    Row {
+        DropDownMenuDialog(
+            modifier = modifier.weight(0.8f),
+            entry = vaccinationUiState.getName(),
+            expanded = vaccinationUiState.isExpanded,
+            onExpand = {
+                expanded = if (editable) !expanded else false
+                onValueChanged(vaccinationUiState.copy(isExpanded = expanded))
+            },
+            onOptionSelected = {
+                optionSelected = it
+                vaccinationUiState.setName(optionSelected)
+                onValueChanged(vaccinationUiState.copy(name = it))
+            },
+            onValueChanged = { onValueChanged(vaccinationUiState.copy(name = it)) },
+            onDismissed = {
+                expanded = false
+                onValueChanged(vaccinationUiState.copy(isExpanded = false))
+            },
+            isEditable = isEditable,
+            options = options,
+            label = "Vaccination Name"
+        )
+
+        IconButton(
+            modifier = Modifier.weight(0.2f),
+            enabled = isEditable,
+            onClick = { isVaccinationDialogShowing = true }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add Vaccination Type",
+                tint = MaterialTheme.colorScheme.secondary
+            )
+        }
+    }
+    AddNewEntryDialog(
+        entry = newVaccinationEntry,
+        showDialog = isVaccinationDialogShowing,
+        onValueChanged = { newVaccinationEntry = it },
+        onDismissed = { isVaccinationDialogShowing = false },
+        onSaveEntry = {
+            options.add(newVaccinationEntry)
+            optionSelected = newVaccinationEntry
+            onValueChanged(vaccinationUiState.copy(name = newVaccinationEntry))
+            isVaccinationDialogShowing = false
         },
-        optionSelected = optionSelected, onOptionSelected = {
-            optionSelected = it
-            vaccinationUiState.setName(optionSelected)
-            onValueChanged(vaccinationUiState.copy(name = it))
-        },
-        onValueChanged = onValueChanged,
-        onDismissed = {
-            expanded = false
-            onValueChanged(vaccinationUiState.copy(isExpanded = false))
-        },
-        isEditable = isEditable,
-        options = options
+        isEnabled = newVaccinationEntry.isNotBlank(),
+        label = "Add Vaccination"
     )
+
 }

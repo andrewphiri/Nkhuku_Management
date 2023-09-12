@@ -3,6 +3,9 @@ package com.example.nkhukumanagement.data
 import androidx.room.Embedded
 import androidx.room.Relation
 
+/**
+ * One to many relationship. Single Flock instance with zero or more instances of Vaccinations
+ */
 class FlockWithVaccinations(
     @Embedded val flock: Flock?,
     @Relation(

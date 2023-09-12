@@ -1,10 +1,13 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.feed
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.nkhukumanagement.data.Feed
 import com.example.nkhukumanagement.utils.DateUtils
 
+/**
+ * Represents the UI state for [FeedScreen].
+ */
 data class FeedUiState(
     val id: Int = 0,
     val flockUniqueID: String = "",
@@ -29,6 +32,9 @@ data class FeedUiState(
     }
 }
 
+/**
+ * Handle [NumberFormatException]
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun checkNumberExceptions(feedUiState: FeedUiState): Boolean {
     return try {
@@ -73,6 +79,9 @@ fun Feed.toFeedUiState(): FeedUiState = FeedUiState(
     feedingDate = DateUtils().dateToStringLongFormat(feedingDate)
 )
 
+/**
+ * Check if entry is valid
+ */
 fun FeedUiState.isValid(): Boolean {
     return name.isNotBlank() &&
             getDate().isNotBlank() &&

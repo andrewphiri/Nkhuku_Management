@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -26,32 +27,36 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
+import com.example.nkhukumanagement.data.FlockHealth
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
-import java.time.LocalDate
-import kotlin.String
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
-import com.example.nkhukumanagement.data.FlockHealth
+import com.example.nkhukumanagement.utils.PickerDateDialog
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 object EditFlockDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -81,6 +86,7 @@ fun FlockEditScreen(
 ) {
 
     val coroutineScope = rememberCoroutineScope()
+    var date by remember { mutableStateOf(DateUtils().dateToStringLongFormat(LocalDate.now())) }
 
     val flock by editFlockViewModel.flock.collectAsState(
         initial = flockEntryViewModel.flockUiState.copy(
@@ -89,8 +95,12 @@ fun FlockEditScreen(
             donorFlock = "0"
         ).toFlock()
     )
-
     val flockUiState: FlockUiState = flock.toFlockUiState()
+    val dateState = rememberDatePickerState(
+        initialDisplayMode = DisplayMode.Picker,
+        initialSelectedDateMillis = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
+            .toEpochMilli()
+    )
     flockEntryViewModel.updateUiState(flockUiState.copy(enabled = true))
     var mortality by rememberSaveable { mutableStateOf(0) }
     var culls by rememberSaveable { mutableStateOf(0) }
@@ -138,13 +148,38 @@ fun FlockEditScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    PickerDialog(
+//                    PickerDialog(
+//                        showDialog = showDialog,
+//                        onDismissed = { showDialog = false },
+//                        label = "Date",
+//                        flockUiState = flockUiState,
+//                        updateShowDialogOnClick = { showDialog = true },
+//                        onValueChanged = onValueChanged,
+//                        saveDateSelected = { dateState ->
+//                            val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
+//                                DateUtils().convertMillisToLocalDate(
+//                                    millis
+//                                )
+//                            }
+//                            val localDateToString = millisToLocalDate?.let { date ->
+//                                DateUtils().dateToStringLongFormat(
+//                                    date
+//                                )
+//                            }
+//                            localDateToString!!
+//                        }
+//                    )
+
+                    PickerDateDialog(
                         showDialog = showDialog,
                         onDismissed = { showDialog = false },
                         label = "Date",
-                        flockUiState = flockUiState,
+                        date = date,
                         updateShowDialogOnClick = { showDialog = true },
-                        onValueChanged = onValueChanged,
+                        onValueChanged = {
+                            date = it
+                        },
+                        datePickerState = dateState,
                         saveDateSelected = { dateState ->
                             val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
                                 DateUtils().convertMillisToLocalDate(
@@ -256,7 +291,7 @@ fun FlockEditScreen(
                                     mortality =
                                     (flockUiState.getMortality().toInt() + mortality).toString(),
                                     culls = (flockUiState.getCulls().toInt() + culls).toString(),
-                                    stock = quantityRemaining.toString()
+                                    stock = quantityRemaining.toString().toString()
                                 )
                             )
 
@@ -265,7 +300,7 @@ fun FlockEditScreen(
                                     flockUniqueId = flockUiState.getUniqueId(),
                                     mortality = mortality,
                                     culls = culls,
-                                    date = DateUtils().stringToLocalDate(flockUiState.getDate())
+                                    date = DateUtils().stringToLocalDate(date)
                                 )
                             )
                             Log.i(

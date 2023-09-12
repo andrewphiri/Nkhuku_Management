@@ -11,7 +11,7 @@ import kotlinx.parcelize.Parcelize
 
 
 /**
- * Represents the UI state for a flock
+ * Represents the UI state for [AddFlockScreen] and [FlockDetailsScreen]
  */
 @Parcelize
 @RequiresApi(Build.VERSION_CODES.O)
@@ -72,10 +72,18 @@ data class FlockUiState(
         return stock
     }
 
+    /**
+     * Calculate total cost of birds ordered.
+     * This is used to set the initial account record
+     */
     fun totalCostOfBirds(): Double {
         return quantity.toDouble() * cost.toDouble()
     }
 
+    /**
+     * Difference between cost and income. This is used to set
+     * the initial account record
+     */
     fun variance(): Double {
         return 0.0 - totalCostOfBirds()
     }
@@ -102,6 +110,9 @@ fun FlockUiState.toFlock(): Flock = Flock(
     culls = getCulls().toInt()
 )
 
+/**
+ * Handle [NumberFormatException]
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun checkNumberExceptions(flockUiState: FlockUiState): Boolean {
     return try {
@@ -132,6 +143,9 @@ fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
         enabled = enabled
     )
 
+/**
+ * Check if entry entered is valid
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun FlockUiState.isValid(): Boolean {
     return breed.isNotBlank() &&
@@ -142,6 +156,9 @@ fun FlockUiState.isValid(): Boolean {
             && batchName.isNotBlank()
 }
 
+/**
+ * Check is entry is valid.Used to display an error on a view
+ */
 fun FlockUiState.isSingleEntryValid(value: String): Boolean {
     return value.isBlank()
 }

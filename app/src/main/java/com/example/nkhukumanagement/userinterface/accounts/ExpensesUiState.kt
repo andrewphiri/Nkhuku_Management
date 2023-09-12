@@ -1,10 +1,13 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.accounts
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.nkhukumanagement.data.Expense
 import com.example.nkhukumanagement.utils.DateUtils
 
+/**
+ * Represents the UI state for [AddExpenseScreen]
+ */
 data class ExpensesUiState(
     val id: Int = 0,
     val flockUniqueID: String = "",
@@ -28,6 +31,9 @@ data class ExpensesUiState(
     }
 }
 
+/**
+ * Extension function to convert [ExpensesUiState] to [Expense]
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun ExpensesUiState.toExpense(): Expense = Expense(
     id = id,
@@ -42,6 +48,9 @@ fun ExpensesUiState.toExpense(): Expense = Expense(
     notes = notes
 )
 
+/**
+ * Extension function to convert [Expense] to [ExpensesUiState]
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun Expense.toExpenseUiState(enabled: Boolean = false): ExpensesUiState = ExpensesUiState(
     id = id,
@@ -58,6 +67,9 @@ fun Expense.toExpenseUiState(enabled: Boolean = false): ExpensesUiState = Expens
     isEnabled = enabled
 )
 
+/**
+ * Calculate total expense incurred
+ */
 fun calculateTotalExpense(quantity: String, pricePerItem: String): Double {
     return try {
         if (quantity.isEmpty()) 0.0 else quantity.toInt() *
@@ -67,10 +79,17 @@ fun calculateTotalExpense(quantity: String, pricePerItem: String): Double {
     }
 }
 
+/**
+ * Add the [calculateTotalExpense] to the initial expense
+ */
 fun calculateCumulativeExpense(initialExpense: String, totalExpense: String): Double {
     return initialExpense.toDouble() + totalExpense.toDouble()
 }
 
+/**
+ * Used to update the AccountsSummary and Expense when an expense is being updated.
+ * Add the new expense to the current cumulative expense, then subtract the initial item expense being updated
+ */
 fun calculateCumulativeExpenseUpdate(
     initialExpense: String,
     totalExpense: String,
@@ -79,6 +98,9 @@ fun calculateCumulativeExpenseUpdate(
     return (initialExpense.toDouble() + totalExpense.toDouble()) - initialItemExpense.toDouble()
 }
 
+/**
+ * Check if entry is valid
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun ExpensesUiState.isValid(): Boolean {
     return getDate().isNotBlank() &&
@@ -87,6 +109,9 @@ fun ExpensesUiState.isValid(): Boolean {
             costPerItem.isNotBlank()
 }
 
+/**
+ * Handle [NumberFormatException]
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 fun handleNumberExceptions(expensesUiState: ExpensesUiState): Boolean {
     return try {

@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.planner
 
 data class Planner(
     val quantityToOrder: Int,

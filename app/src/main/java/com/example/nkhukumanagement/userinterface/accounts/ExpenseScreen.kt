@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.accounts
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -28,7 +28,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
@@ -45,29 +44,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.toUpperCase
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.nkhukumanagement.data.Income
-import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
+import com.example.nkhukumanagement.R
+import com.example.nkhukumanagement.data.Expense
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
-import java.time.LocalDate
-import java.util.Locale
 
-object IncomeScreenDestination : NkhukuDestinations {
+object ExpenseScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
         get() = Icons.Default.Inventory
     override val route: String
-        get() = "income"
+        get() = "expense"
     override val resourceId: Int
-        get() = R.string.income
+        get() = R.string.expense
     const val flockIdArg = "id"
     val routeWithArgs = "$route/{$flockIdArg}"
     val arguments = listOf(navArgument(flockIdArg) {
@@ -78,13 +72,12 @@ object IncomeScreenDestination : NkhukuDestinations {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun IncomeScreen(
-    modifier: Modifier = Modifier,
-    navigateToAddIncomeScreen: (Int) -> Unit = {},
-    incomeViewModel: IncomeViewModel = hiltViewModel()
+fun ExpenseScreen(
+    navigateToAddExpenseScreen: (Int) -> Unit = {},
+    expenseViewModel: ExpenseViewModel = hiltViewModel()
 ) {
     val listState = rememberLazyListState()
-    val incomeList by incomeViewModel.accountsWithIncome.collectAsState()
+    val accountsWithExpense by expenseViewModel.accountsWithExpense.collectAsState()
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -92,7 +85,7 @@ fun IncomeScreen(
                 elevation = FloatingActionButtonDefaults.elevation(),
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-                onClick = { navigateToAddIncomeScreen(incomeViewModel.incomeUiState.id) }) {
+                onClick = { navigateToAddExpenseScreen(expenseViewModel.expenseUiState.id) }) {
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -100,7 +93,7 @@ fun IncomeScreen(
                     )
                     AnimatedVisibility(visible = listState.isScrollingUp()) {
                         Text(
-                            text = "Income",
+                            text = "Expense",
                             modifier = Modifier.padding(start = 8.dp, top = 3.dp)
                         )
                     }
@@ -109,14 +102,15 @@ fun IncomeScreen(
             }
         }
     ) { innerPadding ->
-        IncomeList(
-            modifier = modifier.padding(innerPadding),
-            incomeList = incomeList.incomeList,
-            onItemClick = { income ->
-                navigateToAddIncomeScreen(income.id)
+        ExpenseList(
+            modifier = Modifier.padding(innerPadding),
+            expenseList = accountsWithExpense.expenseList,
+            onItemClick = { expense ->
+                navigateToAddExpenseScreen(expense.id)
             }
         )
     }
+
 }
 
 /**
@@ -142,19 +136,19 @@ private fun LazyListState.isScrollingUp(): Boolean {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun IncomeList(
+fun ExpenseList(
     modifier: Modifier = Modifier,
-    incomeList: List<Income>,
-    onItemClick: (Income) -> Unit
+    expenseList: List<Expense>,
+    onItemClick: (Expense) -> Unit
 ) {
-    if (incomeList.isEmpty()) {
+    if (expenseList.isEmpty()) {
         Box(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 modifier = modifier.align(Alignment.Center),
-                text = stringResource(R.string.no_income_recorded),
+                text = stringResource(R.string.no_expense_recorded),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -163,10 +157,10 @@ fun IncomeList(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            itemsIndexed(incomeList) { index, incomeItem ->
-                IncomeCardItem(
-                    income = incomeItem,
-                    onItemClick = { onItemClick(incomeItem) }
+            itemsIndexed(expenseList) { index, expenseItem ->
+                ExpenseCardItem(
+                    expense = expenseItem,
+                    onItemClick = { onItemClick(expenseItem) }
                 )
             }
         }
@@ -175,12 +169,12 @@ fun IncomeList(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun IncomeCardItem(
+fun ExpenseCardItem(
     modifier: Modifier = Modifier,
-    income: Income,
+    expense: Expense,
     onItemClick: () -> Unit = {}
 ) {
-    val incomeUiState = income.toIncomeUiState()
+    val expensesUiState = expense.toExpenseUiState()
     ElevatedCard(
         modifier = modifier
             .clickable(onClick = onItemClick)
@@ -190,12 +184,13 @@ fun IncomeCardItem(
             Divider(
                 modifier = Modifier.weight(0.02f).fillMaxHeight(),
                 thickness = 2.dp,
-                color = Color(0xFF023020)
+                color = Color.Red
             )
+
             Column(modifier = Modifier.weight(1f).padding(16.dp)) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = incomeUiState.incomeName.split(" ").joinToString(" ") { it.uppercase() },
+                    text = expensesUiState.expenseName,
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Row(
@@ -212,21 +207,22 @@ fun IncomeCardItem(
 
                     Text(
                         modifier = Modifier.weight(1.5f),
-                        text = incomeUiState.getDate(),
-                        style = MaterialTheme.typography.bodySmall,
+                        text = expensesUiState.getDate(),
+                        style = MaterialTheme.typography.bodySmall
                     )
+
 
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "Customer",
+                        text = "Supplier",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = incomeUiState.customer,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = expensesUiState.supplier,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
 
@@ -244,8 +240,8 @@ fun IncomeCardItem(
 
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = incomeUiState.pricePerItem,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = expensesUiState.costPerItem,
+                        style = MaterialTheme.typography.bodySmall
                     )
 
                     Text(
@@ -257,60 +253,41 @@ fun IncomeCardItem(
 
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = incomeUiState.quantity,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = expensesUiState.quantity,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
-                if (incomeUiState.notes.isNotBlank()) {
+
+                if (expensesUiState.notes.isNotBlank()) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             modifier = Modifier.fillMaxWidth().weight(1f),
-                            text = "NOTES",
+                            text = "Notes",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            modifier = Modifier.fillMaxWidth().weight(weight = 1f, fill = true),
-                            text = incomeUiState.notes,
+                            modifier = Modifier.fillMaxWidth().weight(weight = 3f, fill = true),
+                            text = expensesUiState.notes,
                             style = MaterialTheme.typography.bodySmall,
                             fontStyle = FontStyle.Italic
                         )
                     }
-
                 }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = incomeUiState.totalIncome,
-                        color = Color.Green,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = expensesUiState.totalExpense,
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
             }
         }
     }
 
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(name = "Income Card", showBackground = true)
-@Composable
-fun IncomeCardPreview() {
-    NkhukuManagementTheme {
-        IncomeCardItem(
-            income = Income(
-                date = LocalDate.now(),
-                incomeName = "Flock Sale",
-                customer = "Shoprite",
-                pricePerItem = 100.00,
-                quantity = 108,
-                totalIncome = 10800.00,
-                flockUniqueID = "",
-                cumulativeTotalIncome = 10000.25,
-                notes = ""
-            )
-        )
-    }
 }

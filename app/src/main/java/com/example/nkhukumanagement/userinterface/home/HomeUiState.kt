@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement.home
+package com.example.nkhukumanagement.userinterface.home
 
 import com.example.nkhukumanagement.data.Flock
 

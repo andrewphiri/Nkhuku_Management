@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.accounts
 
 
 import android.os.Build
@@ -31,8 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.nkhukumanagement.FlockManagementTopAppBar
+import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.AccountsSummary
-import com.example.nkhukumanagement.home.FlockList
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 

@@ -3,6 +3,9 @@ package com.example.nkhukumanagement.data
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+/**
+ * Data class that represent the a table in the database.
+ */
 @Entity("accounts_summary")
 class AccountsSummary(
     @PrimaryKey(autoGenerate = true)

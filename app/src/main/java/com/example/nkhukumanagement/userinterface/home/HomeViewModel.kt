@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement.home
+package com.example.nkhukumanagement.userinterface.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

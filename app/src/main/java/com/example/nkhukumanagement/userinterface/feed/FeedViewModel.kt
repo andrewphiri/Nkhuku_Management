@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement.userinterface.flock
+package com.example.nkhukumanagement.userinterface.feed
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -10,11 +10,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.nkhukumanagement.FeedUiState
-import com.example.nkhukumanagement.data.Feed
 import com.example.nkhukumanagement.data.FlockRepository
 import com.example.nkhukumanagement.data.FlockWithFeed
-import com.example.nkhukumanagement.toFeed
+import com.example.nkhukumanagement.userinterface.flock.FlockUiState
 import com.example.nkhukumanagement.utils.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +21,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+/**
+ * ViewModel to insert, retrieve and update an item from the [FlockRepository]'s data source.
+ */
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -33,8 +34,12 @@ class FeedViewModel @Inject constructor(
         private const val MILLIS = 5_000L
     }
 
+    /**
+     * Holds current feed ui state
+     */
     var feedUiState by mutableStateOf(FeedUiState())
         private set
+
     private var feedList: SnapshotStateList<FeedUiState> = mutableStateListOf()
 
     private val flockId: Int = savedStateHandle[FeedScreenDestination.flockIdArg] ?: 0
@@ -53,32 +58,54 @@ class FeedViewModel @Inject constructor(
         feedUiState = feedState
     }
 
+    /**
+     * Update Feed Item from the list at the specified index
+     */
     fun updateFeedState(index: Int, uiState: FeedUiState) {
         feedList[index] = uiState
     }
 
+    /**
+     * Insert the Feed Item into the database
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun saveFeed(feedUiState: FeedUiState) {
         flockRepository.insertFeed(feedUiState.toFeed())
     }
 
+    /**
+     * Deletes the Feed item from the database
+     */
     suspend fun deleteFeed(flockUniqueID: String) {
         flockRepository.deleteFeed(flockUniqueID)
     }
 
+    /**
+     * Update the Feed Item in the database
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun updateFeed(feedUiState: FeedUiState) {
         flockRepository.updateFeed(feedUiState.toFeed())
     }
 
+    /**
+     * Get the feedList
+     */
     fun getFeedList(): SnapshotStateList<FeedUiState> {
         return feedList
     }
 
+    /**
+     * Set the value of the feed List
+     */
     fun setFeedList(feed: SnapshotStateList<FeedUiState>) {
         feedList = feed
     }
 
+    /**
+     * Default/Standard weekly feed program for broilers. This is the initial list inserted into the database
+     * and set to [feedList]. Retrieved in [FeedScreen]
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun defaultFeedInformationList(flockUiState: FlockUiState): SnapshotStateList<FeedUiState> {
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())

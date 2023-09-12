@@ -1,6 +1,5 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.planner
 
-import android.graphics.fonts.FontStyle
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -23,15 +22,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.nkhukumanagement.FlockManagementTopAppBar
+import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.ui.theme.Shapes
-import com.example.nkhukumanagement.userinterface.flock.EditFlockDestination
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 
 object PlannerResultsDestination : NkhukuDestinations {

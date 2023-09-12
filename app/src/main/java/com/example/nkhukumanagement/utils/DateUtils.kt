@@ -3,9 +3,9 @@ package com.example.nkhukumanagement.utils
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.example.nkhukumanagement.FeedUiState
-import com.example.nkhukumanagement.userinterface.flock.VaccinationUiState
-import com.example.nkhukumanagement.userinterface.flock.WeightUiState
+import com.example.nkhukumanagement.userinterface.feed.FeedUiState
+import com.example.nkhukumanagement.userinterface.vaccination.VaccinationUiState
+import com.example.nkhukumanagement.userinterface.weight.WeightUiState
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

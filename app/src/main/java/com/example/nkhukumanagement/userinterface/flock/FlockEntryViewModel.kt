@@ -3,25 +3,19 @@ package com.example.nkhukumanagement.userinterface.flock
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.saveable
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.FlockRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.scopes.ActivityRetainedScoped
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+/**
+ * ViewModel to insert, retrieve, update and delete a flock item from the [FlockRepository]'s data source.
+ */
 @HiltViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 class FlockEntryViewModel @Inject constructor(
@@ -29,21 +23,31 @@ class FlockEntryViewModel @Inject constructor(
     state: SavedStateHandle
 ) : ViewModel() {
     /**
-     * Holds the current ui state
+     * Holds the new flock entry ui state
      */
     var flockUiState by mutableStateOf(FlockUiState())
         private set
 
+    /**
+     * Update the FlockUiState with the passed in value
+     */
     fun updateUiState(newFlockUiState: FlockUiState) {
         flockUiState = newFlockUiState.copy(enabled = newFlockUiState.isValid())
     }
 
+
+    /**
+     * Insert the Flock into the database
+     */
     suspend fun saveItem() {
         if (flockUiState.isValid()) {
             flockRepository.insertFlock(flockUiState.toFlock())
         }
     }
 
+    /**
+     * Update the Flock
+     */
     suspend fun updateItem(flockUiState: FlockUiState) {
         if (flockUiState.isValid()) {
             flockRepository.updateFlock(flockUiState.toFlock())
@@ -51,14 +55,23 @@ class FlockEntryViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Deletes the Flock from the database
+     */
     suspend fun deleteFlock(flockUniqueID: String) {
         flockRepository.deleteFlock(flockUniqueID)
     }
 
+    /**
+     * Deletes the Flock from the database
+     */
     suspend fun deleteFlockHealth(flockUniqueID: String) {
         flockRepository.deleteFlockHealth(flockUniqueID)
     }
 
+    /**
+     * Reset the FlockUiState to default values
+     */
     fun resetAll() {
         flockUiState = flockUiState.copy(
             id = 0,
@@ -68,6 +81,7 @@ class FlockEntryViewModel @Inject constructor(
             datePlaced = "",
             quantity = "",
             donorFlock = "",
+            cost = "0",
             stock = "0",
             mortality = "0",
             imageResourceId = R.drawable.chicken,

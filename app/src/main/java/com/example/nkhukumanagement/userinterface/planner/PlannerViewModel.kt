@@ -1,11 +1,13 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.planner
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
 
+/**
+ * ViewModel that holds the [PlannerUiState]
+ */
 class PlannerViewModel : ViewModel() {
 
     var plannerUiState by mutableStateOf(PlannerUiState())
