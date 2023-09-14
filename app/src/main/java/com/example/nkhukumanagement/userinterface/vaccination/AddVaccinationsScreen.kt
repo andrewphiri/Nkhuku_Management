@@ -201,7 +201,7 @@ fun AddVaccinationsScreen(
                         )
                         coroutineScope.launch {
                             flockEntryViewModel.saveItem()
-                            accountsViewModel.insertAccounts(
+                            accountsViewModel.insertAccount(
                                 accountsViewModel
                                     .Accounts(flockEntryViewModel.flockUiState)
                             )
@@ -489,7 +489,7 @@ fun StatefulPickDateDialog(
                     date
                 )
             }
-            localDateToString!!
+            localDateToString
         })
 }
 
@@ -516,14 +516,12 @@ fun StatefulDropDownMenu(
             expanded = vaccinationUiState.isExpanded,
             onExpand = {
                 expanded = if (editable) !expanded else false
+                //Expand only this item's vaccination name dropdown menu
                 onValueChanged(vaccinationUiState.copy(isExpanded = expanded))
             },
             onOptionSelected = {
                 optionSelected = it
-                vaccinationUiState.setName(optionSelected)
-                onValueChanged(vaccinationUiState.copy(name = it))
             },
-            onValueChanged = { onValueChanged(vaccinationUiState.copy(name = it)) },
             onDismissed = {
                 expanded = false
                 onValueChanged(vaccinationUiState.copy(isExpanded = false))

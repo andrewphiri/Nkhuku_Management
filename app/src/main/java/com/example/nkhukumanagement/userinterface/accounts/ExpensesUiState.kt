@@ -17,7 +17,7 @@ data class ExpensesUiState(
     val costPerItem: String = "",
     val quantity: String = "",
     val initialItemExpense: String = "0",
-    val totalExpense: String = calculateTotalExpense(quantity, costPerItem).toString(),
+    val totalExpense: String = "",
     val cumulativeTotalExpense: String = "0",
     val notes: String = "",
     val isEnabled: Boolean = false

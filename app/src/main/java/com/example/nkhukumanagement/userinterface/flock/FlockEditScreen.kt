@@ -191,7 +191,7 @@ fun FlockEditScreen(
                                     date
                                 )
                             }
-                            localDateToString!!
+                            localDateToString
                         }
                     )
                     OutlinedTextField(

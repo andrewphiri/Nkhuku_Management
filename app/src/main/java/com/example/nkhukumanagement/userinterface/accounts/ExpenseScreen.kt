@@ -38,6 +38,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,8 @@ import androidx.navigation.navArgument
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Expense
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import com.example.nkhukumanagement.utils.OverflowMenu
+import kotlinx.coroutines.launch
 
 object ExpenseScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -62,9 +65,9 @@ object ExpenseScreenDestination : NkhukuDestinations {
         get() = "expense"
     override val resourceId: Int
         get() = R.string.expense
-    const val flockIdArg = "id"
-    val routeWithArgs = "$route/{$flockIdArg}"
-    val arguments = listOf(navArgument(flockIdArg) {
+    const val expenseIDArg = "id"
+    val routeWithArgs = "$route/{$expenseIDArg}"
+    val arguments = listOf(navArgument(expenseIDArg) {
         defaultValue = 1
         type = NavType.IntType
     })
@@ -73,11 +76,13 @@ object ExpenseScreenDestination : NkhukuDestinations {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ExpenseScreen(
-    navigateToAddExpenseScreen: (Int) -> Unit = {},
-    expenseViewModel: ExpenseViewModel = hiltViewModel()
+    navigateToAddExpenseScreen: (Int,Int) -> Unit = { _, _ ->},
+    expenseViewModel: ExpenseViewModel = hiltViewModel(),
+    accountsViewModel: AccountsViewModel = hiltViewModel()
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val accountsWithExpense by expenseViewModel.accountsWithExpense.collectAsState()
+    val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState()
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -85,7 +90,7 @@ fun ExpenseScreen(
                 elevation = FloatingActionButtonDefaults.elevation(),
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-                onClick = { navigateToAddExpenseScreen(expenseViewModel.expenseUiState.id) }) {
+                onClick = { navigateToAddExpenseScreen(0,accountsViewModel.id) }) {
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -106,7 +111,16 @@ fun ExpenseScreen(
             modifier = Modifier.padding(innerPadding),
             expenseList = accountsWithExpense.expenseList,
             onItemClick = { expense ->
-                navigateToAddExpenseScreen(expense.id)
+                navigateToAddExpenseScreen(expense.id, accountsViewModel.id)
+            },
+            onDeleteExpense = { expense ->
+                coroutineScope.launch {
+                   accountsViewModel.updateAccountWhenDeletingExpense(
+                       accountsSummary = accountsWithExpense.accountsSummary,
+                       expense = expense
+                   )
+                    expenseViewModel.deleteExpense(expense)
+                }
             }
         )
     }
@@ -139,7 +153,8 @@ private fun LazyListState.isScrollingUp(): Boolean {
 fun ExpenseList(
     modifier: Modifier = Modifier,
     expenseList: List<Expense>,
-    onItemClick: (Expense) -> Unit
+    onItemClick: (Expense) -> Unit,
+    onDeleteExpense: (Expense) -> Unit
 ) {
     if (expenseList.isEmpty()) {
         Box(
@@ -154,13 +169,14 @@ fun ExpenseList(
         }
     } else {
         LazyColumn(
-            modifier = modifier,
+            modifier = modifier.padding(top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             itemsIndexed(expenseList) { index, expenseItem ->
                 ExpenseCardItem(
                     expense = expenseItem,
-                    onItemClick = { onItemClick(expenseItem) }
+                    onItemClick = { onItemClick(expenseItem) },
+                    onDeleteExpense = { onDeleteExpense(expenseItem) }
                 )
             }
         }
@@ -172,14 +188,18 @@ fun ExpenseList(
 fun ExpenseCardItem(
     modifier: Modifier = Modifier,
     expense: Expense,
-    onItemClick: () -> Unit = {}
+    onItemClick: () -> Unit = {},
+    onDeleteExpense: () -> Unit
 ) {
+    var isMenuShowing by remember { mutableStateOf(false) }
+    var isAlertDialogShowing by remember { mutableStateOf(false) }
     val expensesUiState = expense.toExpenseUiState()
     ElevatedCard(
         modifier = modifier
             .clickable(onClick = onItemClick)
             .border(width = Dp.Hairline, color = Color.Unspecified)
     ) {
+
         Row(modifier = Modifier.height(IntrinsicSize.Max)) {
             Divider(
                 modifier = Modifier.weight(0.02f).fillMaxHeight(),
@@ -187,12 +207,36 @@ fun ExpenseCardItem(
                 color = Color.Red
             )
 
-            Column(modifier = Modifier.weight(1f).padding(16.dp)) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = expensesUiState.expenseName,
-                    style = MaterialTheme.typography.headlineSmall
-                )
+            Column(
+                modifier = Modifier.weight(1f).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = expensesUiState.expenseName,
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+
+                    Column(modifier = Modifier.weight(0.2f)) {
+                        OverflowMenu(
+                            modifier = Modifier.align(Alignment.End),
+                            isOverflowMenuExpanded = isMenuShowing,
+                            isAlertDialogShowing = isAlertDialogShowing,
+                            onDismissAlertDialog = { isAlertDialogShowing = false },
+                            onShowMenu = { isMenuShowing = true },
+                            onShowAlertDialog = { isAlertDialogShowing = true },
+                            onDismiss = { isMenuShowing = false },
+                            onDelete = {
+                                onDeleteExpense()
+                                isAlertDialogShowing = false
+                                isMenuShowing = false
+                            },
+                            title = "Delete expense?",
+                            message = "This cannot be undone.",
+                            dropDownMenuItemLabel = "Delete expense"
+                        )
+                    }
+                }
                 Row(
                     modifier = modifier.height(IntrinsicSize.Max),
                     horizontalArrangement = Arrangement.Center,
@@ -261,13 +305,13 @@ fun ExpenseCardItem(
                 if (expensesUiState.notes.isNotBlank()) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            modifier = Modifier.fillMaxWidth().weight(1f),
+                            modifier = Modifier.weight(0.2f),
                             text = "Notes",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            modifier = Modifier.fillMaxWidth().weight(weight = 3f, fill = true),
+                            modifier = Modifier.weight(weight = 1f, fill = true),
                             text = expensesUiState.notes,
                             style = MaterialTheme.typography.bodySmall,
                             fontStyle = FontStyle.Italic

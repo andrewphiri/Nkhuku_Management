@@ -68,6 +68,7 @@ import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import com.example.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
 import com.example.nkhukumanagement.utils.DateUtils
+import com.example.nkhukumanagement.utils.ShowAlertDialog
 import com.example.nkhukumanagement.utils.SingleRowItem
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -238,19 +239,7 @@ fun FlockCard(
         elevation = CardDefaults.cardElevation()
     ) {
         Column {
-            ShowOverflowMenu(
-                modifier = modifier.align(Alignment.End),
-                menuExpanded = isMenuShowing,
-                showAlertDialog = isAlertDialogShowing,
-                onDismissAlertDialog = { isAlertDialogShowing = false },
-                onShowMenu = { isMenuShowing = true },
-                onShowAlertDialog = { isAlertDialogShowing = true },
-                onDismiss = { isMenuShowing = false },
-                onDelete = {
-                    onDelete()
-                    isAlertDialogShowing = false
-                    isMenuShowing = false
-                })
+
             Row(
                 modifier = Modifier.padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -267,52 +256,74 @@ fun FlockCard(
                 }
                 Column(
                     modifier = Modifier.weight(3f),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    SingleRowItem(
-                        label = "Batch name: ",
-                        value = flock.batchName,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    SingleRowItem(
-                        label = "Breed: ",
-                        value = flock.breed,
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                    SingleRowItem(
-                        label = "Date: ",
-                        value = DateUtils().dateToStringLongFormat(flock.datePlaced)
-                    )
-                    SingleRowItem(
-                        label = "Age: ",
-                        value = "${
-                            DateUtils().calculateAge(
-                                birthDate = flock.datePlaced,
-                                today = LocalDate.now()
-                            )
-                        } day/s",
-                    )
-
-                    SingleRowItem(
-                        label = "Quantity: ",
-                        value = (flock.numberOfChicksPlaced + flock.donorFlock).toString()
-                    )
-                    SingleRowItem(label = "Mortality: ", value = flock.mortality.toString())
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Text(
-                            text = "Stock: ${(flock.stock)}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier
-                                .padding(8.dp),
-                            textAlign = TextAlign.Center
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        SingleRowItem(
+                            modifier = Modifier.weight(weight = 1f, fill = true),
+                            label = "Name: ",
+                            value = flock.batchName,
+                            style = MaterialTheme.typography.titleSmall,
+                            weightA = 0.5f
                         )
+                        Column(modifier = Modifier.weight(0.2f)) {
+                            ShowOverflowMenu(
+                                modifier = Modifier.align(Alignment.End),
+                                isOverflowMenuExpanded = isMenuShowing,
+                                isAlertDialogShowing = isAlertDialogShowing,
+                                onDismissAlertDialog = { isAlertDialogShowing = false },
+                                onShowMenu = { isMenuShowing = true },
+                                onShowAlertDialog = { isAlertDialogShowing = true },
+                                onDismiss = { isMenuShowing = false },
+                                onDelete = {
+                                    onDelete()
+                                    isAlertDialogShowing = false
+                                    isMenuShowing = false
+                                },
+                                title = "Delete flock?",
+                                message = "This cannot be undone.")
+                        }
                     }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SingleRowItem(
+                            label = "Breed: ",
+                            value = flock.breed
+                        )
+                        SingleRowItem(
+                            label = "Date: ",
+                            value = DateUtils().dateToStringLongFormat(flock.datePlaced)
+                        )
+                        SingleRowItem(
+                            label = "Age: ",
+                            value = "${
+                                DateUtils().calculateAge(
+                                    birthDate = flock.datePlaced,
+                                    today = LocalDate.now()
+                                )
+                            } day/s",
+                        )
+
+                        SingleRowItem(
+                            label = "Quantity: ",
+                            value = (flock.numberOfChicksPlaced + flock.donorFlock).toString()
+                        )
+                        SingleRowItem(label = "Mortality: ", value = flock.mortality.toString())
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Text(
+                                text = "Stock: ${(flock.stock)}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier
+                                    .padding(8.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
                 }
             }
         }
@@ -323,19 +334,23 @@ fun FlockCard(
 @Composable
 fun ShowOverflowMenu(
     modifier: Modifier = Modifier,
-    menuExpanded: Boolean = false,
-    showAlertDialog: Boolean = false,
+    isOverflowMenuExpanded: Boolean = false,
+    isAlertDialogShowing: Boolean = false,
     onDismissAlertDialog: () -> Unit = {},
     onShowMenu: () -> Unit = {},
     onShowAlertDialog: () -> Unit,
     onDismiss: () -> Unit,
-    onDelete: () -> Unit = {}
+    onDelete: () -> Unit = {},
+    title: String,
+    message: String
 ) {
 
     ShowAlertDialog(
         onDismissAlertDialog = onDismissAlertDialog,
         onDelete = onDelete,
-        isAlertDialogShowing = showAlertDialog
+        isAlertDialogShowing = isAlertDialogShowing,
+        title = title,
+        message = message
     )
     Box(
         modifier = modifier,
@@ -351,7 +366,7 @@ fun ShowOverflowMenu(
         }
         DropdownMenu(
             modifier = modifier,
-            expanded = menuExpanded,
+            expanded = isOverflowMenuExpanded,
             onDismissRequest = onDismiss
         ) {
             DropdownMenuItem(
@@ -359,7 +374,7 @@ fun ShowOverflowMenu(
                 onClick = onShowAlertDialog
             )
             DropdownMenuItem(
-                text = { Text("Retire") },
+                text = { Text("Close") },
                 onClick = {}
             )
             DropdownMenuItem(
@@ -367,52 +382,6 @@ fun ShowOverflowMenu(
                 onClick = { }
             )
         }
-    }
-
-}
-
-@Composable
-fun ShowAlertDialog(
-    modifier: Modifier = Modifier,
-    onDismissAlertDialog: () -> Unit,
-    onDelete: () -> Unit,
-    isAlertDialogShowing: Boolean
-) {
-    if (isAlertDialogShowing) {
-        AlertDialog(
-            modifier = modifier,
-            shape = ShapeDefaults.Medium,
-            title = { Text("Delete flock?") },
-            text = { Text("This cannot be undone.") },
-            onDismissRequest = onDismissAlertDialog,
-            dismissButton = {
-                OutlinedButton(onClick = onDismissAlertDialog) { Text("Cancel") }
-            },
-            confirmButton = {
-                Button(onClick = onDelete) {
-                    Text("Delete")
-                }
-            }
-        )
-    }
-
-}
-
-@Composable
-private fun FlockDetails(label: String, entry: String) {
-    Row(verticalAlignment = Alignment.Top) {
-        Text(
-            text = label,
-            modifier = Modifier
-                .padding(2.dp),
-            textAlign = TextAlign.Justify
-        )
-        Text(
-            text = entry,
-            modifier = Modifier
-                .padding(2.dp),
-            textAlign = TextAlign.Start
-        )
     }
 }
 

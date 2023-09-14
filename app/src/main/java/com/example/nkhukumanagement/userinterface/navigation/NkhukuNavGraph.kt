@@ -1,6 +1,7 @@
 package com.example.nkhukumanagement.userinterface.navigation
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -50,9 +51,7 @@ fun NkhukuNavHost(
     modifier: Modifier = Modifier,
     vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel = hiltViewModel(),
-    plannerViewModel: PlannerViewModel = viewModel(),
-    expenseViewModel: ExpenseViewModel = hiltViewModel(),
-    incomeViewModel: IncomeViewModel = hiltViewModel()
+    plannerViewModel: PlannerViewModel = viewModel()
 ) {
     NavHost(
         navController = navController,
@@ -76,7 +75,7 @@ fun NkhukuNavHost(
         composable(route = NavigationBarScreens.Accounts.route) {
             AccountsScreen(
                 navigateToTransactionsScreen = { id ->
-                    navController.navigate("${TransactionsScreenDestination.route}/$id")
+                    navController.navigate(route = "${TransactionsScreenDestination.route}/$id")
                 }
             )
         }
@@ -139,9 +138,7 @@ fun NkhukuNavHost(
             flockEntryViewModel = flockEntryViewModel,
         )
         accountDetailsGraph(
-            navController = navController,
-            expenseViewModel = expenseViewModel,
-            incomeViewModel = incomeViewModel
+            navController = navController
         )
     }
 }
@@ -208,9 +205,7 @@ fun NavGraphBuilder.detailsGraph(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.accountDetailsGraph(
-    navController: NavHostController,
-    expenseViewModel: ExpenseViewModel,
-    incomeViewModel: IncomeViewModel
+    navController: NavHostController
 ) {
     navigation(
         route = GraphRoutes.ACCOUNT_DETAILS,
@@ -222,11 +217,12 @@ fun NavGraphBuilder.accountDetailsGraph(
         ) {
             TransactionScreen(
                 onNavigateUp = { navController.navigateUp() },
-                navigateToAddIncomeScreen = { id ->
-                    navController.navigate("${AddIncomeScreenDestination.route}/$id")
+                navigateToAddIncomeScreen = { incomeId, accountId ->
+                    navController.navigate("${AddIncomeScreenDestination.route}/$incomeId/$accountId")
                 },
-                navigateToAddExpenseScreen = { id ->
-                    navController.navigate("${AddExpenseScreenDestination.route}/$id")
+                navigateToAddExpenseScreen = { expenseId, accountId ->
+                    navController.navigate(
+                        "${AddExpenseScreenDestination.route}/$expenseId/$accountId")
                 }
             )
         }
@@ -235,8 +231,7 @@ fun NavGraphBuilder.accountDetailsGraph(
             arguments = AddIncomeScreenDestination.arguments
         ) {
             AddIncomeScreen(
-                onNavigateUp = { navController.navigateUp() },
-                incomeViewModel = incomeViewModel
+                onNavigateUp = { navController.navigateUp() }
             )
         }
         composable(
@@ -244,8 +239,7 @@ fun NavGraphBuilder.accountDetailsGraph(
             arguments = AddExpenseScreenDestination.arguments
         ) {
             AddExpenseScreen(
-                onNavigateUp = { navController.navigateUp() },
-                expenseViewModel = expenseViewModel
+                onNavigateUp = { navController.navigateUp() }
             )
         }
     }

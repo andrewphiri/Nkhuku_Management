@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -36,6 +34,7 @@ import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.AccountsSummary
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
+import com.example.nkhukumanagement.utils.SingleRowItem
 
 @Composable
 fun AccountsScreen(
@@ -102,13 +101,13 @@ fun SummaryAccountsCard(
     ElevatedCard(modifier = modifier.clickable(onClick = onAccountsClick)) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = accountsSummary.batchName,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.titleMedium
             )
 
             Divider(
@@ -118,36 +117,39 @@ fun SummaryAccountsCard(
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Text(
-                        modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Income",
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = accountsSummary.totalIncome.toString(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Text(
-                        modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Expenses",
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = accountsSummary.totalExpenses.toString(),
-                        textAlign = TextAlign.Center
-                    )
-                }
+                SingleRowItem(
+                    label = "Income",
+                    value = accountsSummary.totalIncome.toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlignA = TextAlign.Center,
+                    textAlignB = TextAlign.Center,
+                    weightA = 1f,
+                    weightB = 1f
+                )
+                SingleRowItem(
+                    label = "Expenses",
+                    value = accountsSummary.totalExpenses.toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlignA = TextAlign.Center,
+                    textAlignB = TextAlign.Center,
+                    weightA = 1f,
+                    weightB = 1f
+                )
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.SpaceEvenly
+//                ) {
+//                    Text(
+//                        modifier = Modifier.weight(weight = 1f, fill = true),
+//                        text = "Income",
+//                        textAlign = TextAlign.Center
+//                    )
+//                    Text(
+//                        modifier = Modifier.weight(weight = 1f, fill = true),
+//                        text = accountsSummary.totalIncome.toString(),
+//                        textAlign = TextAlign.Center
+//                    )
+//                }
 
                 Divider(
                     modifier = Modifier.fillMaxWidth(),
@@ -155,27 +157,41 @@ fun SummaryAccountsCard(
                     color = MaterialTheme.colorScheme.tertiary
                 )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Text(
-                        modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Profit",
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = accountsSummary.variance.toString(),
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        color =
-                        if (accountsSummary.totalIncome > accountsSummary.totalExpenses) Color.Green
-                        else if (accountsSummary.totalIncome == accountsSummary.totalExpenses) Color.Black
-                        else Color.Red
-                    )
-                }
+                SingleRowItem(
+                    label = if (accountsSummary.variance > 0)
+                        "Profit" else if (accountsSummary.variance < 0)  "Loss" else "Break-Even",
+                    value = accountsSummary.variance.toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color =
+                    if (accountsSummary.variance > 0) Color.Green
+                    else if (accountsSummary.variance == 0.0) Color.Black
+                    else Color.Red,
+                    textAlignA = TextAlign.Center,
+                    textAlignB = TextAlign.Center,
+                    weightA = 1f,
+                    weightB = 1f
+                )
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.SpaceEvenly
+//                ) {
+//                    Text(
+//                        modifier = Modifier.weight(weight = 1f, fill = true),
+//                        text = "Profit",
+//                        fontWeight = FontWeight.Bold,
+//                        textAlign = TextAlign.Center
+//                    )
+//                    Text(
+//                        modifier = Modifier.weight(weight = 1f, fill = true),
+//                        text = accountsSummary.variance.toString(),
+//                        fontWeight = FontWeight.Bold,
+//                        textAlign = TextAlign.Center,
+//                        color =
+//                        if (accountsSummary.totalIncome > accountsSummary.totalExpenses) Color.Green
+//                        else if (accountsSummary.totalIncome == accountsSummary.totalExpenses) Color.Black
+//                        else Color.Red
+//                    )
+//                }
             }
         }
     }
@@ -189,8 +205,8 @@ fun AccountsCardPreview() {
         SummaryAccountsCard(
             accountsSummary =
             AccountsSummary(
-                flockUniqueID = "", totalExpenses = 2500.0, totalIncome = 2650.0,
-                batchName = "August Batch", variance = 150.0
+                flockUniqueID = "", totalExpenses = 2500.0, totalIncome = 2600.0,
+                batchName = "August Batch", variance = 100.0
             )
         )
     }

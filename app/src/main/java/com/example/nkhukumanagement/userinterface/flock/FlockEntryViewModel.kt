@@ -81,7 +81,7 @@ class FlockEntryViewModel @Inject constructor(
             datePlaced = "",
             quantity = "",
             donorFlock = "",
-            cost = "0",
+            cost = "",
             stock = "0",
             mortality = "0",
             imageResourceId = R.drawable.chicken,

@@ -39,27 +39,10 @@ class IncomeViewModel @Inject constructor(
         private set
     private var incomeListState: SnapshotStateList<IncomeUiState> = mutableStateListOf()
 
-    val flockID = savedStateHandle[IncomeScreenDestination.flockIdArg] ?: 0
-    val id = savedStateHandle[TransactionsScreenDestination.flockIdArg] ?: 1
+    val incomeID = savedStateHandle[AddIncomeScreenDestination.incomeIdArg] ?: 0
 
-    val getIncome: Flow<Income> = flockRepository.getIncomeItem(flockID)
+    val getIncome: Flow<Income> = flockRepository.getIncomeItem(incomeID)
 
-    val accountsWithIncome: StateFlow<AccountsWithIncome> =
-        flockRepository.getAccountsWithIncome(id)
-            .map { it }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = AccountsWithIncome(
-                    accountsSummary = AccountsSummary(
-                        flockUniqueID = "",
-                        batchName = "",
-                        totalIncome = 0.0,
-                        totalExpenses = 0.0,
-                        variance = 0.0
-                    )
-                )
-            )
 
     /**
      * Update Income Ui State
@@ -89,7 +72,7 @@ class IncomeViewModel @Inject constructor(
      * Delete an Expense Item from the database
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun deleteIncome(uiState: IncomeUiState) {
-        flockRepository.deleteIncome(uiState.toIncome())
+    suspend fun deleteIncome(income: Income) {
+        flockRepository.deleteIncome(income)
     }
 }

@@ -6,8 +6,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nkhukumanagement.data.AccountsSummary
+import com.example.nkhukumanagement.data.AccountsWithExpense
+import com.example.nkhukumanagement.data.AccountsWithIncome
 import com.example.nkhukumanagement.data.Expense
 import com.example.nkhukumanagement.data.FlockRepository
+import com.example.nkhukumanagement.data.Income
 import com.example.nkhukumanagement.userinterface.flock.FlockUiState
 import com.example.nkhukumanagement.utils.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +32,41 @@ class AccountsViewModel @Inject constructor(
         private const val MILLIS = 5_000L
     }
 
+    val id = savedStateHandle[TransactionsScreenDestination.accountIdArg] ?: 0
+
+    val accountsWithExpense: StateFlow<AccountsWithExpense> =
+        flockRepository.getAccountsWithExpense(id)
+            .map { it }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(MILLIS),
+                initialValue = AccountsWithExpense(
+                    accountsSummary = AccountsSummary(
+                        flockUniqueID = "",
+                        batchName = "",
+                        totalIncome = 0.0,
+                        totalExpenses = 0.0,
+                        variance = 0.0
+                    )
+                )
+            )
+
+    val accountsWithIncome: StateFlow<AccountsWithIncome> =
+        flockRepository.getAccountsWithIncome(id)
+            .map { it }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(MILLIS),
+                initialValue = AccountsWithIncome(
+                    accountsSummary = AccountsSummary(
+                        flockUniqueID = "",
+                        batchName = "",
+                        totalIncome = 0.0,
+                        totalExpenses = 0.0,
+                        variance = 0.0
+                    )
+                )
+            )
     val accountsList: StateFlow<AccountsUiState> =
         flockRepository.getAllAccountsItems()
             .map { AccountsUiState(it) }
@@ -42,16 +80,90 @@ class AccountsViewModel @Inject constructor(
     /**
      * Insert an Account Item into the database
      */
-    suspend fun insertAccounts(accountsSummary: AccountsSummary) {
+    suspend fun insertAccount(accountsSummary: AccountsSummary) {
         flockRepository.insertAccounts(accountsSummary)
     }
 
     /**
-     * Update an Account item
+     * Update an Account item when inserting an expense item
      */
-    suspend fun updateAccounts(accountsSummary: AccountsSummary) {
-        flockRepository.updateAccounts(accountsSummary)
+    suspend fun updateAccount(accountsSummary: AccountsSummary, expenseUiState: ExpensesUiState) {
+        flockRepository.updateAccounts(
+            AccountsSummary(
+                id = accountsSummary.id,
+                flockUniqueID = accountsSummary.flockUniqueID,
+                batchName = accountsSummary.batchName,
+                totalExpenses = calculateCumulativeExpenseUpdate(
+                    initialExpense = accountsSummary.totalExpenses.toString(),
+                    totalExpense = expenseUiState.totalExpense,
+                    initialItemExpense = expenseUiState.initialItemExpense
+                ),
+                totalIncome = accountsSummary.totalIncome,
+                variance = accountsSummary.totalIncome - calculateCumulativeExpenseUpdate(
+                    initialExpense = accountsSummary.totalExpenses.toString(),
+                    totalExpense = expenseUiState.totalExpense,
+                    initialItemExpense = expenseUiState.initialItemExpense
+                )
+            )
+        )
     }
+    /**
+     * Update an Account item when deleting an expense item
+     */
+    suspend fun updateAccountWhenDeletingExpense(accountsSummary: AccountsSummary, expense: Expense) {
+        flockRepository.updateAccounts(
+            AccountsSummary(
+                id = accountsSummary.id,
+                flockUniqueID = accountsSummary.flockUniqueID,
+                batchName = accountsSummary.batchName,
+                totalExpenses = accountsSummary.totalExpenses - expense.totalExpense,
+                totalIncome = accountsSummary.totalIncome,
+                variance = accountsSummary.variance + expense.totalExpense
+            )
+        )
+    }
+
+    /**
+     * Update account when inserting a new Income Item
+     */
+    suspend fun updateAccount(accountsSummary: AccountsSummary, incomeUiState: IncomeUiState) {
+        flockRepository.updateAccounts(
+            AccountsSummary(
+                id = accountsSummary.id,
+                flockUniqueID = accountsSummary.flockUniqueID,
+                batchName = accountsSummary.batchName,
+                totalExpenses = accountsSummary.totalExpenses,
+                totalIncome = calculateCumulativeIncomeUpdate(
+                    initialIncome = accountsSummary.totalIncome.toString(),
+                    totalIncome = incomeUiState.totalIncome,
+                    initialItemIncome = incomeUiState.initialItemIncome
+                ),
+                variance = calculateCumulativeIncomeUpdate(
+                    initialIncome = accountsSummary.totalIncome.toString(),
+                    totalIncome = incomeUiState.totalIncome,
+                    initialItemIncome = incomeUiState.initialItemIncome
+                ) -
+                        accountsSummary.totalExpenses
+            )
+        )
+    }
+
+    /**
+     * Update Account when deleting an income item
+     */
+    suspend fun updateAccountWhenDeletingIncome(accountsSummary: AccountsSummary, income: Income) {
+        flockRepository.updateAccounts(
+            AccountsSummary(
+                id = accountsSummary.id,
+                flockUniqueID = accountsSummary.flockUniqueID,
+                batchName = accountsSummary.batchName,
+                totalExpenses = accountsSummary.totalExpenses,
+                totalIncome = accountsSummary.totalIncome - income.totalIncome,
+                variance = accountsSummary.variance - income.totalIncome
+            )
+        )
+    }
+
 
     /**
      * Insert an expense into the database

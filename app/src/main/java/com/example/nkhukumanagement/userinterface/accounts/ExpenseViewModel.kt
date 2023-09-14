@@ -42,30 +42,12 @@ class ExpenseViewModel @Inject constructor(
         private set
     private var expenseListState: SnapshotStateList<ExpensesUiState> = mutableStateListOf()
 
-    val flockID = savedStateHandle[ExpenseScreenDestination.flockIdArg] ?: 0
-    val id = savedStateHandle[TransactionsScreenDestination.flockIdArg] ?: 1
+    val expenseID = savedStateHandle[AddExpenseScreenDestination.expenseIdArg] ?: 0
 
     @RequiresApi(Build.VERSION_CODES.O)
     val getExpense: Flow<Expense> =
         flockRepository
-            .getExpenseItem(flockID)
-
-    val accountsWithExpense: StateFlow<AccountsWithExpense> =
-        flockRepository.getAccountsWithExpense(id)
-            .map { it }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = AccountsWithExpense(
-                    accountsSummary = AccountsSummary(
-                        flockUniqueID = "",
-                        batchName = "",
-                        totalIncome = 0.0,
-                        totalExpenses = 0.0,
-                        variance = 0.0
-                    )
-                )
-            )
+            .getExpenseItem(expenseID)
 
 
     /**
@@ -96,7 +78,7 @@ class ExpenseViewModel @Inject constructor(
      * Delete an Expense Item from the database
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun deleteExpense(uiState: ExpensesUiState) {
-        flockRepository.deleteExpense(uiState.toExpense())
+    suspend fun deleteExpense(expense: Expense) {
+        flockRepository.deleteExpense(expense)
     }
 }

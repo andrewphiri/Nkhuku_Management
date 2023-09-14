@@ -38,6 +38,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +57,8 @@ import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Income
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import com.example.nkhukumanagement.utils.OverflowMenu
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 object IncomeScreenDestination : NkhukuDestinations {
@@ -65,9 +68,9 @@ object IncomeScreenDestination : NkhukuDestinations {
         get() = "income"
     override val resourceId: Int
         get() = R.string.income
-    const val flockIdArg = "id"
-    val routeWithArgs = "$route/{$flockIdArg}"
-    val arguments = listOf(navArgument(flockIdArg) {
+    const val incomeIDArg = "id"
+    val routeWithArgs = "$route/{$incomeIDArg}"
+    val arguments = listOf(navArgument(incomeIDArg) {
         defaultValue = 1
         type = NavType.IntType
     })
@@ -77,11 +80,13 @@ object IncomeScreenDestination : NkhukuDestinations {
 @Composable
 fun IncomeScreen(
     modifier: Modifier = Modifier,
-    navigateToAddIncomeScreen: (Int) -> Unit = {},
-    incomeViewModel: IncomeViewModel = hiltViewModel()
+    navigateToAddIncomeScreen: (Int,Int) -> Unit = {_,_ ->},
+    incomeViewModel: IncomeViewModel = hiltViewModel(),
+    accountsViewModel: AccountsViewModel = hiltViewModel()
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val incomeList by incomeViewModel.accountsWithIncome.collectAsState()
+    val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState()
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -89,7 +94,7 @@ fun IncomeScreen(
                 elevation = FloatingActionButtonDefaults.elevation(),
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-                onClick = { navigateToAddIncomeScreen(incomeViewModel.incomeUiState.id) }) {
+                onClick = { navigateToAddIncomeScreen(0,accountsViewModel.id) }) {
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -108,9 +113,19 @@ fun IncomeScreen(
     ) { innerPadding ->
         IncomeList(
             modifier = modifier.padding(innerPadding),
-            incomeList = incomeList.incomeList,
+            incomeList = accountsWithIncome.incomeList,
             onItemClick = { income ->
-                navigateToAddIncomeScreen(income.id)
+                navigateToAddIncomeScreen(income.id,accountsViewModel.id)
+            },
+            onDeleteIncome = { income ->
+                coroutineScope.launch {
+                    accountsViewModel.updateAccountWhenDeletingIncome(
+                        accountsSummary = accountsWithIncome.accountsSummary,
+                        income = income
+                    )
+                    incomeViewModel.deleteIncome(income)
+                }
+
             }
         )
     }
@@ -142,7 +157,8 @@ private fun LazyListState.isScrollingUp(): Boolean {
 fun IncomeList(
     modifier: Modifier = Modifier,
     incomeList: List<Income>,
-    onItemClick: (Income) -> Unit
+    onItemClick: (Income) -> Unit,
+    onDeleteIncome: (Income) -> Unit
 ) {
     if (incomeList.isEmpty()) {
         Box(
@@ -157,13 +173,14 @@ fun IncomeList(
         }
     } else {
         LazyColumn(
-            modifier = modifier,
+            modifier = modifier.padding(top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             itemsIndexed(incomeList) { index, incomeItem ->
                 IncomeCardItem(
                     income = incomeItem,
-                    onItemClick = { onItemClick(incomeItem) }
+                    onItemClick = { onItemClick(incomeItem) },
+                    onDeleteIncome = {onDeleteIncome(incomeItem)}
                 )
             }
         }
@@ -175,27 +192,55 @@ fun IncomeList(
 fun IncomeCardItem(
     modifier: Modifier = Modifier,
     income: Income,
-    onItemClick: () -> Unit = {}
+    onItemClick: () -> Unit = {},
+    onDeleteIncome: () -> Unit
 ) {
+    var isMenuShowing by remember { mutableStateOf(false) }
+    var isAlertDialogShowing by remember { mutableStateOf(false) }
     val incomeUiState = income.toIncomeUiState()
     ElevatedCard(
         modifier = modifier
             .clickable(onClick = onItemClick)
             .border(width = Dp.Hairline, color = Color.Unspecified)
     ) {
+
         Row(modifier = Modifier.height(IntrinsicSize.Max)) {
             Divider(
                 modifier = Modifier.weight(0.02f).fillMaxHeight(),
                 thickness = 2.dp,
                 color = Color(0xFF023020)
             )
-            Column(modifier = Modifier.weight(1f).padding(16.dp)) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = incomeUiState.incomeName.split(" ")
-                        .joinToString(" ") { it.replaceFirstChar { it.uppercase() } },
-                    style = MaterialTheme.typography.headlineSmall
-                )
+            Column(
+                modifier = Modifier.weight(1f).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = incomeUiState.incomeName.split(" ")
+                            .joinToString(" ") { it.replaceFirstChar { it.uppercase() } },
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Column(modifier = Modifier.weight(weight = 0.2f)) {
+                        OverflowMenu(
+                            modifier = Modifier.align(Alignment.End),
+                            isOverflowMenuExpanded = isMenuShowing,
+                            isAlertDialogShowing = isAlertDialogShowing,
+                            onDismissAlertDialog = { isAlertDialogShowing = false },
+                            onShowMenu = { isMenuShowing = true },
+                            onShowAlertDialog = { isAlertDialogShowing = true },
+                            onDismiss = { isMenuShowing = false },
+                            onDelete = {
+                                onDeleteIncome()
+                                isAlertDialogShowing = false
+                                isMenuShowing = false
+                            },
+                            title = "Delete income?",
+                            message = "This cannot be undone.",
+                            dropDownMenuItemLabel = "Delete income"
+                        )
+                    }
+                }
+
                 Row(
                     modifier = modifier.height(IntrinsicSize.Max),
                     horizontalArrangement = Arrangement.Center,
@@ -207,7 +252,6 @@ fun IncomeCardItem(
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold
                     )
-
                     Text(
                         modifier = Modifier.weight(1.5f),
                         text = incomeUiState.getDate(),
@@ -262,13 +306,13 @@ fun IncomeCardItem(
                 if (incomeUiState.notes.isNotBlank()) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            modifier = Modifier.fillMaxWidth().weight(1f),
-                            text = "NOTES",
+                            modifier = Modifier.weight(weight = 0.2f),
+                            text = "Notes",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            modifier = Modifier.fillMaxWidth().weight(weight = 1f, fill = true),
+                            modifier = Modifier.weight(weight = 1f, fill = true),
                             text = incomeUiState.notes,
                             style = MaterialTheme.typography.bodySmall,
                             fontStyle = FontStyle.Italic
@@ -307,8 +351,8 @@ fun IncomeCardPreview() {
                 totalIncome = 10800.00,
                 flockUniqueID = "",
                 cumulativeTotalIncome = 10000.25,
-                notes = ""
-            )
+                notes = "",
+            ), onDeleteIncome = {}
         )
     }
 }

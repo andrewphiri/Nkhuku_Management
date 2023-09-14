@@ -69,7 +69,7 @@ interface FlockRepository {
     fun getIncomeItem(id: Int): Flow<Income>
 
     /**
-     * Retrieve income item from data source
+     * Retrieve expense item from data source
      */
     fun getExpenseItem(id: Int): Flow<Expense>
 

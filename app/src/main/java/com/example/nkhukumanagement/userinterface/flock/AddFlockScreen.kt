@@ -141,7 +141,6 @@ fun AddFlockInputForm(
 
     val options = flockUiState.options
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedOption by rememberSaveable { mutableStateOf(flockUiState.breed) }
     var isBreedDialogShowing by remember { mutableStateOf(false) }
     var newBreedEntry by remember { mutableStateOf("") }
 
@@ -152,8 +151,6 @@ fun AddFlockInputForm(
     )
 
     var showDialog by rememberSaveable { mutableStateOf(false) }
-
-//    flockUiState.setBreed(selectedOption)
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -171,7 +168,6 @@ fun AddFlockInputForm(
                 onOptionSelected = {
                     onValueChanged(flockUiState.copy(breed = it))
                 },
-                onValueChanged = { onValueChanged(flockUiState.copy(breed = it)) },
                 onDismissed = {
                     expanded = false
                 },
@@ -233,7 +229,7 @@ fun AddFlockInputForm(
                         date
                     )
                 }
-                localDateToString!!
+                localDateToString
             }
         )
         OutlinedTextField(
