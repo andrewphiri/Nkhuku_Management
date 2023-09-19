@@ -60,6 +60,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Currency
+import java.util.Locale
 
 object AddExpenseScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -298,9 +300,13 @@ fun AddExpenseCard(
                     )
                 )
             },
+            prefix = { Text(
+                modifier = Modifier.padding(end = 4.dp),
+                text = Currency.getInstance("ZMK").symbol.toString()
+            ) },
             label = { Text("Unit Price") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
         )
 
         OutlinedTextField(

@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -55,8 +54,11 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Income
+import com.example.nkhukumanagement.ui.theme.GreenCardStartDividerColor
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import com.example.nkhukumanagement.utils.BaseAccountRow
+import com.example.nkhukumanagement.utils.BaseSingleRowItem
 import com.example.nkhukumanagement.utils.OverflowMenu
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -208,7 +210,7 @@ fun IncomeCardItem(
             Divider(
                 modifier = Modifier.weight(0.02f).fillMaxHeight(),
                 thickness = 2.dp,
-                color = Color(0xFF023020)
+                color = GreenCardStartDividerColor
             )
             Column(
                 modifier = Modifier.weight(1f).padding(16.dp),
@@ -241,84 +243,34 @@ fun IncomeCardItem(
                     }
                 }
 
-                Row(
-                    modifier = modifier.height(IntrinsicSize.Max),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(0.5f),
-                        text = "Date",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        modifier = Modifier.weight(1.5f),
-                        text = incomeUiState.getDate(),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
 
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Customer",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold
-                    )
+                BaseAccountRow(
+                    labelA = "Date",
+                    weightForLabelA = 0.5f,
+                    titleA = incomeUiState.getDate(),
+                    weightForTitleA = 1.5f,
+                    labelB = "Suppler",
+                    titleB = incomeUiState.customer
+                )
+                BaseAccountRow(
+                    labelA = "Unit Price",
+                    titleA = incomeUiState.pricePerItem,
+                    labelB = "Quantity",
+                    titleB = incomeUiState.quantity
+                )
 
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = incomeUiState.customer,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
 
-                Row(
-                    modifier = modifier.height(IntrinsicSize.Max),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Unit Price",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = incomeUiState.pricePerItem,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Quantity",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = incomeUiState.quantity,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
                 if (incomeUiState.notes.isNotBlank()) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            modifier = Modifier.weight(weight = 0.2f),
-                            text = "Notes",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text = incomeUiState.notes,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontStyle = FontStyle.Italic
-                        )
-                    }
 
+                    BaseSingleRowItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        label = "Notes",
+                        value = incomeUiState.notes,
+                        weightA = 0.2f,
+                        weightB = 1f,
+                        colorForTitle = Color.Red,
+                        styleForTitle = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic)
+                    )
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),

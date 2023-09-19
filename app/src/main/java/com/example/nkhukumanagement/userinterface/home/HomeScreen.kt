@@ -26,8 +26,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,7 +34,6 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -69,7 +66,7 @@ import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreen
 import com.example.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
 import com.example.nkhukumanagement.utils.DateUtils
 import com.example.nkhukumanagement.utils.ShowAlertDialog
-import com.example.nkhukumanagement.utils.SingleRowItem
+import com.example.nkhukumanagement.utils.BaseSingleRowItem
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -86,6 +83,7 @@ fun HomeScreen(
     val homeUiState by viewModel.homeUiState.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+
 
     DisposableEffect(Unit) {
         onDispose {
@@ -259,11 +257,11 @@ fun FlockCard(
                     horizontalAlignment = Alignment.Start
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        SingleRowItem(
+                        BaseSingleRowItem(
                             modifier = Modifier.weight(weight = 1f, fill = true),
                             label = "Name: ",
                             value = flock.batchName,
-                            style = MaterialTheme.typography.titleSmall,
+                            styleForLabel = MaterialTheme.typography.titleSmall,
                             weightA = 0.5f
                         )
                         Column(modifier = Modifier.weight(0.2f)) {
@@ -285,15 +283,15 @@ fun FlockCard(
                         }
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SingleRowItem(
+                        BaseSingleRowItem(
                             label = "Breed: ",
                             value = flock.breed
                         )
-                        SingleRowItem(
+                        BaseSingleRowItem(
                             label = "Date: ",
                             value = DateUtils().dateToStringLongFormat(flock.datePlaced)
                         )
-                        SingleRowItem(
+                        BaseSingleRowItem(
                             label = "Age: ",
                             value = "${
                                 DateUtils().calculateAge(
@@ -303,11 +301,11 @@ fun FlockCard(
                             } day/s",
                         )
 
-                        SingleRowItem(
+                        BaseSingleRowItem(
                             label = "Quantity: ",
                             value = (flock.numberOfChicksPlaced + flock.donorFlock).toString()
                         )
-                        SingleRowItem(label = "Mortality: ", value = flock.mortality.toString())
+                        BaseSingleRowItem(label = "Mortality: ", value = flock.mortality.toString())
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),

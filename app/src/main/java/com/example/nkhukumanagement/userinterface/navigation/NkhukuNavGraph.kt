@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.example.nkhukumanagement.OverviewScreen
+import com.example.nkhukumanagement.OverviewViewModel
 import com.example.nkhukumanagement.userinterface.accounts.AccountsScreen
 import com.example.nkhukumanagement.userinterface.accounts.AddExpenseScreen
 import com.example.nkhukumanagement.userinterface.accounts.AddExpenseScreenDestination

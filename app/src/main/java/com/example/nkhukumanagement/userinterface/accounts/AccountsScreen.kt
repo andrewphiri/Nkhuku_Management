@@ -34,7 +34,7 @@ import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.AccountsSummary
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
-import com.example.nkhukumanagement.utils.SingleRowItem
+import com.example.nkhukumanagement.utils.BaseSingleRowItem
 
 @Composable
 fun AccountsScreen(
@@ -117,19 +117,21 @@ fun SummaryAccountsCard(
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                SingleRowItem(
+                BaseSingleRowItem(
                     label = "Income",
                     value = accountsSummary.totalIncome.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
+                    styleForLabel = MaterialTheme.typography.bodyMedium,
+                    styleForTitle = MaterialTheme.typography.bodyMedium,
                     textAlignA = TextAlign.Center,
                     textAlignB = TextAlign.Center,
                     weightA = 1f,
                     weightB = 1f
                 )
-                SingleRowItem(
+                BaseSingleRowItem(
                     label = "Expenses",
                     value = accountsSummary.totalExpenses.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
+                    styleForLabel = MaterialTheme.typography.bodyMedium,
+                    styleForTitle = MaterialTheme.typography.bodyMedium,
                     textAlignA = TextAlign.Center,
                     textAlignB = TextAlign.Center,
                     weightA = 1f,
@@ -157,12 +159,13 @@ fun SummaryAccountsCard(
                     color = MaterialTheme.colorScheme.tertiary
                 )
 
-                SingleRowItem(
+                BaseSingleRowItem(
                     label = if (accountsSummary.variance > 0)
                         "Profit" else if (accountsSummary.variance < 0)  "Loss" else "Break-Even",
                     value = accountsSummary.variance.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color =
+                    styleForLabel = MaterialTheme.typography.bodyMedium,
+                    styleForTitle = MaterialTheme.typography.bodyMedium,
+                    colorForTitle =
                     if (accountsSummary.variance > 0) Color.Green
                     else if (accountsSummary.variance == 0.0) Color.Black
                     else Color.Red,

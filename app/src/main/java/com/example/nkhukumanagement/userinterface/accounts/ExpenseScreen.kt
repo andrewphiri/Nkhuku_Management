@@ -55,7 +55,9 @@ import androidx.navigation.navArgument
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Expense
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import com.example.nkhukumanagement.utils.BaseAccountRow
 import com.example.nkhukumanagement.utils.OverflowMenu
+import com.example.nkhukumanagement.utils.BaseSingleRowItem
 import kotlinx.coroutines.launch
 
 object ExpenseScreenDestination : NkhukuDestinations {
@@ -237,86 +239,34 @@ fun ExpenseCardItem(
                         )
                     }
                 }
-                Row(
-                    modifier = modifier.height(IntrinsicSize.Max),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(0.5f),
-                        text = "Date",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold
-                    )
 
-                    Text(
-                        modifier = Modifier.weight(1.5f),
-                        text = expensesUiState.getDate(),
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                BaseAccountRow(
+                    labelA = "Date",
+                    weightForLabelA = 0.5f,
+                    titleA = expensesUiState.getDate(),
+                    weightForTitleA = 1.5f,
+                    labelB = "Suppler",
+                    titleB = expensesUiState.supplier
+                )
+                 BaseAccountRow(
+                     labelA = "Unit Price",
+                     titleA = expensesUiState.costPerItem,
+                     labelB = "Quantity",
+                     titleB = expensesUiState.quantity
+                 )
 
-
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Supplier",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = expensesUiState.supplier,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
-                Row(
-                    modifier = modifier.height(IntrinsicSize.Max),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Unit Price",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = expensesUiState.costPerItem,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Quantity",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = expensesUiState.quantity,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
 
                 if (expensesUiState.notes.isNotBlank()) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            modifier = Modifier.weight(0.2f),
-                            text = "Notes",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            text = expensesUiState.notes,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontStyle = FontStyle.Italic
-                        )
-                    }
+
+                    BaseSingleRowItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        label = "Notes",
+                        value = expensesUiState.notes,
+                        weightA = 0.2f,
+                        weightB = 1f,
+                        colorForTitle = Color.Red,
+                        styleForTitle = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic)
+                    )
                 }
 
                 Row(

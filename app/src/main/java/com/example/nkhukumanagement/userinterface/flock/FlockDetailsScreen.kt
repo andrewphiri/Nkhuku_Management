@@ -51,7 +51,7 @@ import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.userinterface.vaccination.toVaccinationUiState
 import com.example.nkhukumanagement.userinterface.weight.toWeightUiState
 import com.example.nkhukumanagement.utils.DateUtils
-import com.example.nkhukumanagement.utils.SingleRowEntry
+import com.example.nkhukumanagement.utils.BaseSingleRowDetailsItem
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -196,13 +196,13 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock, onHealthCardClick: (
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
-            SingleRowEntry(
+            BaseSingleRowDetailsItem(
                 label = "Mortality",
                 value = flockUiState.getMortality(),
                 weightA = 2f
             )
 
-            SingleRowEntry(
+            BaseSingleRowDetailsItem(
                 label = "Culls",
                 value = flockUiState.getCulls(),
                 weightA = 2f
@@ -219,8 +219,6 @@ fun FeedCard(
     flockUiState: FlockUiState,
     onFeedCardClick: (Int) -> Unit
 ) {
-
-
     ElevatedCard(
         modifier = modifier
             .clickable { onFeedCardClick(flockUiState.id) }
@@ -246,11 +244,11 @@ fun FeedCard(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
-            SingleRowEntry(
+            BaseSingleRowDetailsItem(
                 label = "Bags(50Kg)",
                 value = "${(quantityConsumed / 50).roundToInt()}"
             )
-            SingleRowEntry(
+            BaseSingleRowDetailsItem(
                 label = "Total Feed Consumed",
                 value = "${String.format("%.2f", quantityConsumed)} Kg"
             )
@@ -307,7 +305,7 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
     Card(modifier = modifier) {
         Column {
 
-            SingleRowEntry(
+            BaseSingleRowDetailsItem(
                 label = vaccinationUiState.getDate(),
                 value = vaccinationUiState.getName(),
                 style = MaterialTheme.typography.labelSmall
@@ -366,13 +364,13 @@ fun WeightCard(
                 textAlign = TextAlign.Center
             )
 
-            SingleRowEntry(
+            BaseSingleRowDetailsItem(
                 label = "Actual",
                 value = "${weightUiState.actualWeight} Kg",
                 weightA = 1.5f,
             )
 
-            SingleRowEntry(
+            BaseSingleRowDetailsItem(
                 label = "Standard",
                 value = "${weightUiState.standard} Kg",
                 weightA = 1.5f
