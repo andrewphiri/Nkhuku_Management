@@ -27,4 +27,8 @@
     <string name="no_records">No records</string>
     <string name="no_income_recorded">No income recorded</string>
     <string name="no_expense_recorded">No expense recorded</string>
+    <string name="account_overview">Account Overview</string>
+    <string name="flock_overview">Flock Overview</string>
+    <string name="flock">Flock</string>
+    <string name="no_records_add_mort_cull">No records. To record a mortality or cull, tap on the button below.</string>
 </resources>

@@ -35,6 +35,7 @@ import com.example.nkhukumanagement.data.AccountsSummary
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import com.example.nkhukumanagement.utils.BaseSingleRowItem
+import com.example.nkhukumanagement.utils.currencyFormatter
 
 @Composable
 fun AccountsScreen(
@@ -119,7 +120,7 @@ fun SummaryAccountsCard(
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 BaseSingleRowItem(
                     label = "Income",
-                    value = accountsSummary.totalIncome.toString(),
+                    value = currencyFormatter(accountsSummary.totalIncome),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
                     textAlignA = TextAlign.Center,
@@ -129,7 +130,7 @@ fun SummaryAccountsCard(
                 )
                 BaseSingleRowItem(
                     label = "Expenses",
-                    value = accountsSummary.totalExpenses.toString(),
+                    value = currencyFormatter(accountsSummary.totalExpenses),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
                     textAlignA = TextAlign.Center,
@@ -161,8 +162,8 @@ fun SummaryAccountsCard(
 
                 BaseSingleRowItem(
                     label = if (accountsSummary.variance > 0)
-                        "Profit" else if (accountsSummary.variance < 0)  "Loss" else "Break-Even",
-                    value = accountsSummary.variance.toString(),
+                        "Profit" else if (accountsSummary.variance < 0) "Loss" else "Break-Even",
+                    value = currencyFormatter(accountsSummary.variance),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
                     colorForTitle =

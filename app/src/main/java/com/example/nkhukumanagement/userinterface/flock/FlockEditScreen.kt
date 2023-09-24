@@ -1,7 +1,6 @@
 package com.example.nkhukumanagement.userinterface.flock
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,11 +66,17 @@ object EditFlockDestination : NkhukuDestinations {
     override val resourceId: Int
         get() = R.string.edit_flock
     const val flockIdArg = "id"
-    val routeWithArgs = "$route/{$flockIdArg}"
-    val arguments = listOf(navArgument(FlockDetailsDestination.flockIdArg) {
-        defaultValue = 1
-        type = NavType.IntType
-    })
+    const val healthIdArg = "health"
+    val routeWithArgs = "$route/{$flockIdArg}/{$healthIdArg}"
+    val arguments = listOf(
+        navArgument(flockIdArg) {
+            defaultValue = 0
+            type = NavType.IntType
+        }, navArgument(healthIdArg) {
+            defaultValue = 0
+            type = NavType.IntType
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,13 +86,21 @@ fun FlockEditScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    onValueChanged: (FlockUiState) -> Unit = {},
     editFlockViewModel: EditFlockViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel
 ) {
 
     val coroutineScope = rememberCoroutineScope()
     var date by remember { mutableStateOf(DateUtils().dateToStringLongFormat(LocalDate.now())) }
+//    val flockWithHealth by editFlockViewModel.flockWithHealth.collectAsState()
+    val flockHealth by editFlockViewModel.flockHealth.collectAsState(
+        initial = FlockHealth(
+            flockUniqueId = "",
+            mortality = 0,
+            culls = 0,
+            date = LocalDate.now()
+        )
+    )
 
     val flock by editFlockViewModel.flock.collectAsState(
         initial = flockEntryViewModel.flockUiState.copy(
@@ -96,10 +110,16 @@ fun FlockEditScreen(
         ).toFlock()
     )
     val flockUiState: FlockUiState = flock.toFlockUiState()
-    val dateState = rememberDatePickerState(
+    val dateState = if (editFlockViewModel.healthId == 0) rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
         initialSelectedDateMillis = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
             .toEpochMilli()
+    )
+    else rememberDatePickerState(
+        initialDisplayMode = DisplayMode.Picker,
+        initialSelectedDateMillis = flockHealth.date
+            .atStartOfDay()
+            .atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
     )
     flockEntryViewModel.updateUiState(flockUiState.copy(enabled = true))
     var mortality by rememberSaveable { mutableStateOf(0) }
@@ -111,12 +131,20 @@ fun FlockEditScreen(
     var isMortalityAddButtonEnabled by rememberSaveable { mutableStateOf(true) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
+    LaunchedEffect(flockHealth) {
+        if (editFlockViewModel.healthId > 0) {
+            mortality = flockHealth.mortality
+            culls = flockHealth.culls
+            date = DateUtils().dateToStringLongFormat(flockHealth.date)
+        }
+    }
+//    Log.i("Health_ID", editFlockViewModel.id.toString())
     var quantityRemaining by rememberSaveable {
         mutableStateOf(
-            flockEntryViewModel.flockUiState.getStock().toInt() - mortality
+            flockEntryViewModel.flockUiState.getStock().toInt()
         )
     }
-    quantityRemaining = flockEntryViewModel.flockUiState.getStock().toInt() - mortality
+    //quantityRemaining = flockEntryViewModel.flockUiState.getStock().toInt() - mortality
     var isUpdateButtonEnabled by rememberSaveable { mutableStateOf(culls > 0 || mortality > 0) }
 
     isMortalityAddButtonEnabled = mortality < quantityRemaining
@@ -135,7 +163,9 @@ fun FlockEditScreen(
             )
         }
     ) { innerPadding ->
-        isUpdateButtonEnabled = culls > 0 || mortality > 0
+        isUpdateButtonEnabled =
+            if (editFlockViewModel.healthId == 0) culls > 0 || mortality > 0 else
+                (culls > 0 || mortality > 0) && (mortality != flockHealth.mortality || culls != flockHealth.culls)
         Column(
             modifier = Modifier.padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -147,38 +177,13 @@ fun FlockEditScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
-//                    PickerDialog(
-//                        showDialog = showDialog,
-//                        onDismissed = { showDialog = false },
-//                        label = "Date",
-//                        flockUiState = flockUiState,
-//                        updateShowDialogOnClick = { showDialog = true },
-//                        onValueChanged = onValueChanged,
-//                        saveDateSelected = { dateState ->
-//                            val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
-//                                DateUtils().convertMillisToLocalDate(
-//                                    millis
-//                                )
-//                            }
-//                            val localDateToString = millisToLocalDate?.let { date ->
-//                                DateUtils().dateToStringLongFormat(
-//                                    date
-//                                )
-//                            }
-//                            localDateToString!!
-//                        }
-//                    )
-
                     PickerDateDialog(
                         showDialog = showDialog,
                         onDismissed = { showDialog = false },
                         label = "Date",
                         date = date,
                         updateShowDialogOnClick = { showDialog = true },
-                        onValueChanged = {
-                            date = it
-                        },
+                        onValueChanged = {},
                         datePickerState = dateState,
                         saveDateSelected = { dateState ->
                             val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
@@ -285,29 +290,58 @@ fun FlockEditScreen(
                     modifier = Modifier.weight(1f),
                     enabled = isUpdateButtonEnabled,
                     onClick = {
-                        coroutineScope.launch {
-                            flockEntryViewModel.updateItem(
-                                flockEntryViewModel.flockUiState.copy(
-                                    mortality =
-                                    (flockUiState.getMortality().toInt() + mortality).toString(),
-                                    culls = (flockUiState.getCulls().toInt() + culls).toString(),
-                                    stock = quantityRemaining.toString().toString()
+                        if (editFlockViewModel.healthId == 0) {
+                            coroutineScope.launch {
+                                flockEntryViewModel.updateItem(
+                                    flockEntryViewModel.flockUiState.copy(
+                                        mortality =
+                                        (flockUiState.getMortality()
+                                            .toInt() + mortality).toString(),
+                                        culls = (flockUiState.getCulls()
+                                            .toInt() + culls).toString(),
+                                        stock = quantityRemaining.toString()
+                                    )
                                 )
-                            )
 
-                            editFlockViewModel.insertHealth(
-                                FlockHealth(
-                                    flockUniqueId = flockUiState.getUniqueId(),
-                                    mortality = mortality,
-                                    culls = culls,
-                                    date = DateUtils().stringToLocalDate(date)
+                                editFlockViewModel.insertHealth(
+                                    FlockHealth(
+                                        flockUniqueId = flockUiState.getUniqueId(),
+                                        mortality = mortality,
+                                        culls = culls,
+                                        date = DateUtils().stringToLocalDate(date)
+                                    )
                                 )
-                            )
-                            Log.i(
-                                "UPDATE_DATABASE",
-                                flockEntryViewModel.flockUiState.toFlock().toString()
-                            )
-                        }.invokeOnCompletion { onNavigateUp() }
+                            }.invokeOnCompletion { onNavigateUp() }
+                        } else {
+                            val mort =
+                                if (flockHealth.mortality < mortality) mortality - flockHealth.mortality else
+                                    flockHealth.mortality - mortality
+                            val cull = if (flockHealth.culls < culls) culls - flockHealth.culls else
+                                flockHealth.culls - culls
+                            coroutineScope.launch {
+
+                                flockEntryViewModel.updateItem(
+                                    flockEntryViewModel.flockUiState.copy(
+                                        mortality =
+                                        (flockUiState.getMortality()
+                                            .toInt() + mort).toString(),
+                                        culls = (flockUiState.getCulls()
+                                            .toInt() + cull).toString(),
+                                        stock = quantityRemaining.toString()
+                                    )
+                                )
+
+                                editFlockViewModel.updateHealth(
+                                    FlockHealth(
+                                        id = flockHealth.id,
+                                        flockUniqueId = flockHealth.flockUniqueId,
+                                        mortality = mortality,
+                                        culls = culls,
+                                        date = DateUtils().stringToLocalDate(date)
+                                    )
+                                )
+                            }.invokeOnCompletion { onNavigateUp() }
+                        }
                     }
                 ) {
                     Text(

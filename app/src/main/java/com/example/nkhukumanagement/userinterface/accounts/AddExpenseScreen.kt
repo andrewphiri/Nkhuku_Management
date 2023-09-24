@@ -36,7 +36,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -56,12 +55,11 @@ import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
 import com.example.nkhukumanagement.utils.PickerDateDialog
+import com.example.nkhukumanagement.utils.currencySymbol
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.Currency
-import java.util.Locale
 
 object AddExpenseScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -147,9 +145,6 @@ fun AddExpenseScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-        Log.i("ACCOUNTExpense", accountsViewModel.id.toString())
-        Log.i("ExpenseUiState", expenseViewModel.expenseID.toString())
-       // Log.i("Expense", expense.toExpenseUiState(true).toString())
 
         isUpdateButtonEnabled = if (expenseViewModel.expenseID > 0) expenseViewModel.expenseUiState !=
                 expense.toExpenseUiState(enabled = true) else expenseViewModel.expenseUiState.isEnabled
@@ -300,10 +295,14 @@ fun AddExpenseCard(
                     )
                 )
             },
-            prefix = { Text(
-                modifier = Modifier.padding(end = 4.dp),
-                text = Currency.getInstance("ZMK").symbol.toString()
-            ) },
+            prefix = {
+                currencySymbol()?.let {
+                    Text(
+                        modifier = Modifier.padding(end = 4.dp),
+                        text = it
+                    )
+                }
+            },
             label = { Text("Unit Price") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
@@ -333,6 +332,14 @@ fun AddExpenseCard(
             modifier = Modifier.fillMaxWidth(),
             value = expensesUiState.totalExpense,
             onValueChange = { },
+            prefix = {
+                currencySymbol()?.let {
+                    Text(
+                        modifier = Modifier.padding(end = 4.dp),
+                        text = it
+                    )
+                }
+            },
             label = { Text("Total Expense") },
             readOnly = true,
             singleLine = true,

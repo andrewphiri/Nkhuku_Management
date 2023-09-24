@@ -1,7 +1,6 @@
 package com.example.nkhukumanagement.userinterface.navigation
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,15 +12,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import com.example.nkhukumanagement.OverviewScreen
-import com.example.nkhukumanagement.OverviewViewModel
 import com.example.nkhukumanagement.userinterface.accounts.AccountsScreen
 import com.example.nkhukumanagement.userinterface.accounts.AddExpenseScreen
 import com.example.nkhukumanagement.userinterface.accounts.AddExpenseScreenDestination
 import com.example.nkhukumanagement.userinterface.accounts.AddIncomeScreen
 import com.example.nkhukumanagement.userinterface.accounts.AddIncomeScreenDestination
-import com.example.nkhukumanagement.userinterface.accounts.ExpenseViewModel
-import com.example.nkhukumanagement.userinterface.accounts.IncomeViewModel
 import com.example.nkhukumanagement.userinterface.accounts.TransactionScreen
 import com.example.nkhukumanagement.userinterface.accounts.TransactionsScreenDestination
 import com.example.nkhukumanagement.userinterface.feed.FeedScreen
@@ -33,7 +28,14 @@ import com.example.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import com.example.nkhukumanagement.userinterface.flock.FlockDetailsScreen
 import com.example.nkhukumanagement.userinterface.flock.FlockEditScreen
 import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
+import com.example.nkhukumanagement.userinterface.flock.FlockHealthScreen
+import com.example.nkhukumanagement.userinterface.flock.FlockHealthScreenDestination
 import com.example.nkhukumanagement.userinterface.home.HomeScreen
+import com.example.nkhukumanagement.userinterface.overview.AccountOverviewDestination
+import com.example.nkhukumanagement.userinterface.overview.AccountOverviewScreen
+import com.example.nkhukumanagement.userinterface.overview.FlockOverviewDestination
+import com.example.nkhukumanagement.userinterface.overview.FlockOverviewScreen
+import com.example.nkhukumanagement.userinterface.overview.OverviewScreen
 import com.example.nkhukumanagement.userinterface.planner.PlannerResultScreen
 import com.example.nkhukumanagement.userinterface.planner.PlannerResultsDestination
 import com.example.nkhukumanagement.userinterface.planner.PlannerScreen
@@ -93,7 +95,14 @@ fun NkhukuNavHost(
         }
 
         composable(route = NavigationBarScreens.Overview.route) {
-            OverviewScreen()
+            OverviewScreen(
+                navigateToAccountOverviewScreen = {
+                    navController.navigate(route = AccountOverviewDestination.route)
+                },
+                navigateToFlockOverviewScreen = {
+                    navController.navigate(FlockOverviewDestination.route)
+                }
+            )
         }
         composable(AddFlockDestination.route) {
             AddFlockScreen(
@@ -134,6 +143,16 @@ fun NkhukuNavHost(
                 plannerViewModel = plannerViewModel
             )
         }
+        composable(route = AccountOverviewDestination.route) {
+            AccountOverviewScreen(
+                onNavigateUp = { navController.navigateUp() }
+            )
+        }
+        composable(route = FlockOverviewDestination.route) {
+            FlockOverviewScreen(
+                onNavigateUp = { navController.navigateUp() }
+            )
+        }
         detailsGraph(
             navController = navController,
             flockEntryViewModel = flockEntryViewModel,
@@ -160,8 +179,8 @@ fun NavGraphBuilder.detailsGraph(
             FlockDetailsScreen(
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
-                navigateToFlockEdit = { id ->
-                    navController.navigate("${EditFlockDestination.route}/$id")
+                navigateToFlockHealthScreen = { id ->
+                    navController.navigate("${FlockHealthScreenDestination.route}/$id")
                 },
                 navigateToVaccinationScreen = { id ->
                     navController.navigate("${AddVaccinationsDestination.route}/$id")
@@ -175,8 +194,19 @@ fun NavGraphBuilder.detailsGraph(
             )
         }
         composable(
+            route = FlockHealthScreenDestination.routeWithArgs,
+            arguments = FlockHealthScreenDestination.arguments
+        ) {
+            FlockHealthScreen(
+                onNavigateUp = { navController.navigateUp() },
+                navigateToFlockEditScreen = { flockId, healthId ->
+                    navController.navigate("${EditFlockDestination.route}/$flockId/$healthId")
+                }
+            )
+        }
+        composable(
             route = EditFlockDestination.routeWithArgs,
-            arguments = FlockDetailsDestination.arguments
+            arguments = EditFlockDestination.arguments
         ) {
             FlockEditScreen(
                 onNavigateUp = { navController.navigateUp() },

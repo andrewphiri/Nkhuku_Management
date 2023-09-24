@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.overview
 
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.graphics.Color
@@ -52,7 +52,7 @@ class OverviewViewModel @Inject constructor(val flockRepository: FlockRepository
         return listOf(
             Account(
                 color = if (flock.isNotEmpty()) Color.Magenta else Color.Gray,
-                description = "Raised to Market",
+                description = "Healthy Birds",
                 amount = (flock.sumOf { it.numberOfChicksPlaced + it.donorFlock } - flock.sumOf { it.mortality + it.culls })
                     .toDouble(),
                 total = flock.sumOf { it.numberOfChicksPlaced + it.donorFlock }.toDouble(),

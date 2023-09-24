@@ -1,7 +1,5 @@
 package com.example.nkhukumanagement.data
 
-import androidx.room.Query
-import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -57,6 +55,11 @@ interface FlockRepository {
      * Retrieve flock from data source
      */
     fun getFlock(id: Int): Flow<Flock>
+
+    /**
+     * Retrieve flock health from data source
+     */
+    fun getFlockHealthItem(id: Int): Flow<FlockHealth>
 
     /**
      * Retrieve vaccination item from data source

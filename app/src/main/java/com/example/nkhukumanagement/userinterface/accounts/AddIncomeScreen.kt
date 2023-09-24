@@ -53,6 +53,7 @@ import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.DateUtils
 import com.example.nkhukumanagement.utils.PickerDateDialog
+import com.example.nkhukumanagement.utils.currencySymbol
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -291,6 +292,14 @@ fun AddIncomeCard(
                 )
             },
             label = { Text("Unit Price") },
+            prefix = {
+                currencySymbol()?.let {
+                    Text(
+                        modifier = Modifier.padding(end = 4.dp),
+                        text = it
+                    )
+                }
+            },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
@@ -319,6 +328,14 @@ fun AddIncomeCard(
             modifier = Modifier.fillMaxWidth(),
             value = incomeUiState.totalIncome,
             onValueChange = { },
+            prefix = {
+                currencySymbol()?.let {
+                    Text(
+                        modifier = Modifier.padding(end = 4.dp),
+                        text = it
+                    )
+                }
+            },
             label = { Text("Total Income") },
             readOnly = true,
             singleLine = true

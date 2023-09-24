@@ -48,6 +48,7 @@ import com.example.nkhukumanagement.utils.AddNewEntryDialog
 import com.example.nkhukumanagement.utils.DateUtils
 import com.example.nkhukumanagement.utils.DropDownMenuDialog
 import com.example.nkhukumanagement.utils.PickerDateDialog
+import com.example.nkhukumanagement.utils.currencySymbol
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -160,7 +161,7 @@ fun AddFlockInputForm(
         Row {
             DropDownMenuDialog(
                 modifier = modifier.weight(0.8f),
-                entry = flockUiState.breed,
+                value = flockUiState.breed,
                 expanded = expanded,
                 onExpand = {
                     expanded = !expanded
@@ -239,7 +240,7 @@ fun AddFlockInputForm(
             label = { Text("Number of chicks placed") },
             enabled = true,
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             isError = flockUiState.isSingleEntryValid(flockUiState.quantity)
         )
 
@@ -248,6 +249,14 @@ fun AddFlockInputForm(
             value = flockUiState.cost,
             onValueChange = { onValueChanged(flockUiState.copy(cost = it)) },
             label = { Text("Price Per Bird") },
+            prefix = {
+                currencySymbol()?.let {
+                    Text(
+                        modifier = Modifier.padding(end = 4.dp),
+                        text = it
+                    )
+                }
+            },
             enabled = true,
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

@@ -50,8 +50,8 @@ import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.userinterface.vaccination.toVaccinationUiState
 import com.example.nkhukumanagement.userinterface.weight.toWeightUiState
-import com.example.nkhukumanagement.utils.DateUtils
 import com.example.nkhukumanagement.utils.BaseSingleRowDetailsItem
+import com.example.nkhukumanagement.utils.DateUtils
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -65,7 +65,7 @@ object FlockDetailsDestination : NkhukuDestinations {
     const val flockIdArg = "id"
     val routeWithArgs = "$route/{$flockIdArg}"
     val arguments = listOf(navArgument(flockIdArg) {
-        defaultValue = 1
+        defaultValue = 0
         type = NavType.IntType
     })
 }
@@ -77,7 +77,7 @@ fun FlockDetailsScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    navigateToFlockEdit: (Int) -> Unit = {},
+    navigateToFlockHealthScreen: (Int) -> Unit = {},
     navigateToVaccinationScreen: (Int) -> Unit,
     navigateToFeedScreen: (Int) -> Unit = {},
     navigateToWeightScreen: (Int) -> Unit = {},
@@ -116,7 +116,9 @@ fun FlockDetailsScreen(
         ) {
             item {
                 flockWithVaccinations.flock?.let {
-                    HealthCard(flock = it, onHealthCardClick = { navigateToFlockEdit(flock.id) })
+                    HealthCard(
+                        flock = it,
+                        onHealthCardClick = { navigateToFlockHealthScreen(flock.id) })
                 }
             }
             item {

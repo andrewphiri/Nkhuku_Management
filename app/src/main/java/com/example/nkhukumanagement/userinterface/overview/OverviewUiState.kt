@@ -1,4 +1,4 @@
-package com.example.nkhukumanagement
+package com.example.nkhukumanagement.userinterface.overview
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList

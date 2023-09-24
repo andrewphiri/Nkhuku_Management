@@ -56,8 +56,9 @@ import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Expense
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import com.example.nkhukumanagement.utils.BaseAccountRow
-import com.example.nkhukumanagement.utils.OverflowMenu
 import com.example.nkhukumanagement.utils.BaseSingleRowItem
+import com.example.nkhukumanagement.utils.OverflowMenu
+import com.example.nkhukumanagement.utils.currencyFormatter
 import kotlinx.coroutines.launch
 
 object ExpenseScreenDestination : NkhukuDestinations {
@@ -130,7 +131,8 @@ fun ExpenseScreen(
 }
 
 /**
- * Returns whether the lazy list is currently scrolling up.
+ * Composable function to detect scroll position of list
+ * This will be used to hide FAB when scrolling down, and to Show FAB when scrolling up
  */
 @Composable
 private fun LazyListState.isScrollingUp(): Boolean {
@@ -250,7 +252,7 @@ fun ExpenseCardItem(
                 )
                  BaseAccountRow(
                      labelA = "Unit Price",
-                     titleA = expensesUiState.costPerItem,
+                     titleA = currencyFormatter(expensesUiState.costPerItem.toDouble()),
                      labelB = "Quantity",
                      titleB = expensesUiState.quantity
                  )
@@ -274,7 +276,7 @@ fun ExpenseCardItem(
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = expensesUiState.totalExpense,
+                        text = currencyFormatter(expensesUiState.totalExpense.toDouble()),
                         color = Color.Red,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodySmall

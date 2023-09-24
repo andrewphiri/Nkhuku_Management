@@ -97,6 +97,9 @@ interface FlockDao {
     @Query("SELECT * FROM vaccinations WHERE id = :id")
     fun retrieveVaccination(id: Int): Flow<Vaccination>
 
+    @Query("SELECT * FROM health WHERE id = :id")
+    fun retrieveHealth(id: Int): Flow<FlockHealth>
+
     @Query("SELECT * FROM flock")
     fun getAllFlockItems(): Flow<List<Flock>>
 

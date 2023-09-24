@@ -512,7 +512,7 @@ fun StatefulDropDownMenu(
     Row {
         DropDownMenuDialog(
             modifier = modifier.weight(0.8f),
-            entry = vaccinationUiState.getName(),
+            value = vaccinationUiState.getName(),
             expanded = vaccinationUiState.isExpanded,
             onExpand = {
                 expanded = if (editable) !expanded else false
