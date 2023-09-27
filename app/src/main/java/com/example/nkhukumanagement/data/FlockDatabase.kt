@@ -12,7 +12,7 @@ import com.example.nkhukumanagement.utils.DateConverter
 @Database(
     entities = [Flock::class, Vaccination::class, Feed::class, Weight::class,
         FlockHealth::class, Income::class, Expense::class, AccountsSummary::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)

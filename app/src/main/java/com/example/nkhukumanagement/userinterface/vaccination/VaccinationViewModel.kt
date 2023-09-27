@@ -1,5 +1,8 @@
 package com.example.nkhukumanagement.userinterface.vaccination
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
@@ -7,10 +10,13 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import com.example.nkhukumanagement.FlockApplication
 import com.example.nkhukumanagement.data.FlockRepository
+import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.userinterface.flock.FlockUiState
+import com.example.nkhukumanagement.utils.AlarmReceiver
+import com.example.nkhukumanagement.utils.AlarmScheduler
 import com.example.nkhukumanagement.utils.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -21,13 +27,19 @@ import javax.inject.Inject
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class VaccinationViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    private val application: FlockApplication,
     private val flockRepository: FlockRepository
-) : ViewModel() {
-
+) : ViewModel(), AlarmScheduler {
     companion object {
         private const val MILLIS = 5_000L
+        const val TITLE = "title_notification"
+        const val CONTENT_TEXT = "content_text_notification"
+        const val BIG_TEXT_CONTENT = "big_text_content_notification"
+        const val FLOCK_ID = "flock_ID"
     }
+
+    private val alarmManager =
+        application.applicationContext.getSystemService(AlarmManager::class.java)
 
     private var initialVaccinationList: SnapshotStateList<VaccinationUiState> = mutableStateListOf()
 
@@ -262,5 +274,42 @@ class VaccinationViewModel @Inject constructor(
                 )
             ),
         )
+    }
+
+    /**
+     * Schedule an alarm to be triggered day before the vaccination date
+     */
+    override fun schedule(vaccination: Vaccination, flock: FlockUiState) {
+        val intent = Intent(application.applicationContext, AlarmReceiver::class.java).apply {
+            putExtra(TITLE, "Vaccination Reminder")
+            putExtra(CONTENT_TEXT, "${vaccination.name} vaccination due.")
+            putExtra(
+                BIG_TEXT_CONTENT,
+                "${vaccination.name} vaccination for ${flock.batchName} is due tomorrow, " +
+                        "${DateUtils().dateToStringLongFormat(vaccination.date)}."
+            )
+            putExtra(FLOCK_ID, flock.id)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            application.applicationContext,
+            vaccination.hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.set(
+            AlarmManager.RTC_WAKEUP,
+            DateUtils().calculateAlarmDate(vaccination),
+            pendingIntent
+        )
+    }
+
+    override fun cancelAlarm(vaccination: Vaccination) {
+        val pendingIntent = PendingIntent.getBroadcast(
+            application.applicationContext,
+            vaccination.hashCode(),
+            Intent(application, AlarmReceiver::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.cancel(pendingIntent)
     }
 }

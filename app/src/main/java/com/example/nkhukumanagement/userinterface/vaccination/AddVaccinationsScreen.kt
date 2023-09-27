@@ -1,6 +1,7 @@
 package com.example.nkhukumanagement.userinterface.vaccination
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -110,17 +111,18 @@ fun AddVaccinationsScreen(
     val flockWithVaccinations by detailsViewModel.flockWithVaccinationsStateFlow.collectAsState()
     var vaccinesList: List<Vaccination> = listOf()
     val vaccinesStateList: MutableList<VaccinationUiState> = mutableListOf()
+    var minutes: Long by remember { mutableStateOf(1) }
 
     var title by remember { mutableStateOf("") }
     title = stringResource(AddVaccinationsDestination.resourceId)
-    var isEditingEnabled by remember { mutableStateOf(false) }
+    var isEditingEnabled by rememberSaveable { mutableStateOf(false) }
     var isFABVisible by remember { mutableStateOf(false) }
     var isDoneButtonShowing by remember { mutableStateOf(true) }
     var isAddShowing by remember { mutableStateOf(true) }
     val vaccinationDates = vaccinationViewModel.getInitialVaccinationList()
     var listSize by remember { mutableStateOf(vaccinationViewModel.getInitialVaccinationList().size) }
     var isRemoveShowing by remember { mutableStateOf(true) }
-    var isDoneEnabled by remember { mutableStateOf(true) }
+    var isDoneEnabled by rememberSaveable { mutableStateOf(true) }
 
 
     if (flockEntryViewModel.flockUiState.id == 0) {
@@ -148,7 +150,6 @@ fun AddVaccinationsScreen(
         vaccinationViewModel.setInitialVaccinationDates(vaccinesStateList.toMutableStateList())
     }
 
-
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -168,6 +169,7 @@ fun AddVaccinationsScreen(
                     vaccinationViewModel.getInitialVaccinationList().removeAt(
                         listSize
                     )
+
                 },
                 onClickAdd = {
                     listSize++
@@ -183,12 +185,15 @@ fun AddVaccinationsScreen(
                             vaccinationNumber = listSize, name = "", date = vaccineDate
                         )
                     )
+
+
                 },
                 onSaveToDatabase = {
                     if (flockEntryViewModel.flockUiState.id == 0) {
                         val uniqueId = UUID.randomUUID().toString()
                         flockEntryViewModel.flockUiState.setUniqueId(uniqueID = uniqueId)
                         vaccinationViewModel.vaccinationUiState.setUniqueId(uniqueID = uniqueId)
+
                         weightViewModel.setWeightList(
                             weightViewModel.defaultWeight(
                                 flockEntryViewModel.flockUiState
@@ -199,6 +204,13 @@ fun AddVaccinationsScreen(
                                 flockEntryViewModel.flockUiState
                             )
                         )
+                        vaccinationViewModel.getInitialVaccinationList().forEach {
+                            minutes += 1
+                            vaccinationViewModel.schedule(
+                                it.toVaccination(),
+                                flockEntryViewModel.flockUiState
+                            )
+                        }
                         coroutineScope.launch {
                             flockEntryViewModel.saveItem()
                             accountsViewModel.insertAccount(
@@ -221,11 +233,27 @@ fun AddVaccinationsScreen(
                                         flockUniqueId = flockEntryViewModel.flockUiState.getUniqueId()
                                     )
                                 )
+
                             }
-                        }.invokeOnCompletion { navigateBack() }
+                        }.invokeOnCompletion {
+                            navigateBack()
+                        }
                     } else {
                         val flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId()
-
+                        flockWithVaccinations.vaccinations.forEach {
+                            vaccinationViewModel.cancelAlarm(it)
+                            Log.i("VACCINE_HASHCODE", it.hashCode().toString())
+                        }
+                        vaccinationViewModel.getInitialVaccinationList().forEach {
+                            vaccinationViewModel.schedule(
+                                vaccination = it.toVaccination(),
+                                flock = flockEntryViewModel.flockUiState
+                            )
+                            Log.i(
+                                "VACCINE_STATE_HASHCODE",
+                                it.toVaccination().hashCode().toString()
+                            )
+                        }
                         coroutineScope.launch {
                             vaccinationViewModel.deleteVaccination(flockUniqueID)
 
@@ -277,22 +305,19 @@ fun AddVaccinationsScreen(
         }
     ) { innerPadding ->
         listSize = vaccinationViewModel.getInitialVaccinationList().size
-        isDoneEnabled = if (vaccinesStateList.isEmpty()) {
-            vaccinationViewModel.getInitialVaccinationList().all { it.isValid() }
-        } else {
+        isDoneEnabled = if (flockEntryViewModel.flockUiState.id > 0 &&
+            vaccinationViewModel.getInitialVaccinationList().size == vaccinesStateList.size
+        )
             vaccinationViewModel.getInitialVaccinationList().all { it.isValid() } &&
-                    (vaccinationViewModel.getInitialVaccinationList().zip(vaccinesStateList)
-                        .all { it.first == it.second }.not())
-        }
-        //isRemoveShowing = listSize > 1
+                    !vaccinesStateList.zip(vaccinationViewModel.getInitialVaccinationList())
+                        .all { it.first == it.second } else
+            vaccinationViewModel.getInitialVaccinationList().all { it.isValid() }
+
         VaccinationInputList(
             modifier = modifier.padding(innerPadding),
             onItemChange = vaccinationViewModel::updateUiState,
             vaccinationViewModel = vaccinationViewModel,
             flockEntryViewModel = flockEntryViewModel,
-            isListValid = {
-                isDoneEnabled = it
-            },
             isEditingEnabled = isEditingEnabled,
             options = vaccinationViewModel.options
         )
@@ -306,7 +331,6 @@ fun VaccinationInputList(
     onItemChange: (Int, VaccinationUiState) -> Unit,
     vaccinationViewModel: VaccinationViewModel,
     flockEntryViewModel: FlockEntryViewModel,
-    isListValid: (Boolean) -> Unit,
     isEditingEnabled: Boolean,
     options: MutableList<String>
 ) {
@@ -317,8 +341,9 @@ fun VaccinationInputList(
                 vaccinationUiState = vaccinationUiState,
                 onValueChanged = { uiState ->
                     onItemChange(index, uiState)
-                    isListValid(
-                        vaccinationViewModel.getInitialVaccinationList().all { it.isValid() })
+//                    isListValid(
+//                        vaccinationViewModel.getInitialVaccinationList().all { it.isValid() }
+//                    )
                 },
                 isEditable = isEditingEnabled,
                 options = options
@@ -363,6 +388,7 @@ fun VaccinationCardEntry(
             StatefulPickDateDialog(
                 modifier = modifier,
                 vaccinationUiState = vaccinationUiState,
+                onValueChanged = onValueChanged,
                 isEditable = isEditable
             )
 
@@ -457,7 +483,9 @@ fun VaccinationCardEntry(
 @Composable
 fun StatefulPickDateDialog(
     modifier: Modifier,
-    vaccinationUiState: VaccinationUiState, isEditable: Boolean = true
+    vaccinationUiState: VaccinationUiState,
+    onValueChanged: (VaccinationUiState) -> Unit,
+    isEditable: Boolean = true
 ) {
     val state = rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
@@ -477,7 +505,7 @@ fun StatefulPickDateDialog(
         date = vaccinationUiState.getDate(),
         datePickerState = state,
         isEditable = isEditable,
-        onValueChanged = { vaccinationUiState.setDate(it) },
+        onValueChanged = { onValueChanged(vaccinationUiState.copy(date = it)) },
         saveDateSelected = { dateState ->
             val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
                 DateUtils().convertMillisToLocalDate(

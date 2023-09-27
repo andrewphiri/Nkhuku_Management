@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -122,15 +121,16 @@ fun NkhukuNavHost(
         ) { navBackStackEntry ->
             AddVaccinationsScreen(
                 navigateBack = {
-                    navController.navigate(NavigationBarScreens.Home.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = false
-                        }
-                        navController.popBackStack(
-                            NavigationBarScreens.Home.route,
-                            inclusive = true
-                        )
-                    }
+                    navController.navigateUp()
+//                    navController.navigate(NavigationBarScreens.Home.route) {
+//                        popUpTo(navController.graph.findStartDestination().id) {
+//                            saveState = false
+//                        }
+//                        navController.popBackStack(
+//                            NavigationBarScreens.Home.route,
+//                            inclusive = true
+//                        )
+//                    }
                 },
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
@@ -170,11 +170,12 @@ fun NavGraphBuilder.detailsGraph(
 ) {
     navigation(
         route = GraphRoutes.DETAILS,
-        startDestination = FlockDetailsDestination.route
+        startDestination = FlockDetailsDestination.routeWithArgs
     ) {
         composable(
             route = FlockDetailsDestination.routeWithArgs,
-            arguments = FlockDetailsDestination.arguments
+            arguments = FlockDetailsDestination.arguments,
+            deepLinks = FlockDetailsDestination.deepLink
         ) {
             FlockDetailsScreen(
                 onNavigateUp = { navController.navigateUp() },

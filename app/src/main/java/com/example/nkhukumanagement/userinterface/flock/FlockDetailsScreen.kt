@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.example.nkhukumanagement.FlockManagementTopAppBar
 import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Flock
@@ -48,6 +49,7 @@ import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.data.Weight
 import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import com.example.nkhukumanagement.userinterface.vaccination.AddVaccinationsDestination
 import com.example.nkhukumanagement.userinterface.vaccination.toVaccinationUiState
 import com.example.nkhukumanagement.userinterface.weight.toWeightUiState
 import com.example.nkhukumanagement.utils.BaseSingleRowDetailsItem
@@ -64,6 +66,9 @@ object FlockDetailsDestination : NkhukuDestinations {
         get() = R.string.details
     const val flockIdArg = "id"
     val routeWithArgs = "$route/{$flockIdArg}"
+    val uri = "nkhuku://www.drew.nkhuku.com"
+    val deepLink =
+        listOf(navDeepLink { uriPattern = "$uri/{${AddVaccinationsDestination.flockIdArg}}" })
     val arguments = listOf(navArgument(flockIdArg) {
         defaultValue = 0
         type = NavType.IntType

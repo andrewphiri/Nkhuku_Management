@@ -64,9 +64,9 @@ import com.example.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import com.example.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import com.example.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import com.example.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
+import com.example.nkhukumanagement.utils.BaseSingleRowItem
 import com.example.nkhukumanagement.utils.DateUtils
 import com.example.nkhukumanagement.utils.ShowAlertDialog
-import com.example.nkhukumanagement.utils.BaseSingleRowItem
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -83,8 +83,6 @@ fun HomeScreen(
     val homeUiState by viewModel.homeUiState.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-
-
     DisposableEffect(Unit) {
         onDispose {
             flockEntryViewModel.resetAll()

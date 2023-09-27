@@ -8,6 +8,7 @@ import com.example.nkhukumanagement.R
 import com.example.nkhukumanagement.data.Flock
 import com.example.nkhukumanagement.utils.DateUtils
 import kotlinx.parcelize.Parcelize
+import java.time.LocalDate
 
 
 /**
@@ -20,7 +21,7 @@ data class FlockUiState(
     private var uniqueId: String = "",
     val batchName: String = "",
     val breed: String = "",
-    private var datePlaced: String = "",
+    private var datePlaced: String = DateUtils().dateToStringLongFormat(LocalDate.now()),
     val quantity: String = "",
     val cost: String = "",
     val donorFlock: String = "",

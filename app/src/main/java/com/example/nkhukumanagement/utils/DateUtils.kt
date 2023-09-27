@@ -3,6 +3,7 @@ package com.example.nkhukumanagement.utils
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.nkhukumanagement.data.Vaccination
 import com.example.nkhukumanagement.userinterface.feed.FeedUiState
 import com.example.nkhukumanagement.userinterface.vaccination.VaccinationUiState
 import com.example.nkhukumanagement.userinterface.weight.WeightUiState
@@ -11,6 +12,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class DateUtils {
 
@@ -147,8 +150,29 @@ class DateUtils {
         return feedUiState.getDate()
     }
 
+    /**
+     * Fun to calculate age fo birds
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun calculateAge(birthDate: LocalDate, today: LocalDate): Int {
         return today.compareTo(birthDate.minusDays(1))
+    }
+
+    /**
+     * Set alarm date to day before the vaccination
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun calculateAlarmDate(vaccination: Vaccination): Long {
+        return vaccination.date.minusDays(1).atTime(8, 0)
+            .atZone(ZoneId.systemDefault())
+            .toEpochSecond() * 1000
+    }
+
+    /**
+     * Alarm should be triggered within the specified window interval
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun calculateAlarmWindowLength(lengthWindowInMinutes: Long): Long {
+        return lengthWindowInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
     }
 }

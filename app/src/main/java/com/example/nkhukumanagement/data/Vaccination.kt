@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import java.time.LocalDate
 
 /**
- * Data class that represent the a table in the database.
+ * Data class that represent a table in the database.
  */
 @Entity(tableName = "vaccinations")
 data class Vaccination(

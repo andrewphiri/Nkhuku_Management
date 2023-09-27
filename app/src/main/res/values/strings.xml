@@ -31,4 +31,6 @@
     <string name="flock_overview">Flock Overview</string>
     <string name="flock">Flock</string>
     <string name="no_records_add_mort_cull">No records. To record a mortality or cull, tap on the button below.</string>
+    <string name="channel_name">vaccination_channel</string>
+    <string name="channel_description">vaccination_description</string>
 </resources>
