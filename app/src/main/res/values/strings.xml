@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Nkhuku Management</string>
+    <string name="web_client_id">407807660652-ht6ir9fh5l2lpvgsi9sq3iste8g3no28.apps.googleusercontent.com</string>
     <string name="home">Home</string>
     <string name="accounts">Accounts</string>
     <string name="tips">Tips</string>
@@ -33,4 +34,14 @@
     <string name="no_records_add_mort_cull">No records. To record a mortality or cull, tap on the button below.</string>
     <string name="channel_name">vaccination_channel</string>
     <string name="channel_description">vaccination_description</string>
+    <string name="brooding">Brooding</string>
+    <string name="placement">Placement</string>
+    <string name="feeding">Feeding</string>
+    <string name="equipment">Equipment</string>
+    <string name="hygiene">Hygiene</string>
+    <string name="blog_articles">Blogs</string>
+    <string name="read_article">Article</string>
+    <string name="signin">Sign In</string>
+    <string name="signup">Sign Up</string>
+    <string name="account_setup">Account Setup</string>
 </resources>

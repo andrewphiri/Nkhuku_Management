@@ -3,20 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
-        android:name=".FlockApplication"
+        android:name="and.drew.nkhukumanagement.FlockApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.NkhukuManagement"
+        android:theme="@style/Theme.NkhukuManagement.SplashScreen"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name="and.drew.nkhukumanagement.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.NkhukuManagement"
+            android:theme="@style/Theme.NkhukuManagement.SplashScreen"
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -35,7 +35,7 @@
                     android:scheme="nkhuku" />
             </intent-filter>
         </activity>
-        <receiver android:name=".utils.AlarmReceiver" />
+        <receiver android:name="and.drew.nkhukumanagement.utils.AlarmReceiver" />
     </application>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
