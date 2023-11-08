@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -134,13 +136,21 @@ fun FlockManagementTopAppBar(
     isAddShowing: Boolean = false,
     isDoneShowing: Boolean = false,
     isDoneEnabled: Boolean = false,
+    isFilterButtonEnabled: Boolean = true,
     onSaveToDatabase: () -> Unit = {},
-    onSignOut: () -> Unit = {}
+    onSignOut: () -> Unit = {},
+    onClickFilter: () -> Unit = {}
 ) {
     if (canNavigateBack) {
         TopAppBar(
             modifier = modifier,
-            title = { Text(title) },
+            title = {
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
             colors = TopAppBarDefaults.topAppBarColors(),
             navigationIcon = {
                 IconButton(onClick = navigateUp) {
@@ -197,6 +207,18 @@ fun FlockManagementTopAppBar(
                         contentDescription = "Sign out"
                     )
                 }
+                if (title == "Home" || title == "Accounts") {
+                    IconButton(
+                        onClick = onClickFilter,
+                        enabled = isFilterButtonEnabled
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = "Filter list"
+                        )
+                    }
+                }
+
             })
     }
 }

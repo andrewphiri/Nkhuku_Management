@@ -169,6 +169,8 @@ class DateUtils {
         return vaccination.date.minusDays(1).atTime(8, 0)
             .atZone(ZoneId.systemDefault())
             .toEpochSecond() * 1000
+//        LocalDateTime.now().plusMinutes(1).toEpochSecond(ZoneOffset.UTC)
+
     }
 
     /**

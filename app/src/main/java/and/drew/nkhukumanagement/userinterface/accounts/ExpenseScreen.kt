@@ -247,7 +247,7 @@ fun ExpenseCardItem(
                     weightForLabelA = 0.5f,
                     titleA = expensesUiState.getDate(),
                     weightForTitleA = 1.5f,
-                    labelB = "Suppler",
+                    labelB = "Supplier",
                     titleB = expensesUiState.supplier
                 )
                  BaseAccountRow(

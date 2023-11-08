@@ -7,6 +7,7 @@ import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
+import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
 import and.drew.nkhukumanagement.utils.currencyFormatter
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -14,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,8 +29,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -45,26 +51,50 @@ fun AccountsScreen(
     navigateToTransactionsScreen: (Int) -> Unit
 ) {
     val accountsSummaryList by accountsViewModel.accountsList.collectAsState()
+    var accountsList = accountsSummaryList.accountsSummary.filter { it.flockActive }
+    var isFilterMenuShowing by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Accounts.resourceId),
-                canNavigateBack = canNavigateBack
+                isFilterButtonEnabled = accountsSummaryList.accountsSummary.isNotEmpty(),
+                canNavigateBack = canNavigateBack,
+                onClickFilter = {
+                    isFilterMenuShowing = !isFilterMenuShowing
+                }
             )
         }
     ) { innerPadding ->
-        Column { }
-        AccountsList(
-            modifier = Modifier.padding(innerPadding),
-            accountsList = accountsSummaryList.accountsSummary,
-            onItemClick = { navigateToTransactionsScreen(it) }
-        )
+        Column(modifier = Modifier.padding(innerPadding)) {
+            ShowFilterOverflowMenu(
+                modifier = Modifier.align(Alignment.End),
+                isOverflowMenuExpanded = isFilterMenuShowing,
+                onDismiss = { isFilterMenuShowing = false },
+                onClickAll = {
+                    accountsList = accountsSummaryList.accountsSummary
+                    isFilterMenuShowing = false
+                },
+                onClickActive = {
+                    accountsList = accountsSummaryList.accountsSummary.filter { it.flockActive }
+                    isFilterMenuShowing = false
+                },
+                onClickInactive = {
+                    accountsList = accountsSummaryList.accountsSummary.filter { !it.flockActive }
+                    isFilterMenuShowing = false
+                }
+            )
+
+            AccountsList(
+                accountsList = accountsList,
+                onItemClick = { navigateToTransactionsScreen(it) }
+            )
+        }
     }
 }
 
 @Composable
 fun AccountsList(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     accountsList: List<AccountsSummary>,
     onItemClick: (Int) -> Unit
 ) {
@@ -100,44 +130,60 @@ fun SummaryAccountsCard(
     onAccountsClick: () -> Unit = {}
 ) {
     ElevatedCard(modifier = modifier.clickable(onClick = onAccountsClick)) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = accountsSummary.batchName,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleMedium
-            )
 
-            Divider(
-                modifier = Modifier.fillMaxWidth(),
-                thickness = Dp.Hairline,
-                color = MaterialTheme.colorScheme.tertiary
-            )
+        Box {
+            if (!accountsSummary.flockActive) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 16.dp)
+                        .rotate(-45f)
+                ) {
+                    Text(
+                        text = "Closed",
+                        textAlign = TextAlign.Center,
+                        color = Color.Red
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = accountsSummary.batchName,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleMedium
+                )
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                BaseSingleRowItem(
-                    label = "Income",
-                    value = currencyFormatter(accountsSummary.totalIncome),
-                    styleForLabel = MaterialTheme.typography.bodyMedium,
-                    styleForTitle = MaterialTheme.typography.bodyMedium,
-                    textAlignA = TextAlign.Center,
-                    textAlignB = TextAlign.Center,
-                    weightA = 1f,
-                    weightB = 1f
+                Divider(
+                    modifier = Modifier.fillMaxWidth(),
+                    thickness = Dp.Hairline,
+                    color = MaterialTheme.colorScheme.tertiary
                 )
-                BaseSingleRowItem(
-                    label = "Expenses",
-                    value = currencyFormatter(accountsSummary.totalExpenses),
-                    styleForLabel = MaterialTheme.typography.bodyMedium,
-                    styleForTitle = MaterialTheme.typography.bodyMedium,
-                    textAlignA = TextAlign.Center,
-                    textAlignB = TextAlign.Center,
-                    weightA = 1f,
-                    weightB = 1f
-                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    BaseSingleRowItem(
+                        label = "Income",
+                        value = currencyFormatter(accountsSummary.totalIncome),
+                        styleForLabel = MaterialTheme.typography.bodyMedium,
+                        styleForTitle = MaterialTheme.typography.bodyMedium,
+                        textAlignA = TextAlign.Center,
+                        textAlignB = TextAlign.Center,
+                        weightA = 1f,
+                        weightB = 1f
+                    )
+                    BaseSingleRowItem(
+                        label = "Expenses",
+                        value = currencyFormatter(accountsSummary.totalExpenses),
+                        styleForLabel = MaterialTheme.typography.bodyMedium,
+                        styleForTitle = MaterialTheme.typography.bodyMedium,
+                        textAlignA = TextAlign.Center,
+                        textAlignB = TextAlign.Center,
+                        weightA = 1f,
+                        weightB = 1f
+                    )
 //                Row(
 //                    verticalAlignment = Alignment.CenterVertically,
 //                    horizontalArrangement = Arrangement.SpaceEvenly
@@ -154,27 +200,27 @@ fun SummaryAccountsCard(
 //                    )
 //                }
 
-                Divider(
-                    modifier = Modifier.fillMaxWidth(),
-                    thickness = Dp.Hairline,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
+                    Divider(
+                        modifier = Modifier.fillMaxWidth(),
+                        thickness = Dp.Hairline,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
 
-                BaseSingleRowItem(
-                    label = if (accountsSummary.variance > 0)
-                        "Profit" else if (accountsSummary.variance < 0) "Loss" else "Break-Even",
-                    value = currencyFormatter(accountsSummary.variance),
-                    styleForLabel = MaterialTheme.typography.bodyMedium,
-                    styleForTitle = MaterialTheme.typography.bodyMedium,
-                    colorForTitle =
-                    if (accountsSummary.variance > 0) Color.Green
-                    else if (accountsSummary.variance == 0.0) Color.Black
-                    else Color.Red,
-                    textAlignA = TextAlign.Center,
-                    textAlignB = TextAlign.Center,
-                    weightA = 1f,
-                    weightB = 1f
-                )
+                    BaseSingleRowItem(
+                        label = if (accountsSummary.variance > 0)
+                            "Profit" else if (accountsSummary.variance < 0) "Loss" else "Break-Even",
+                        value = currencyFormatter(accountsSummary.variance),
+                        styleForLabel = MaterialTheme.typography.bodyMedium,
+                        styleForTitle = MaterialTheme.typography.bodyMedium,
+                        colorForTitle =
+                        if (accountsSummary.variance > 0) Color.Green
+                        else if (accountsSummary.variance == 0.0) Color.Black
+                        else Color.Red,
+                        textAlignA = TextAlign.Center,
+                        textAlignB = TextAlign.Center,
+                        weightA = 1f,
+                        weightB = 1f
+                    )
 //                Row(
 //                    verticalAlignment = Alignment.CenterVertically,
 //                    horizontalArrangement = Arrangement.SpaceEvenly
@@ -196,6 +242,7 @@ fun SummaryAccountsCard(
 //                        else Color.Red
 //                    )
 //                }
+                }
             }
         }
     }

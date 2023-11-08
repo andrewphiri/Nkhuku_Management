@@ -7,6 +7,8 @@ import and.drew.nkhukumanagement.userinterface.accounts.AccountsViewModel
 import and.drew.nkhukumanagement.userinterface.feed.FeedViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
+import and.drew.nkhukumanagement.userinterface.flock.toFlock
+import and.drew.nkhukumanagement.userinterface.flock.toFlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.userinterface.weight.WeightViewModel
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
@@ -81,7 +83,7 @@ object AddVaccinationsDestination : NkhukuDestinations {
         get() = "Add vaccinations"
     override val resourceId: Int
         get() = R.string.add_vaccinations
-    const val flockIdArg = "id"
+    const val flockIdArg = "id_arg"
     val routeWithArgs = "$route/{$flockIdArg}"
     val argument = listOf(
         navArgument(flockIdArg) {
@@ -99,18 +101,20 @@ fun AddVaccinationsScreen(
     navigateBack: () -> Unit,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    vaccinationViewModel: VaccinationViewModel,
+    vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
     detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
     weightViewModel: WeightViewModel = hiltViewModel(),
     feedViewModel: FeedViewModel = hiltViewModel(),
-    accountsViewModel: AccountsViewModel = hiltViewModel()
+    accountsViewModel: AccountsViewModel = hiltViewModel(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val flockWithVaccinations by detailsViewModel.flockWithVaccinationsStateFlow.collectAsState()
+    val withVaccinationsToEdit by vaccinationViewModel.flockWithVaccinationsStateFlow.collectAsState()
     var vaccinesList: List<Vaccination> = listOf()
     val vaccinesStateList: MutableList<VaccinationUiState> = mutableListOf()
+    val flockList by detailsViewModel.allFlocks.collectAsState()
     var minutes: Long by remember { mutableStateOf(1) }
 
     var title by remember { mutableStateOf("") }
@@ -138,7 +142,10 @@ fun AddVaccinationsScreen(
         isDoneButtonShowing = false
         isAddShowing = false
         isRemoveShowing = false
-        vaccinesList = flockWithVaccinations.vaccinations
+        vaccinesList = withVaccinationsToEdit?.vaccinations ?: listOf()
+        flockWithVaccinations?.vaccinations?.let {
+
+        }
         for ((index, vaccination) in vaccinesList.withIndex()) {
             vaccinesStateList.add(
                 vaccination.toVaccinationUiState(
@@ -147,6 +154,9 @@ fun AddVaccinationsScreen(
                 )
             )
         }
+
+        Log.i("VACCINE_LIST", vaccinesStateList.toString())
+        Log.i("VACCINE_LIST", vaccinationViewModel.flockID.toString())
         vaccinationViewModel.setInitialVaccinationDates(vaccinesStateList.toMutableStateList())
     }
 
@@ -204,13 +214,19 @@ fun AddVaccinationsScreen(
                                 flockEntryViewModel.flockUiState
                             )
                         )
+                        val flock =
+                            if (!flockList.flockList.isNullOrEmpty()) flockList.flockList.last() else
+                                flockEntryViewModel.flockUiState.toFlock()
                         vaccinationViewModel.getInitialVaccinationList().forEach {
-                            minutes += 1
-                            vaccinationViewModel.schedule(
-                                it.toVaccination(),
-                                flockEntryViewModel.flockUiState
-                            )
+                            flock.toFlockUiState().let { flock ->
+                                vaccinationViewModel.schedule(
+                                    it.toVaccination(),
+                                    flock.copy(id = flock.id + 1)
+                                )
+                                Log.i("CHECK_ID", flock.id.toString())
+                            }
                         }
+
                         coroutineScope.launch {
                             flockEntryViewModel.saveItem()
                             accountsViewModel.insertAccount(
@@ -236,11 +252,12 @@ fun AddVaccinationsScreen(
 
                             }
                         }.invokeOnCompletion {
+
                             navigateBack()
                         }
                     } else {
                         val flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId()
-                        flockWithVaccinations.vaccinations.forEach {
+                        withVaccinationsToEdit?.vaccinations?.forEach {
                             vaccinationViewModel.cancelAlarm(it)
                             Log.i("VACCINE_HASHCODE", it.hashCode().toString())
                         }

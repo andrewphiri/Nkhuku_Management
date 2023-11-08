@@ -25,7 +25,7 @@ class FlockApplication : Application() {
                 description = descriptionText
                 enableLights(true)
                 enableVibration(true)
-                lightColor = Color.MAGENTA
+                lightColor = Color.YELLOW
             }
             notificationManager.createNotificationChannel(channel)
         }

@@ -14,6 +14,7 @@ class AccountsSummary(
     val batchName: String,
     val totalIncome: Double,
     val totalExpenses: Double,
-    val variance: Double
+    val variance: Double,
+    val flockActive: Boolean = true
 )
 

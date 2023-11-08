@@ -2,7 +2,7 @@ package and.drew.nkhukumanagement.userinterface.accounts
 
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Income
-import and.drew.nkhukumanagement.ui.theme.GreenCardStartDividerColor
+import and.drew.nkhukumanagement.ui.theme.GreenColor
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.BaseAccountRow
@@ -212,7 +212,7 @@ fun IncomeCardItem(
             Divider(
                 modifier = Modifier.weight(0.02f).fillMaxHeight(),
                 thickness = 2.dp,
-                color = GreenCardStartDividerColor
+                color = GreenColor
             )
             Column(
                 modifier = Modifier.weight(1f).padding(16.dp),

@@ -7,12 +7,13 @@ import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.data.Weight
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
-import and.drew.nkhukumanagement.userinterface.vaccination.AddVaccinationsDestination
 import and.drew.nkhukumanagement.userinterface.vaccination.toVaccinationUiState
 import and.drew.nkhukumanagement.userinterface.weight.toWeightUiState
 import and.drew.nkhukumanagement.utils.BaseSingleRowDetailsItem
 import and.drew.nkhukumanagement.utils.DateUtils
+import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -64,12 +65,15 @@ object FlockDetailsDestination : NkhukuDestinations {
         get() = "Details"
     override val resourceId: Int
         get() = R.string.details
-    const val flockIdArg = "id"
-    val routeWithArgs = "$route/{$flockIdArg}"
-    val uri = "nkhuku://www.drew.nkhuku.com"
-    val deepLink =
-        listOf(navDeepLink { uriPattern = "$uri/{${AddVaccinationsDestination.flockIdArg}}" })
-    val arguments = listOf(navArgument(flockIdArg) {
+    const val flockId = "flock_id_arg"
+    val routeWithArgs = "$route/{$flockId}"
+    const val uri = "nkhuku://www.drew.nkhuku.com"
+    val deepLink = listOf(navDeepLink {
+        uriPattern = "$uri/{$flockId}"
+        action = Intent.ACTION_VIEW
+
+    })
+    val arguments = listOf(navArgument(flockId) {
         defaultValue = 0
         type = NavType.IntType
     })
@@ -100,8 +104,9 @@ fun FlockDetailsScreen(
             cost = "0"
         ).toFlock()
     )
+    Log.i("FLOCK ID", detailsViewModel.flockID.toString())
 
-    flockEntryViewModel.updateUiState(flock.toFlockUiState(true))
+    flock?.toFlockUiState(true)?.let { flockEntryViewModel.updateUiState(it) }
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -120,42 +125,54 @@ fun FlockDetailsScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp).also { Arrangement.Center },
         ) {
             item {
-                flockWithVaccinations.flock?.let {
+                flockWithVaccinations?.flock?.let { flock ->
                     HealthCard(
-                        flock = it,
-                        onHealthCardClick = { navigateToFlockHealthScreen(flock.id) })
+                        flock = flock,
+                        onHealthCardClick = {
+                            navigateToFlockHealthScreen(
+                                flock.id
+                            )
+                        })
                 }
             }
             item {
-                VaccinationList(
-                    modifier = modifier,
-                    vaccinationUiStateList = flockWithVaccinations.vaccinations,
-                    onVaccinationCardClick = {
-                        navigateToVaccinationScreen(it)
-                    },
-                    flock = flock
-                )
-            }
-            item {
-                flockWithFeed.feedList?.sumOf { it.consumed }.let { totalQty ->
-                    if (totalQty != null) {
-                        FeedCard(
-                            quantityConsumed = totalQty,
-                            flockUiState = flock.toFlockUiState(enabled = true),
-                            onFeedCardClick = { id ->
-                                navigateToFeedScreen(id)
-                            }
+                flockWithVaccinations?.let {
+                    it.flock?.let { flock ->
+                        VaccinationList(
+                            modifier = modifier,
+                            vaccinationUiStateList = it.vaccinations,
+                            onVaccinationCardClick = { id ->
+                                navigateToVaccinationScreen(id)
+                            },
+                            flock = flock
                         )
                     }
                 }
             }
             item {
-                val weight = flockWithWeight.weights?.filter { it.weight > 0.0 }?.lastOrNull()
-                    ?: flockWithWeight.weights?.first()
+                flockWithFeed?.feedList?.sumOf { it.consumed }.let { totalQty ->
+                    if (totalQty != null) {
+                        flock?.toFlockUiState(enabled = true)?.let { flockUiState ->
+                            FeedCard(
+                                quantityConsumed = totalQty,
+                                flockUiState = flockUiState,
+                                onFeedCardClick = { id ->
+                                    navigateToFeedScreen(id)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            item {
+                val weight = flockWithWeight?.weights?.filter { it.weight > 0.0 }?.lastOrNull()
+                    ?: flockWithWeight?.weights?.first()
                 if (weight != null) {
-                    WeightCard(weight = weight,
-                        flock = flock,
-                        onWeightCardClick = { id -> navigateToWeightScreen(id) })
+                    flock?.let { flock ->
+                        WeightCard(weight = weight,
+                            flock = flock,
+                            onWeightCardClick = { id -> navigateToWeightScreen(id) })
+                    }
                 }
             }
         }

@@ -24,7 +24,7 @@ object NotificationModule {
         @ApplicationContext context: Context
     ): NotificationCompat.Builder {
         return NotificationCompat.Builder(context, Constants.CHANNEL_ID)
-            .setSmallIcon(R.drawable.calculate)
+            .setSmallIcon(R.drawable.icon3)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
 
@@ -35,18 +35,5 @@ object NotificationModule {
     @Singleton
     fun provideNotificationManager(@ApplicationContext context: Context): NotificationManager {
         return context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//            val name = context.getString(R.string.channel_name)
-//            val descriptionText = context.getString(R.string.channel_description)
-//            val importance = NotificationManager.IMPORTANCE_DEFAULT
-//            val channel = NotificationChannel(Constants.CHANNEL_ID, name, importance).apply {
-//                description = descriptionText
-//                enableLights(true)
-//                enableVibration(true)
-//            }
-//            //Register the channel with the system
-//        notificationManager.createNotificationChannel(channel)
-//        return notificationManager
-
-
     }
 }

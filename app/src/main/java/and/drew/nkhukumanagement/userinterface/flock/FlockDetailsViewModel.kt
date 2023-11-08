@@ -5,6 +5,7 @@ import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithFeed
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.FlockWithWeight
+import and.drew.nkhukumanagement.userinterface.home.HomeUiState
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
@@ -30,16 +31,24 @@ class FlockDetailsViewModel @Inject constructor(
         private const val MILLIS = 5_000L
     }
 
-    private val flockID: Int = checkNotNull(savedStateHandle[FlockDetailsDestination.flockIdArg])
+    val flockID: Int = savedStateHandle[FlockDetailsDestination.flockId] ?: 0
 
     val flock: Flow<Flock> =
         flockRepository.getFlock(flockID)
+
+    val allFlocks: StateFlow<HomeUiState> =
+        flockRepository.getAllFlockItems().map { HomeUiState(it) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(MILLIS),
+                initialValue = HomeUiState()
+            )
 
     /**
      * Get all flock with feed items
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    val flockWithFeedStateFlow: StateFlow<FlockWithFeed> =
+    val flockWithFeedStateFlow: StateFlow<FlockWithFeed?> =
         flockRepository.getAllFlocksWithFeed(flockID)
             .map { it }
             .stateIn(
@@ -51,7 +60,7 @@ class FlockDetailsViewModel @Inject constructor(
     /**
      * Get all flock with weight items
      */
-    val flockWithWeightStateFlow: StateFlow<FlockWithWeight> =
+    val flockWithWeightStateFlow: StateFlow<FlockWithWeight?> =
         flockRepository.getAllFlocksWithWeight(flockID)
             .map { it }
             .stateIn(
@@ -63,7 +72,7 @@ class FlockDetailsViewModel @Inject constructor(
     /**
      * Get all flock with vaccinations items.
      */
-    val flockWithVaccinationsStateFlow: StateFlow<FlockWithVaccinations> =
+    val flockWithVaccinationsStateFlow: StateFlow<FlockWithVaccinations?> =
         flockRepository.getAllFlocksWithVaccinations(flockID)
             .map { it }
             .stateIn(
@@ -71,5 +80,4 @@ class FlockDetailsViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(MILLIS),
                 initialValue = FlockWithVaccinations(flock = null, vaccinations = listOf())
             )
-
 }

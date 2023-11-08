@@ -13,12 +13,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+/**
+ * Viewmodel to retrieve single article and display it
+ */
 @HiltViewModel
 class ArticleViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     val firestoreDatabase: FirebaseFirestore
 ) : ViewModel() {
-
+    // Mutable and immutable article
     private val _article = MutableStateFlow(Article())
     val article = _article.asStateFlow()
 
@@ -31,6 +34,9 @@ class ArticleViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Function to get an article from firestore and return the result
+     */
     fun getSingleArticle(
         category: String,
         subCollection: String,
@@ -49,6 +55,9 @@ class ArticleViewModel @Inject constructor(
             }
     }
 
+    /**
+     * Retrieve the article returned from [getSingleArticle]
+     */
     suspend fun retrieveArticle(
         category: String,
         subCollection: String,
@@ -59,23 +68,24 @@ class ArticleViewModel @Inject constructor(
                 .await()
                 .data
 
-            Log.d("articles", articles.toString())
             article?.run { ->
                 Article(
                     id = article["id"].toString(),
                     title = article["title"].toString(),
                     author = article["author"].toString(),
-                    body = article["body"].toString()
+                    body = article["body"].toString(),
+                    imageUrl = article["imageUrl"].toString()
                 )
             }
-
-
         } catch (e: Exception) {
             Log.d("ERROR_RETRIEVING", "Error getting documents: ", e)
             null
         }
     }
 
+    /**
+     * Get the article retrieved from [retrieveArticle] and set it to the mutable property [_article]
+     */
     suspend fun generateSingleArticle(id: Int, documentId: String) {
         when (id) {
             1 -> {

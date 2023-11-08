@@ -1,7 +1,10 @@
 package and.drew.nkhukumanagement.utils
 
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsDestination
-import and.drew.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
+import and.drew.nkhukumanagement.utils.Constants.BIG_TEXT_CONTENT
+import and.drew.nkhukumanagement.utils.Constants.CONTENT_TEXT
+import and.drew.nkhukumanagement.utils.Constants.FLOCK_ID
+import and.drew.nkhukumanagement.utils.Constants.TITLE
 import android.Manifest
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -9,6 +12,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -25,19 +29,21 @@ class AlarmReceiver : BroadcastReceiver() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onReceive(context: Context, intent: Intent) {
-        val title = intent.getStringExtra(VaccinationViewModel.TITLE) ?: return
-        val contentText = intent.getStringExtra(VaccinationViewModel.CONTENT_TEXT) ?: "No text"
-        val bigText = intent.getStringExtra(VaccinationViewModel.BIG_TEXT_CONTENT) ?: return
-        val flockID = intent.getIntExtra(VaccinationViewModel.FLOCK_ID, 0)
+        val title = intent.getStringExtra(TITLE) ?: return
+        val contentText = intent.getStringExtra(CONTENT_TEXT) ?: "No text"
+        val bigText = intent.getStringExtra(BIG_TEXT_CONTENT) ?: return
+        val flockID = intent.getIntExtra(FLOCK_ID, -1)
+        val vaccinationHashcode = intent.getIntExtra(Constants.VACCINE_HASHCODE, 0)
 
         val deepLinkIntent = Intent(
             Intent.ACTION_VIEW,
             "${FlockDetailsDestination.uri}/$flockID".toUri()
         )
+        Log.i("EXTRA_FLOCK_ID", flockID.toString())
 
         val deepLinkPendingIntent: PendingIntent? = TaskStackBuilder.create(context).run {
             addNextIntentWithParentStack(deepLinkIntent)
-            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+            getPendingIntent(vaccinationHashcode, PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
         with(NotificationManagerCompat.from(context)) {
@@ -59,7 +65,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 .setContentText(contentText)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
                 .setContentIntent(deepLinkPendingIntent)
-            notify(Constants.NOTIFICATION_ID, notificationBuilder.build())
+            notify(vaccinationHashcode, notificationBuilder.build())
             println("ALARM WORKED, $contentText")
         }
     }

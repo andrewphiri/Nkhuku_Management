@@ -295,8 +295,7 @@ fun NavGraphBuilder.homeGraph(
                     }
                 },
                 onNavigateUp = { navController.navigateUp() },
-                flockEntryViewModel = flockEntryViewModel,
-                vaccinationViewModel = vaccinationViewModel
+                flockEntryViewModel = flockEntryViewModel
             )
         }
         composable(route = PlannerResultsDestination.route) {

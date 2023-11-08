@@ -2,14 +2,18 @@ package and.drew.nkhukumanagement.userinterface.home
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
+import and.drew.nkhukumanagement.userinterface.accounts.AccountsViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
+import and.drew.nkhukumanagement.userinterface.flock.toFlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
+import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -29,6 +33,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -59,7 +64,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -76,13 +84,25 @@ fun HomeScreen(
     navigateToAddFlock: () -> Unit,
     navigateToFlockDetails: (Int) -> Unit,
     onSignOut: () -> Unit = {},
-    viewModel: HomeViewModel = hiltViewModel(),
+    homeViewModel: HomeViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
-    vaccinationViewModel: VaccinationViewModel
+    vaccinationViewModel: VaccinationViewModel,
+    accountsViewModel: AccountsViewModel = hiltViewModel()
 ) {
-    val homeUiState by viewModel.homeUiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val homeUiState by homeViewModel.homeUiState.collectAsState()
+    var accountSummary: AccountsSummary? = AccountsSummary(
+        flockUniqueID = "",
+        batchName = "",
+        totalIncome = 0.0,
+        totalExpenses = 0.0,
+        variance = 0.0
+    )
+    var flockList = homeUiState.flockList.filter { it.active }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    var isFilterMenuShowing by remember { mutableStateOf(false) }
+
     DisposableEffect(Unit) {
         onDispose {
             flockEntryViewModel.resetAll()
@@ -93,9 +113,13 @@ fun HomeScreen(
         modifier = modifier,
         topBar = {
             FlockManagementTopAppBar(
-                stringResource(NavigationBarScreens.Home.resourceId),
+                title = stringResource(NavigationBarScreens.Home.resourceId),
                 canNavigateBack = false,
-                onSignOut = onSignOut
+                onSignOut = onSignOut,
+                isFilterButtonEnabled = homeUiState.flockList.isNotEmpty(),
+                onClickFilter = {
+                    isFilterMenuShowing = !isFilterMenuShowing
+                }
             )
         },
         floatingActionButton = {
@@ -125,23 +149,84 @@ fun HomeScreen(
 
         },
     ) { innerPadding ->
-        FlockBody(
-            modifier = Modifier.padding(innerPadding),
-            flockList = homeUiState.flockList,
-            onItemClick = navigateToFlockDetails,
-            listState = listState,
-            onDelete = { index ->
-                coroutineScope.launch {
-                    val uniqueId = homeUiState.flockList[index].uniqueId
-                    flockEntryViewModel.deleteFlock(uniqueId)
-                    vaccinationViewModel.deleteVaccination(uniqueId)
-                    vaccinationViewModel.deleteFeed(uniqueId)
-                    vaccinationViewModel.deleteWeight(uniqueId)
-                    flockEntryViewModel.deleteFlockHealth(uniqueId)
-
+        Column(
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            ShowFilterOverflowMenu(
+                modifier = Modifier.align(Alignment.End),
+                isOverflowMenuExpanded = isFilterMenuShowing,
+                onDismiss = { isFilterMenuShowing = false },
+                onClickAll = {
+                    flockList = homeUiState.flockList
+                    isFilterMenuShowing = false
+                },
+                onClickActive = {
+                    flockList = homeUiState.flockList.filter { it.active }
+                    isFilterMenuShowing = false
+                },
+                onClickInactive = {
+                    flockList = homeUiState.flockList.filter { !it.active }
+                    isFilterMenuShowing = false
                 }
-            }
-        )
+            )
+
+            FlockBody(
+                flockList = flockList,
+                onItemClick = navigateToFlockDetails,
+                listState = listState,
+                onDelete = { index ->
+                    coroutineScope.launch {
+                        val uniqueId = homeUiState.flockList[index].uniqueId
+                        flockEntryViewModel.deleteFlock(uniqueId)
+                        vaccinationViewModel.deleteVaccination(uniqueId)
+                        vaccinationViewModel.deleteFeed(uniqueId)
+                        vaccinationViewModel.deleteWeight(uniqueId)
+                        flockEntryViewModel.deleteFlockHealth(uniqueId)
+                    }
+                },
+                onClose = { flock ->
+
+                    accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
+                        .observe(lifecycleOwner) { flockAndSummary ->
+                            accountSummary = flockAndSummary.accountsSummary
+                        }
+                    coroutineScope.launch {
+
+                        if (flock.active) {
+                            flockEntryViewModel.updateItem(
+                                flockUiState = flock.toFlockUiState().copy(active = false)
+                            )
+                            accountSummary?.let {
+                                AccountsSummary(
+                                    id = it.id,
+                                    totalIncome = it.totalIncome,
+                                    flockUniqueID = it.flockUniqueID,
+                                    totalExpenses = it.totalExpenses,
+                                    variance = it.variance,
+                                    batchName = it.batchName,
+                                    flockActive = false
+                                )
+                            }?.let { accountsViewModel.updateAccountsSummary(it) }
+                        } else {
+                            flockEntryViewModel.updateItem(
+                                flockUiState = flock.toFlockUiState().copy(active = true)
+                            )
+                            accountSummary?.let {
+                                AccountsSummary(
+                                    id = it.id,
+                                    totalIncome = it.totalIncome,
+                                    flockUniqueID = it.flockUniqueID,
+                                    totalExpenses = it.totalExpenses,
+                                    variance = it.variance,
+                                    batchName = it.batchName,
+                                    flockActive = true
+                                )
+                            }?.let { accountsViewModel.updateAccountsSummary(it) }
+                        }
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -152,7 +237,8 @@ fun FlockBody(
     flockList: List<Flock>,
     onItemClick: (Int) -> Unit,
     listState: LazyListState,
-    onDelete: (Int) -> Unit
+    onDelete: (Int) -> Unit,
+    onClose: (Flock) -> Unit
 ) {
     if (flockList.isEmpty()) {
         Box(
@@ -170,7 +256,9 @@ fun FlockBody(
             modifier = modifier,
             flockList = flockList,
             onItemClick = { onItemClick(it.id) },
-            listState = listState, onDelete = onDelete
+            listState = listState,
+            onDelete = onDelete,
+            onClose = onClose
         )
     }
 }
@@ -207,6 +295,7 @@ fun FlockList(
     modifier: Modifier = Modifier,
     flockList: List<Flock>,
     onItemClick: (Flock) -> Unit,
+    onClose: (Flock) -> Unit,
     listState: LazyListState, onDelete: (Int) -> Unit
 ) {
     LazyColumn(
@@ -214,7 +303,11 @@ fun FlockList(
         state = listState
     ) {
         itemsIndexed(flockList) { index, flock ->
-            FlockCard(flock = flock, onItemClick = onItemClick, onDelete = { onDelete(index) })
+            FlockCard(flock = flock,
+                onItemClick = onItemClick,
+                onClose = onClose,
+                onDelete = { onDelete(index) }
+            )
         }
     }
 }
@@ -225,104 +318,151 @@ fun FlockCard(
     modifier: Modifier = Modifier,
     flock: Flock,
     onItemClick: (Flock) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onClose: (Flock) -> Unit
 ) {
-    var isMenuShowing by remember { mutableStateOf(false) }
+    var isFlockItemMenuShowing by remember { mutableStateOf(false) }
     var isAlertDialogShowing by remember { mutableStateOf(false) }
+    var isCloseAlertDialogShowing by remember { mutableStateOf(false) }
 
+
+    ShowAlertDialog(
+        onDismissAlertDialog = { isCloseAlertDialogShowing = false },
+        onDelete = {
+            onClose(flock)
+            isCloseAlertDialogShowing = false
+        },
+        isAlertDialogShowing = isCloseAlertDialogShowing,
+        title = if (flock.active) "Close Flock Record" else "Reopen Flock Record",
+        message = if (flock.active) "Are you sure you want to close this flock record?" else
+            "Are you sure you want to reopen this flock record?",
+        confirmButtonText = "Yes",
+        dismissButtonText = "No"
+    )
 
     OutlinedCard(
         modifier = modifier.padding(8.dp)
             .clickable { onItemClick(flock) },
         elevation = CardDefaults.cardElevation()
     ) {
-        Column {
-
-            Row(
-                modifier = Modifier.padding(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f).fillMaxHeight()
+        Box {
+            if (!flock.active) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 16.dp)
+                        .rotate(-45f)
                 ) {
-                    Image(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        painter = painterResource(R.drawable.chicken),
-                        contentDescription = ("Breed is ${flock.breed}. Batch number ${flock.id}"),
-                        contentScale = ContentScale.Crop
+                    Text(
+                        text = "Closed",
+                        textAlign = TextAlign.Center,
+                        color = Color.Red
                     )
                 }
-                Column(
-                    modifier = Modifier.weight(3f),
-                    horizontalAlignment = Alignment.Start
+            }
+            Column {
+                Row(
+                    modifier = Modifier.padding(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        BaseSingleRowItem(
-                            modifier = Modifier.weight(weight = 1f, fill = true),
-                            label = "Name: ",
-                            value = flock.batchName,
-                            styleForLabel = MaterialTheme.typography.titleSmall,
-                            weightA = 0.5f
+                    Column(
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(75.dp)
+                                .align(Alignment.CenterHorizontally),
+                            painter = painterResource(R.drawable.icon4),
+                            contentDescription = ("Breed is ${flock.breed}. Batch number ${flock.id}"),
+                            contentScale = ContentScale.Crop
                         )
-                        Column(modifier = Modifier.weight(0.2f)) {
-                            ShowOverflowMenu(
-                                modifier = Modifier.align(Alignment.End),
-                                isOverflowMenuExpanded = isMenuShowing,
-                                isAlertDialogShowing = isAlertDialogShowing,
-                                onDismissAlertDialog = { isAlertDialogShowing = false },
-                                onShowMenu = { isMenuShowing = true },
-                                onShowAlertDialog = { isAlertDialogShowing = true },
-                                onDismiss = { isMenuShowing = false },
-                                onDelete = {
-                                    onDelete()
-                                    isAlertDialogShowing = false
-                                    isMenuShowing = false
-                                },
-                                title = "Delete flock?",
-                                message = "This cannot be undone.")
-                        }
                     }
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        BaseSingleRowItem(
-                            label = "Breed: ",
-                            value = flock.breed
-                        )
-                        BaseSingleRowItem(
-                            label = "Date: ",
-                            value = DateUtils().dateToStringLongFormat(flock.datePlaced)
-                        )
-                        BaseSingleRowItem(
-                            label = "Age: ",
-                            value = "${
-                                DateUtils().calculateAge(
-                                    birthDate = flock.datePlaced
-                                )
-                            } day/s",
-                        )
-
-                        BaseSingleRowItem(
-                            label = "Quantity: ",
-                            value = (flock.numberOfChicksPlaced + flock.donorFlock).toString()
-                        )
-                        BaseSingleRowItem(label = "Mortality: ", value = flock.mortality.toString())
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            Text(
-                                text = "Stock: ${(flock.stock)}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier
-                                    .padding(8.dp),
-                                textAlign = TextAlign.Center
+                    Column(
+                        modifier = Modifier.weight(3f),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            BaseSingleRowItem(
+                                modifier = Modifier.weight(weight = 1f, fill = true),
+                                label = "Name: ",
+                                value = flock.batchName,
+                                styleForLabel = MaterialTheme.typography.titleSmall,
+                                weightA = 0.5f
                             )
+                            Column(modifier = Modifier.weight(0.2f)) {
+                                ShowOverflowMenu(
+                                    modifier = Modifier.align(Alignment.End),
+                                    flock = flock,
+                                    isOverflowMenuExpanded = isFlockItemMenuShowing,
+                                    isAlertDialogShowing = isAlertDialogShowing,
+                                    onDismissAlertDialog = { isAlertDialogShowing = false },
+                                    onShowMenu = {
+                                        isFlockItemMenuShowing = true
+                                    },
+                                    onShowAlertDialog = { isAlertDialogShowing = true },
+                                    onDismiss = { isFlockItemMenuShowing = false },
+                                    onDelete = {
+                                        onDelete()
+                                        isAlertDialogShowing = false
+                                        isFlockItemMenuShowing = false
+                                    },
+                                    onClose = {
+                                        isFlockItemMenuShowing = false
+                                        isCloseAlertDialogShowing = true
+                                    },
+                                    title = "Delete flock?",
+                                    message = "This cannot be undone."
+                                )
+                            }
                         }
-                    }
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            BaseSingleRowItem(
+                                label = "Breed: ",
+                                value = flock.breed
+                            )
+                            BaseSingleRowItem(
+                                label = "Date: ",
+                                value = DateUtils().dateToStringLongFormat(flock.datePlaced)
+                            )
+                            if (flock.active) {
+                                BaseSingleRowItem(
+                                    label = "Age: ",
+                                    value = "${
+                                        DateUtils().calculateAge(
+                                            birthDate = flock.datePlaced
+                                        )
+                                    } day/s",
+                                )
+                            }
 
+                            BaseSingleRowItem(
+                                label = "Quantity: ",
+                                value = (flock.numberOfChicksPlaced + flock.donorFlock).toString()
+                            )
+                            BaseSingleRowItem(
+                                label = "Mortality: ",
+                                value = flock.mortality.toString()
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                Text(
+                                    text = "Stock: ${(flock.stock)}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier
+                                        .padding(8.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                    }
                 }
             }
+
         }
     }
 }
@@ -331,6 +471,7 @@ fun FlockCard(
 @Composable
 fun ShowOverflowMenu(
     modifier: Modifier = Modifier,
+    flock: Flock,
     isOverflowMenuExpanded: Boolean = false,
     isAlertDialogShowing: Boolean = false,
     onDismissAlertDialog: () -> Unit = {},
@@ -338,6 +479,7 @@ fun ShowOverflowMenu(
     onShowAlertDialog: () -> Unit,
     onDismiss: () -> Unit,
     onDelete: () -> Unit = {},
+    onClose: () -> Unit = {},
     title: String,
     message: String
 ) {
@@ -371,16 +513,13 @@ fun ShowOverflowMenu(
                 onClick = onShowAlertDialog
             )
             DropdownMenuItem(
-                text = { Text("Close") },
-                onClick = {}
-            )
-            DropdownMenuItem(
-                text = { Text("Edit") },
-                onClick = { }
+                text = { Text(text = if (flock.active) "Close" else "Reopen") },
+                onClick = onClose
             )
         }
     }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)

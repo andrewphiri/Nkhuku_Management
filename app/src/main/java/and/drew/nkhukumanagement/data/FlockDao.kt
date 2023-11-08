@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement.data
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -134,7 +135,7 @@ interface FlockDao {
 
     @Transaction
     @Query("SELECT * FROM flock WHERE id = :id")
-    fun getFlocksAndAccountSummary(id: Int): Flow<FlockAndAccountSummary>
+    fun getFlocksAndAccountSummary(id: Int): LiveData<FlockAndAccountSummary>
 
     @Transaction
     @Query("SELECT * FROM flock WHERE id = :id")

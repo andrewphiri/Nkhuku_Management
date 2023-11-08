@@ -4,11 +4,10 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import android.os.Build
-import android.text.SpannableStringBuilder
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -24,13 +23,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import coil.compose.AsyncImage
 
 object ReadArticleDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -91,36 +88,33 @@ fun ReadArticleScreen(
 @Composable
 fun ReadArticleCard(modifier: Modifier = Modifier, article: Article) {
     val scrollState = rememberScrollState()
-    //val context = LocalContext.current
-    val spannableString = SpannableStringBuilder(article.body).toString()
-    val spanned = HtmlCompat
-        .fromHtml(spannableString, HtmlCompat.FROM_HTML_MODE_COMPACT)
-    Column(
-        modifier = modifier.padding(16.dp).verticalScroll(state = scrollState, enabled = true),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            modifier = Modifier.padding().fillMaxWidth(),
-            text = article.title,
-            style = MaterialTheme.typography.titleMedium
-        )
 
-        AndroidView(
-            factory = { context -> TextView(context) },
-            update = {
-                it.text = HtmlCompat.fromHtml(article.body, HtmlCompat.FROM_HTML_MODE_LEGACY)
-            }
+    Column(
+        modifier = modifier.verticalScroll(state = scrollState, enabled = true),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        AsyncImage(
+            modifier = Modifier
+                .fillMaxWidth().defaultMinSize(minHeight = 300.dp),
+            model = article.imageUrl,
+            contentDescription = article.title
         )
-        Text(
-            modifier = Modifier.padding().fillMaxWidth(),
-            text = AnnotatedString(
-                HtmlCompat
-                    .fromHtml(
-                        SpannableStringBuilder(article.body).toString(),
-                        HtmlCompat.FROM_HTML_MODE_COMPACT
-                    ).toString()
-            ),
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = article.title,
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = article.body.replace("\\n", "\n"),
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
     }
+
 }

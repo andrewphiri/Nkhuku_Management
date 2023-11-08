@@ -21,7 +21,7 @@ class NotificationUtil {
 
     fun createNotification(context: Context, title: String, contentText: String, bigText: String) {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.calculate)
+            .setSmallIcon(R.drawable.logo_app)
             .setContentTitle(title)
             .setContentText(contentText)
             .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))

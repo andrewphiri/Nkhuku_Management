@@ -4,5 +4,6 @@ data class Article(
     val id: String = "",
     val author: String = "",
     val title: String = "",
-    val body: String = ""
+    val body: String = "",
+    val imageUrl: String = ""
 )

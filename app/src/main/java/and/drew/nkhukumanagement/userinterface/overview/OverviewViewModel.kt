@@ -4,7 +4,7 @@ import and.drew.nkhukumanagement.data.Account
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.data.FlockRepository
-import and.drew.nkhukumanagement.ui.theme.GreenCardStartDividerColor
+import and.drew.nkhukumanagement.ui.theme.GreenColor
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -34,7 +34,7 @@ class OverviewViewModel @Inject constructor(val flockRepository: FlockRepository
     fun accountsTotalsList(accountsSummary: List<AccountsSummary>): List<Account> {
         return listOf(
             Account(
-                color = if (accountsSummary.isNotEmpty()) GreenCardStartDividerColor else Color.Gray,
+                color = if (accountsSummary.isNotEmpty()) GreenColor else Color.Gray,
                 description = "Total Income",
                 amount = accountsSummary.sumOf { it.totalIncome },
                 net = accountsSummary.sumOf { it.variance }

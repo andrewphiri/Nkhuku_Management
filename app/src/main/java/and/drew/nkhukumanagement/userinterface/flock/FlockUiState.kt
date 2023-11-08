@@ -27,9 +27,10 @@ data class FlockUiState(
     val donorFlock: String = "",
     private var stock: String = "0",
     private var mortality: String = "0",
-    val imageResourceId: Int = R.drawable.chicken,
+    val imageResourceId: Int = R.drawable.icon4,
     private var culls: String = "0",
-    val enabled: Boolean = false
+    val enabled: Boolean = false,
+    val active: Boolean = true
 ) : Parcelable {
     val options = mutableListOf("Hybrid", "Ross", "Zamhatch")
 
@@ -108,7 +109,8 @@ fun FlockUiState.toFlock(): Flock = Flock(
     donorFlock = donorFlock.toIntOrNull() ?: 0,
     mortality = getMortality().toInt(),
     stock = getStock().toInt(),
-    culls = getCulls().toInt()
+    culls = getCulls().toInt(),
+    active = active
 )
 
 /**
@@ -141,7 +143,8 @@ fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
         mortality = mortality.toString(),
         culls = culls.toString(),
         stock = stock.toString(),
-        enabled = enabled
+        enabled = enabled,
+        active = active
     )
 
 /**

@@ -4,12 +4,14 @@ import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.AccountsWithExpense
 import and.drew.nkhukumanagement.data.AccountsWithIncome
 import and.drew.nkhukumanagement.data.Expense
+import and.drew.nkhukumanagement.data.FlockAndAccountSummary
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,6 +35,10 @@ class AccountsViewModel @Inject constructor(
     }
 
     val id = savedStateHandle[TransactionsScreenDestination.accountIdArg] ?: 0
+    var flockId: Int = 1
+
+    val flockAndAccountSummary: LiveData<FlockAndAccountSummary> =
+        flockRepository.getFlockAndAccountSummary(flockId)
 
     val accountsWithExpense: StateFlow<AccountsWithExpense> =
         flockRepository.getAccountsWithExpense(id)
@@ -76,12 +82,19 @@ class AccountsViewModel @Inject constructor(
                 initialValue = AccountsUiState()
             )
 
+    fun setFlockID(id: Int) {
+        flockId = id
+    }
 
     /**
      * Insert an Account Item into the database
      */
     suspend fun insertAccount(accountsSummary: AccountsSummary) {
         flockRepository.insertAccounts(accountsSummary)
+    }
+
+    suspend fun updateAccountsSummary(accountsSummary: AccountsSummary) {
+        flockRepository.updateAccounts(accountsSummary)
     }
 
     /**

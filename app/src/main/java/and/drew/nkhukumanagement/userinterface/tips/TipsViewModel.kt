@@ -5,7 +5,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,13 +25,12 @@ class TipsViewModel @Inject constructor(
     private val _articlesList = MutableStateFlow(mutableListOf<Article>())
     val articlesList = _articlesList.asStateFlow()
 
-
+    //Category ID of the category chosen
     val articleIdCategory = savedStateHandle[TipsArticlesListDestination.articleCategoryIdArg] ?: 0
+
+    //Name of category. Used as title of the app bar
     val title = savedStateHandle[TipsArticlesListDestination.categoryId] ?: "Tips"
 
-//    fun getArticlesList(): SnapshotStateList<Article> {
-//        return articlesList
-//    }
 
     fun setArticlesList(article: SnapshotStateList<Article>) {
         _articlesList.update {
@@ -40,6 +38,10 @@ class TipsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Retrieve articles from [retrieveCategoryArticles] for each category chosen and set
+     * the result to [_articlesList]
+     */
     suspend fun generateArticles(id: Int) {
         when (id) {
             1 -> {
@@ -84,34 +86,9 @@ class TipsViewModel @Inject constructor(
         }
     }
 
-    private fun getCollection(): Task<QuerySnapshot> {
-        return firestoreDatabase.collection("articles")
-            .get()
-            .addOnSuccessListener { result ->
-                for (document in result) {
-                    Log.d("ARTICLE", "${document.id} => ${document.data}")
-                }
-            }
-            .addOnFailureListener { exception ->
-                Log.d("ERROR_RETRIEVING", "Error getting documents: ", exception)
-            }
-    }
-
-    suspend fun retrieveCategories(): Map<String, String>? {
-        val categories: MutableMap<String, String>? = mutableMapOf()
-        return try {
-            val tipsCategories = getCollection().await().documents
-            for (category in tipsCategories) {
-                categories?.set(category.id, category.get("category").toString())
-                Log.d("CATEGORY", category.get("category").toString())
-            }
-            categories
-        } catch (e: Exception) {
-            Log.d("ERROR_RETRIEVING", "Error getting documents: ", e)
-            null
-        }
-    }
-
+    /**
+     * Retrieve the articles from [getSubCollection] and return a list of articles
+     */
     suspend fun retrieveCategoryArticles(category: String, subCollection: String): List<Article>? {
         val articles: MutableList<Article> = mutableListOf()
         return try {
@@ -124,11 +101,11 @@ class TipsViewModel @Inject constructor(
                         id = article.id,
                         title = article["title"].toString(),
                         author = article["author"].toString(),
-                        body = article["body"].toString()
+                        body = article["body"].toString(),
+                        imageUrl = article["imageUrl"].toString()
                     )
                 )
             }
-            Log.d("articles", articles.toString())
             articles
         } catch (e: Exception) {
             Log.d("ERROR_RETRIEVING", "Error getting documents: ", e)
@@ -136,6 +113,9 @@ class TipsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Get subCollection of [ARTICLES] collection from firestore
+     */
     suspend fun getSubCollection(category: String, subCollection: String): QuerySnapshot {
         return firestoreDatabase
             .collection("articles")
@@ -143,9 +123,6 @@ class TipsViewModel @Inject constructor(
             .collection(subCollection)
             .get()
             .addOnSuccessListener { result ->
-//                for (document in result) {
-//                    Log.d("ARTICLE", "${document.id} => ${document.data}")
-//                }
             }
             .addOnFailureListener { exception ->
                 Log.d("ERROR_RETRIEVING", "Error getting documents: ", exception)

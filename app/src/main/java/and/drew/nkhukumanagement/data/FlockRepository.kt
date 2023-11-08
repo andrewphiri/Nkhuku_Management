@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement.data
 
+import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -76,7 +77,7 @@ interface FlockRepository {
      */
     fun getExpenseItem(id: Int): Flow<Expense>
 
-    fun getFlockAndAccountSummary(id: Int): Flow<FlockAndAccountSummary>
+    fun getFlockAndAccountSummary(id: Int): LiveData<FlockAndAccountSummary>
 
     fun getFlockWithIncome(id: Int): Flow<FlockWithIncome>
 

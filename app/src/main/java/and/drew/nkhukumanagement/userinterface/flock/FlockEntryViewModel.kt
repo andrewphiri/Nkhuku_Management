@@ -3,7 +3,6 @@ package and.drew.nkhukumanagement.userinterface.flock
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.FlockRepository
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +27,7 @@ class FlockEntryViewModel @Inject constructor(
     var flockUiState by mutableStateOf(FlockUiState())
         private set
 
+
     /**
      * Update the FlockUiState with the passed in value
      */
@@ -51,7 +51,6 @@ class FlockEntryViewModel @Inject constructor(
     suspend fun updateItem(flockUiState: FlockUiState) {
         if (flockUiState.isValid()) {
             flockRepository.updateFlock(flockUiState.toFlock())
-            Log.i("FLOCK_UPDATE", flockUiState.toString())
         }
     }
 
@@ -84,7 +83,7 @@ class FlockEntryViewModel @Inject constructor(
             cost = "",
             stock = "0",
             mortality = "0",
-            imageResourceId = R.drawable.chicken,
+            imageResourceId = R.drawable.icon4,
             culls = "0",
             enabled = false
         )
@@ -97,7 +96,7 @@ class FlockEntryViewModel @Inject constructor(
             donorFlock = "",
             stock = "0",
             mortality = "0",
-            imageResourceId = R.drawable.chicken,
+            imageResourceId = R.drawable.icon4,
             culls = "0",
         )
     }

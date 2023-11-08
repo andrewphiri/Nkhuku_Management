@@ -1,21 +1,21 @@
 package and.drew.nkhukumanagement.userinterface.tips
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
-import and.drew.nkhukumanagement.ui.theme.Shapes
+import and.drew.nkhukumanagement.ui.theme.sapphireBlue
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,10 +29,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import coil.compose.AsyncImage
 
 object TipsArticlesListDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -78,7 +80,6 @@ fun TipsArticlesListScreen(
     LaunchedEffect(tipsViewModel.articlesList) {
         tipsViewModel.generateArticles(tipsViewModel.articleIdCategory)
     }
-    Log.d("ViewModel List", "$${articlesList.toList()}")
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -118,21 +119,27 @@ fun ArticlesList(
         }
     }
 }
-
 @Composable
 fun ArticleCard(
     modifier: Modifier = Modifier,
     article: Article,
     onArticleClick: () -> Unit
 ) {
-    ElevatedCard(
-        modifier = modifier.clickable(onClick = onArticleClick),
-        shape = Shapes.medium
+    Row(
+        modifier = modifier.clickable(onClick = onArticleClick).fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.aligned(Alignment.Start)
     ) {
+        AsyncImage(
+            modifier = Modifier.size(50.dp),
+            model = article.imageUrl,
+            contentDescription = article.title
+        )
         Text(
-            modifier = Modifier.padding(8.dp).fillMaxWidth(),
+            modifier = Modifier.padding(8.dp),
             text = article.title,
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Light),
+            color = sapphireBlue
         )
     }
 }

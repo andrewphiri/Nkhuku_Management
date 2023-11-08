@@ -2,23 +2,36 @@ package and.drew.nkhukumanagement.userinterface.vaccination
 
 import and.drew.nkhukumanagement.FlockApplication
 import and.drew.nkhukumanagement.data.FlockRepository
+import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.utils.AlarmReceiver
 import and.drew.nkhukumanagement.utils.AlarmScheduler
+import and.drew.nkhukumanagement.utils.Constants.BIG_TEXT_CONTENT
+import and.drew.nkhukumanagement.utils.Constants.CONTENT_TEXT
+import and.drew.nkhukumanagement.utils.Constants.FLOCK_ID
+import and.drew.nkhukumanagement.utils.Constants.TITLE
+import and.drew.nkhukumanagement.utils.Constants.VACCINE_HASHCODE
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 /**
@@ -27,16 +40,15 @@ import javax.inject.Inject
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class VaccinationViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val application: FlockApplication,
     private val flockRepository: FlockRepository
 ) : ViewModel(), AlarmScheduler {
     companion object {
         private const val MILLIS = 5_000L
-        const val TITLE = "title_notification"
-        const val CONTENT_TEXT = "content_text_notification"
-        const val BIG_TEXT_CONTENT = "big_text_content_notification"
-        const val FLOCK_ID = "flock_ID"
     }
+
+    val flockID: Int = savedStateHandle[AddVaccinationsDestination.flockIdArg] ?: 0
 
     private val alarmManager =
         application.applicationContext.getSystemService(AlarmManager::class.java)
@@ -51,6 +63,18 @@ class VaccinationViewModel @Inject constructor(
 
     //Dropdown menu items for the vaccination entry
     val options = mutableListOf("Gumburo", "Lasota")
+
+    /**
+     * Get all flock with vaccinations items.
+     */
+    val flockWithVaccinationsStateFlow: StateFlow<FlockWithVaccinations?> =
+        flockRepository.getAllFlocksWithVaccinations(flockID)
+            .map { it }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(MILLIS),
+                initialValue = FlockWithVaccinations(flock = null, vaccinations = listOf())
+            )
 
     /**
      * Update the VaccinationUiState List at the specified index
@@ -289,7 +313,9 @@ class VaccinationViewModel @Inject constructor(
                         "${DateUtils().dateToStringLongFormat(vaccination.date)}."
             )
             putExtra(FLOCK_ID, flock.id)
+            putExtra(VACCINE_HASHCODE, vaccination.hashCode())
         }
+        Log.i("CHECK_ID_EXTRA", flock.id.toString())
         val pendingIntent = PendingIntent.getBroadcast(
             application.applicationContext,
             vaccination.hashCode(),
