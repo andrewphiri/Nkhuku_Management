@@ -2,13 +2,14 @@ package and.drew.nkhukumanagement.userinterface.flock
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
-import and.drew.nkhukumanagement.utils.currencySymbol
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -35,6 +36,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,11 +71,15 @@ fun AddFlockScreen(
     onNavigateUp: () -> Unit,
     canNavigateBack: Boolean = true,
     navigateToVaccinationsScreen: (FlockUiState) -> Unit,
-    viewModel: FlockEntryViewModel
+    viewModel: FlockEntryViewModel,
+    userPrefsViewModel: UserPrefsViewModel
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val currency by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -97,7 +103,9 @@ fun AddFlockScreen(
                             snackBarHostState.showSnackbar(message = "Please enter a valid number.")
                         }
                     }
-                })
+                },
+                currencySymbol = currency.symbol
+            )
         }
     }
 }
@@ -107,7 +115,9 @@ fun AddFlockScreen(
 fun AddFlockBody(
     flockUiState: FlockUiState,
     onItemValueChange: (FlockUiState) -> Unit,
-    modifier: Modifier = Modifier, onVaccinationsScreen: (FlockUiState) -> Unit
+    modifier: Modifier = Modifier,
+    onVaccinationsScreen: (FlockUiState) -> Unit,
+    currencySymbol: String
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -115,7 +125,8 @@ fun AddFlockBody(
     ) {
         AddFlockInputForm(
             flockUiState = flockUiState, modifier = modifier,
-            onValueChanged = onItemValueChange
+            onValueChanged = onItemValueChange,
+            currencySymbol = currencySymbol
         )
         Button(
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
@@ -137,7 +148,8 @@ fun AddFlockBody(
 fun AddFlockInputForm(
     flockUiState: FlockUiState,
     modifier: Modifier = Modifier,
-    onValueChanged: (FlockUiState) -> Unit = {}
+    onValueChanged: (FlockUiState) -> Unit = {},
+    currencySymbol: String
 ) {
 
     val options = flockUiState.options
@@ -250,12 +262,11 @@ fun AddFlockInputForm(
             onValueChange = { onValueChanged(flockUiState.copy(cost = it)) },
             label = { Text("Price Per Bird") },
             prefix = {
-                currencySymbol()?.let {
-                    Text(
-                        modifier = Modifier.padding(end = 4.dp),
-                        text = it
-                    )
-                }
+                Text(
+                    modifier = Modifier.padding(end = 4.dp),
+                    text = currencySymbol
+                )
+
             },
             enabled = true,
             singleLine = true,

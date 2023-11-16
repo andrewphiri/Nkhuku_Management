@@ -2,7 +2,9 @@ package and.drew.nkhukumanagement.userinterface.overview
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.Account
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.home.HomeViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
@@ -70,11 +72,15 @@ fun AccountOverviewScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     overviewViewModel: OverviewViewModel = hiltViewModel(),
-    homeViewModel: HomeViewModel = hiltViewModel()
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    userPrefsViewModel: UserPrefsViewModel
 ) {
     val overviewUiState by overviewViewModel.accountsList.collectAsState()
     val flockList by homeViewModel.homeUiState.collectAsState()
     val flockOptions: MutableMap<String, String> = mutableMapOf("All" to "All flock")
+    val currency by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
 
     var playAnimation by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
@@ -133,7 +139,8 @@ fun AccountOverviewScreen(
                     onValueChanged = {
                         defaultDropDownMenuValue = it
                     },
-                    flockOptions = flockOptions.values.toList()
+                    flockOptions = flockOptions.values.toList(),
+                    currencyLocale = currency.currencyLocale
                 )
             }
         }
@@ -150,7 +157,8 @@ fun OverviewAccountsCard(
     value: String,
     onValueChanged: (String) -> Unit,
     onDismissed: () -> Unit,
-    flockOptions: List<String>
+    flockOptions: List<String>,
+    currencyLocale: String
 ) {
     val netProfitMargin = if (totalAccountsList[0].amount == 0.0) 0.0 else
         (totalAccountsList[0].net / totalAccountsList[0].amount) * 100
@@ -189,7 +197,7 @@ fun OverviewAccountsCard(
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
                     label = totalAccountsList[0].description,
-                    value = currencyFormatter(totalAccountsList[0].amount),
+                    value = currencyFormatter(totalAccountsList[0].amount, currencyLocale),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
                     weightA = 1f,
@@ -209,7 +217,7 @@ fun OverviewAccountsCard(
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
                     label = totalAccountsList[1].description,
-                    value = currencyFormatter(totalAccountsList[1].amount),
+                    value = currencyFormatter(totalAccountsList[1].amount, currencyLocale),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
                     weightA = 1f,
@@ -233,7 +241,7 @@ fun OverviewAccountsCard(
                     label = "Net",
                     styleForLabel = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     styleForTitle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    value = currencyFormatter(totalAccountsList[0].net),
+                    value = currencyFormatter(totalAccountsList[0].net, currencyLocale),
                     weightA = 1f,
                     textAlignB = TextAlign.End
                 )

@@ -2,6 +2,8 @@ package and.drew.nkhukumanagement.userinterface.accounts
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
@@ -86,6 +88,7 @@ fun AddIncomeScreen(
     modifier: Modifier = Modifier,
     incomeViewModel: IncomeViewModel = hiltViewModel(),
     accountsViewModel: AccountsViewModel = hiltViewModel(),
+    userPrefsViewModel: UserPrefsViewModel,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit
 ) {
@@ -102,11 +105,16 @@ fun AddIncomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
 
+    val currency by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
+
     //if id is 0, set initial date to today's date else get date from income
     val dateState = if (incomeViewModel.incomeUiState.id == 0) rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
         initialSelectedDateMillis = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
-            .toEpochMilli())
+            .toEpochMilli()
+    )
     else rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
         initialSelectedDateMillis = income.date
@@ -221,7 +229,8 @@ fun AddIncomeScreen(
                         )
                     }
                     localDateToString
-                }
+                },
+                currencySymbol = currency.symbol
             )
         }
 
@@ -244,7 +253,8 @@ fun AddIncomeCard(
     onDismissed: () -> Unit,
     updateShowDialogOnClick: (Boolean) -> Unit,
     saveDateSelected: (DatePickerState) -> String?,
-    state: DatePickerState
+    state: DatePickerState,
+    currencySymbol: String
 ) {
     Column(
         modifier = modifier.padding(16.dp),
@@ -293,12 +303,10 @@ fun AddIncomeCard(
             },
             label = { Text("Unit Price") },
             prefix = {
-                currencySymbol()?.let {
                     Text(
                         modifier = Modifier.padding(end = 4.dp),
-                        text = it
+                        text = currencySymbol
                     )
-                }
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)

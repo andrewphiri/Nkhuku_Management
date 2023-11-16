@@ -3,7 +3,9 @@ package and.drew.nkhukumanagement.userinterface.accounts
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
@@ -48,11 +50,16 @@ fun AccountsScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = false,
     accountsViewModel: AccountsViewModel = hiltViewModel(),
-    navigateToTransactionsScreen: (Int) -> Unit
+    userPrefsViewModel: UserPrefsViewModel,
+    navigateToTransactionsScreen: (Int) -> Unit,
+    onClickSettings: () -> Unit
 ) {
     val accountsSummaryList by accountsViewModel.accountsList.collectAsState()
     var accountsList = accountsSummaryList.accountsSummary.filter { it.flockActive }
     var isFilterMenuShowing by remember { mutableStateOf(false) }
+    val currency by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -61,7 +68,8 @@ fun AccountsScreen(
                 canNavigateBack = canNavigateBack,
                 onClickFilter = {
                     isFilterMenuShowing = !isFilterMenuShowing
-                }
+                },
+                onClickSettings = onClickSettings
             )
         }
     ) { innerPadding ->
@@ -86,7 +94,12 @@ fun AccountsScreen(
 
             AccountsList(
                 accountsList = accountsList,
-                onItemClick = { navigateToTransactionsScreen(it) }
+                onItemClick = { accountSummary ->
+                    if (accountSummary.flockActive) {
+                        navigateToTransactionsScreen(accountSummary.id)
+                    }
+                },
+                currencyLocale = currency.currencyLocale
             )
         }
     }
@@ -96,7 +109,8 @@ fun AccountsScreen(
 fun AccountsList(
     modifier: Modifier = Modifier,
     accountsList: List<AccountsSummary>,
-    onItemClick: (Int) -> Unit
+    onItemClick: (AccountsSummary) -> Unit,
+    currencyLocale: String
 ) {
     if (accountsList.isEmpty()) {
         Box(
@@ -114,9 +128,12 @@ fun AccountsList(
             modifier = modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            itemsIndexed(accountsList) { index, item ->
-                SummaryAccountsCard(accountsSummary = item,
-                    onAccountsClick = { onItemClick(item.id) })
+            itemsIndexed(accountsList) { index, accountsSummary ->
+                SummaryAccountsCard(
+                    accountsSummary = accountsSummary,
+                    onAccountsClick = { onItemClick(accountsSummary) },
+                    currencyLocale = currencyLocale
+                )
             }
         }
     }
@@ -127,7 +144,8 @@ fun AccountsList(
 fun SummaryAccountsCard(
     modifier: Modifier = Modifier,
     accountsSummary: AccountsSummary,
-    onAccountsClick: () -> Unit = {}
+    onAccountsClick: () -> Unit = {},
+    currencyLocale: String
 ) {
     ElevatedCard(modifier = modifier.clickable(onClick = onAccountsClick)) {
 
@@ -166,7 +184,7 @@ fun SummaryAccountsCard(
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     BaseSingleRowItem(
                         label = "Income",
-                        value = currencyFormatter(accountsSummary.totalIncome),
+                        value = currencyFormatter(accountsSummary.totalIncome, currencyLocale),
                         styleForLabel = MaterialTheme.typography.bodyMedium,
                         styleForTitle = MaterialTheme.typography.bodyMedium,
                         textAlignA = TextAlign.Center,
@@ -176,7 +194,7 @@ fun SummaryAccountsCard(
                     )
                     BaseSingleRowItem(
                         label = "Expenses",
-                        value = currencyFormatter(accountsSummary.totalExpenses),
+                        value = currencyFormatter(accountsSummary.totalExpenses, currencyLocale),
                         styleForLabel = MaterialTheme.typography.bodyMedium,
                         styleForTitle = MaterialTheme.typography.bodyMedium,
                         textAlignA = TextAlign.Center,
@@ -209,7 +227,7 @@ fun SummaryAccountsCard(
                     BaseSingleRowItem(
                         label = if (accountsSummary.variance > 0)
                             "Profit" else if (accountsSummary.variance < 0) "Loss" else "Break-Even",
-                        value = currencyFormatter(accountsSummary.variance),
+                        value = currencyFormatter(accountsSummary.variance, currencyLocale),
                         styleForLabel = MaterialTheme.typography.bodyMedium,
                         styleForTitle = MaterialTheme.typography.bodyMedium,
                         colorForTitle =
@@ -253,12 +271,12 @@ fun SummaryAccountsCard(
 @Composable
 fun AccountsCardPreview() {
     NkhukuManagementTheme {
-        SummaryAccountsCard(
-            accountsSummary =
-            AccountsSummary(
-                flockUniqueID = "", totalExpenses = 2500.0, totalIncome = 2600.0,
-                batchName = "August Batch", variance = 100.0
-            )
-        )
+//        SummaryAccountsCard(
+//            accountsSummary =
+//            AccountsSummary(
+//                flockUniqueID = "", totalExpenses = 2500.0, totalIncome = 2600.0,
+//                batchName = "August Batch", variance = 100.0
+//            )
+//        )
     }
 }

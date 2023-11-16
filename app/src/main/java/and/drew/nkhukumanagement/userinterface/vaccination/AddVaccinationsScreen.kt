@@ -155,8 +155,6 @@ fun AddVaccinationsScreen(
             )
         }
 
-        Log.i("VACCINE_LIST", vaccinesStateList.toString())
-        Log.i("VACCINE_LIST", vaccinationViewModel.flockID.toString())
         vaccinationViewModel.setInitialVaccinationDates(vaccinesStateList.toMutableStateList())
     }
 
@@ -195,8 +193,6 @@ fun AddVaccinationsScreen(
                             vaccinationNumber = listSize, name = "", date = vaccineDate
                         )
                     )
-
-
                 },
                 onSaveToDatabase = {
                     if (flockEntryViewModel.flockUiState.id == 0) {
@@ -223,7 +219,10 @@ fun AddVaccinationsScreen(
                                     it.toVaccination(),
                                     flock.copy(id = flock.id + 1)
                                 )
-                                Log.i("CHECK_ID", flock.id.toString())
+                                Log.i(
+                                    "VACCINATION_HASHCODE",
+                                    it.toVaccination().hashCode().toString()
+                                )
                             }
                         }
 
@@ -259,7 +258,6 @@ fun AddVaccinationsScreen(
                         val flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId()
                         withVaccinationsToEdit?.vaccinations?.forEach {
                             vaccinationViewModel.cancelAlarm(it)
-                            Log.i("VACCINE_HASHCODE", it.hashCode().toString())
                         }
                         vaccinationViewModel.getInitialVaccinationList().forEach {
                             vaccinationViewModel.schedule(

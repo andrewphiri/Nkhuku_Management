@@ -1,7 +1,9 @@
 package and.drew.nkhukumanagement.userinterface.accounts
 
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.Expense
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.BaseAccountRow
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
@@ -79,12 +81,16 @@ object ExpenseScreenDestination : NkhukuDestinations {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ExpenseScreen(
-    navigateToAddExpenseScreen: (Int,Int) -> Unit = { _, _ ->},
+    navigateToAddExpenseScreen: (Int, Int) -> Unit = { _, _ -> },
     expenseViewModel: ExpenseViewModel = hiltViewModel(),
-    accountsViewModel: AccountsViewModel = hiltViewModel()
+    accountsViewModel: AccountsViewModel = hiltViewModel(),
+    userPrefsViewModel: UserPrefsViewModel,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val currency by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
     val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState()
     Scaffold(
         floatingActionButton = {
@@ -93,7 +99,7 @@ fun ExpenseScreen(
                 elevation = FloatingActionButtonDefaults.elevation(),
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-                onClick = { navigateToAddExpenseScreen(0,accountsViewModel.id) }) {
+                onClick = { navigateToAddExpenseScreen(0, accountsViewModel.id) }) {
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -118,13 +124,14 @@ fun ExpenseScreen(
             },
             onDeleteExpense = { expense ->
                 coroutineScope.launch {
-                   accountsViewModel.updateAccountWhenDeletingExpense(
-                       accountsSummary = accountsWithExpense.accountsSummary,
-                       expense = expense
-                   )
+                    accountsViewModel.updateAccountWhenDeletingExpense(
+                        accountsSummary = accountsWithExpense.accountsSummary,
+                        expense = expense
+                    )
                     expenseViewModel.deleteExpense(expense)
                 }
-            }
+            },
+            currencyLocale = currency.currencyLocale
         )
     }
 
@@ -158,7 +165,8 @@ fun ExpenseList(
     modifier: Modifier = Modifier,
     expenseList: List<Expense>,
     onItemClick: (Expense) -> Unit,
-    onDeleteExpense: (Expense) -> Unit
+    onDeleteExpense: (Expense) -> Unit,
+    currencyLocale: String
 ) {
     if (expenseList.isEmpty()) {
         Box(
@@ -180,7 +188,8 @@ fun ExpenseList(
                 ExpenseCardItem(
                     expense = expenseItem,
                     onItemClick = { onItemClick(expenseItem) },
-                    onDeleteExpense = { onDeleteExpense(expenseItem) }
+                    onDeleteExpense = { onDeleteExpense(expenseItem) },
+                    currencyLocale = currencyLocale
                 )
             }
         }
@@ -193,7 +202,8 @@ fun ExpenseCardItem(
     modifier: Modifier = Modifier,
     expense: Expense,
     onItemClick: () -> Unit = {},
-    onDeleteExpense: () -> Unit
+    onDeleteExpense: () -> Unit,
+    currencyLocale: String
 ) {
     var isMenuShowing by remember { mutableStateOf(false) }
     var isAlertDialogShowing by remember { mutableStateOf(false) }
@@ -252,7 +262,10 @@ fun ExpenseCardItem(
                 )
                  BaseAccountRow(
                      labelA = "Unit Price",
-                     titleA = currencyFormatter(expensesUiState.costPerItem.toDouble()),
+                     titleA = currencyFormatter(
+                         expensesUiState.costPerItem.toDouble(),
+                         currencyLocale
+                     ),
                      labelB = "Quantity",
                      titleB = expensesUiState.quantity
                  )
@@ -276,7 +289,10 @@ fun ExpenseCardItem(
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = currencyFormatter(expensesUiState.totalExpense.toDouble()),
+                        text = currencyFormatter(
+                            expensesUiState.totalExpense.toDouble(),
+                            currencyLocale
+                        ),
                         color = Color.Red,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodySmall

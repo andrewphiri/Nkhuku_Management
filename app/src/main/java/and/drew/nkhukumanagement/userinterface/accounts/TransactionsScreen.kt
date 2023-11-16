@@ -2,6 +2,7 @@ package and.drew.nkhukumanagement.userinterface.accounts
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.userinterface.navigation.TabScreens
 import and.drew.nkhukumanagement.utils.Tabs
@@ -48,8 +49,9 @@ fun TransactionScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    navigateToAddIncomeScreen: (Int,Int) -> Unit,
-    navigateToAddExpenseScreen: (Int, Int) -> Unit
+    navigateToAddIncomeScreen: (Int, Int) -> Unit,
+    navigateToAddExpenseScreen: (Int, Int) -> Unit,
+    userPrefsViewModel: UserPrefsViewModel
 ) {
     val tabItems = listOf(TabScreens.Income, TabScreens.Expense)
     val pagerState = rememberPagerState(
@@ -82,7 +84,8 @@ fun TransactionScreen(
                 tabs = tabItems,
                 pagerState = pagerState,
                 navigateToAddIncomeScreen = navigateToAddIncomeScreen,
-                navigateToAddExpenseScreen = navigateToAddExpenseScreen
+                navigateToAddExpenseScreen = navigateToAddExpenseScreen,
+                userPrefsViewModel = userPrefsViewModel
             )
         }
     }
@@ -96,8 +99,9 @@ fun TransactionScreen(
 fun TabScreenContent(
     tabs: List<TabScreens>,
     pagerState: PagerState,
-    navigateToAddIncomeScreen: (Int,Int) -> Unit,
-    navigateToAddExpenseScreen: (Int, Int) -> Unit
+    navigateToAddIncomeScreen: (Int, Int) -> Unit,
+    navigateToAddExpenseScreen: (Int, Int) -> Unit,
+    userPrefsViewModel: UserPrefsViewModel
 ) {
 
     HorizontalPager(
@@ -111,11 +115,17 @@ fun TabScreenContent(
         pageContent = { page ->
             when (page) {
                 0 -> {
-                    IncomeScreen(navigateToAddIncomeScreen = navigateToAddIncomeScreen)
+                    IncomeScreen(
+                        navigateToAddIncomeScreen = navigateToAddIncomeScreen,
+                        userPrefsViewModel = userPrefsViewModel
+                    )
                 }
 
                 1 -> {
-                    ExpenseScreen(navigateToAddExpenseScreen = navigateToAddExpenseScreen)
+                    ExpenseScreen(
+                        navigateToAddExpenseScreen = navigateToAddExpenseScreen,
+                        userPrefsViewModel = userPrefsViewModel
+                    )
                 }
             }
         }

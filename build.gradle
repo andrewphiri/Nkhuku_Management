@@ -6,6 +6,8 @@ buildscript {
         nav_version = '2.7.4'
         room_version = '2.5.2'
         work_version = '2.8.1'
+        lifecycle_version = "2.6.2"
+
     }
     dependencies {
         classpath 'com.google.gms:google-services:4.4.0'
@@ -19,7 +21,6 @@ plugins {
     id 'com.google.dagger.hilt.android' version '2.44' apply false
     // Add the dependency for the Google services Gradle plugin
     id("com.google.gms.google-services") version "4.3.15" apply false
-
 }
 allprojects {
     tasks.withType(KotlinCompile).configureEach {

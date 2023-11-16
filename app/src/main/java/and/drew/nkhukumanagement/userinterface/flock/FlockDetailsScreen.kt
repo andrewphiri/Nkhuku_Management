@@ -13,7 +13,6 @@ import and.drew.nkhukumanagement.utils.BaseSingleRowDetailsItem
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -104,9 +103,8 @@ fun FlockDetailsScreen(
             cost = "0"
         ).toFlock()
     )
-    Log.i("FLOCK ID", detailsViewModel.flockID.toString())
 
-    flock?.toFlockUiState(true)?.let { flockEntryViewModel.updateUiState(it) }
+    flock.toFlockUiState(true).let { flockEntryViewModel.updateUiState(it) }
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -129,9 +127,9 @@ fun FlockDetailsScreen(
                     HealthCard(
                         flock = flock,
                         onHealthCardClick = {
-                            navigateToFlockHealthScreen(
-                                flock.id
-                            )
+                            if (flock.active) {
+                                navigateToFlockHealthScreen(flock.id)
+                            }
                         })
                 }
             }
@@ -142,7 +140,9 @@ fun FlockDetailsScreen(
                             modifier = modifier,
                             vaccinationUiStateList = it.vaccinations,
                             onVaccinationCardClick = { id ->
-                                navigateToVaccinationScreen(id)
+                                if (flock.active) {
+                                    navigateToVaccinationScreen(id)
+                                }
                             },
                             flock = flock
                         )
@@ -152,26 +152,30 @@ fun FlockDetailsScreen(
             item {
                 flockWithFeed?.feedList?.sumOf { it.consumed }.let { totalQty ->
                     if (totalQty != null) {
-                        flock?.toFlockUiState(enabled = true)?.let { flockUiState ->
-                            FeedCard(
-                                quantityConsumed = totalQty,
-                                flockUiState = flockUiState,
-                                onFeedCardClick = { id ->
+                        FeedCard(
+                            quantityConsumed = totalQty,
+                            flockUiState = flock.toFlockUiState(enabled = true),
+                            onFeedCardClick = { id ->
+                                if (flock.active) {
                                     navigateToFeedScreen(id)
                                 }
-                            )
-                        }
+                            }
+                        )
                     }
                 }
             }
             item {
-                val weight = flockWithWeight?.weights?.filter { it.weight > 0.0 }?.lastOrNull()
+                val weight = flockWithWeight?.weights?.lastOrNull { it.weight > 0.0 }
                     ?: flockWithWeight?.weights?.first()
                 if (weight != null) {
-                    flock?.let { flock ->
+                    flock.let { flock ->
                         WeightCard(weight = weight,
                             flock = flock,
-                            onWeightCardClick = { id -> navigateToWeightScreen(id) })
+                            onWeightCardClick = { id ->
+                                if (flock.active) {
+                                    navigateToWeightScreen(id)
+                                }
+                            })
                     }
                 }
             }

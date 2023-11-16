@@ -2,9 +2,6 @@ package and.drew.nkhukumanagement.dependencyInjection
 
 import and.drew.nkhukumanagement.FlockApplication
 import android.content.Context
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,11 +22,4 @@ object AppModule {
     fun provideApplication(@ApplicationContext context: Context): FlockApplication {
         return context as FlockApplication
     }
-
-    @Singleton
-    @Provides
-    fun providesFirebaseFirestore(): FirebaseFirestore {
-        return Firebase.firestore
-    }
-
 }

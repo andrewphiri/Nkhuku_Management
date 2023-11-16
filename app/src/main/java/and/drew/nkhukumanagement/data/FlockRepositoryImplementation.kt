@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement.data
 
+import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -32,7 +33,8 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
     override fun getIncomeItem(id: Int) = flockDao.retrieveIncome(id)
 
     override fun getExpenseItem(id: Int) = flockDao.retrieveExpense(id)
-    override fun getFlockAndAccountSummary(id: Int) = flockDao.getFlocksAndAccountSummary(id)
+    override fun getFlockAndAccountSummary(id: Int) =
+        flockDao.getFlocksAndAccountSummary(id).asLiveData()
 
     override fun getFlockWithIncome(id: Int): Flow<FlockWithIncome> =
         flockDao.getFlocksWithIncome(id)

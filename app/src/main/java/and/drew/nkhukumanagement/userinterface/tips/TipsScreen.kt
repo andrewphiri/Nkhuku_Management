@@ -22,13 +22,15 @@ import androidx.compose.ui.unit.dp
 fun TipsScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = false,
-    navigateToArticlesListScreen: (String, Int) -> Unit
+    navigateToArticlesListScreen: (String, Int) -> Unit,
+    onClickSettings: () -> Unit
 ) {
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Tips.resourceId),
-                canNavigateBack = canNavigateBack
+                canNavigateBack = canNavigateBack,
+                onClickSettings = onClickSettings
             )
         }
     ) { innerPadding ->

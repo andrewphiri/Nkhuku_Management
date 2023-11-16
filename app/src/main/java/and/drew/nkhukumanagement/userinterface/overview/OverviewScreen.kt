@@ -27,13 +27,14 @@ fun OverviewScreen(
     canNavigateBack: Boolean = false,
     navigateToAccountOverviewScreen: () -> Unit,
     navigateToFlockOverviewScreen: () -> Unit,
+    onClickSettings: () -> Unit
 ) {
-
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Overview.resourceId),
-                canNavigateBack = canNavigateBack
+                canNavigateBack = canNavigateBack,
+                onClickSettings = onClickSettings
             )
         }
     ) { innerPadding ->

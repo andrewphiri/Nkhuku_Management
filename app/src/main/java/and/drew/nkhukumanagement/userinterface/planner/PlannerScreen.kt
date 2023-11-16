@@ -41,7 +41,8 @@ fun PlannerScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = false,
     plannerViewModel: PlannerViewModel,
-    navigateToResultsScreen: () -> Unit = {}
+    navigateToResultsScreen: () -> Unit = {},
+    onClickSettings: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -50,7 +51,8 @@ fun PlannerScreen(
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Planner.resourceId),
-                canNavigateBack = canNavigateBack
+                canNavigateBack = canNavigateBack,
+                onClickSettings = onClickSettings
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

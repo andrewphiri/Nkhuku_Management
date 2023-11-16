@@ -2,8 +2,10 @@ package and.drew.nkhukumanagement.dependencyInjection
 
 import and.drew.nkhukumanagement.data.FlockDao
 import and.drew.nkhukumanagement.data.FlockDatabase
+import and.drew.nkhukumanagement.utils.Constants
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,7 +32,9 @@ object DatabaseModule {
        return Room.databaseBuilder(
            context = context,
            FlockDatabase::class.java,
-           "flock_database")
+           Constants.DATABASE_NAME
+       )
+           .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
             .fallbackToDestructiveMigration()
             .build()
     }

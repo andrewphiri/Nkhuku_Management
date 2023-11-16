@@ -2,6 +2,7 @@ package and.drew.nkhukumanagement
 
 import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.auth.api.identity.Identity
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -37,6 +39,7 @@ class MainActivity : ComponentActivity() {
                 NkhukuApp(
                     googleAuthUiClient = googleAuthUiClient,
                     authUiClient = authUiClient,
+                    userPrefsViewModel = ViewModelProvider(this)[UserPrefsViewModel::class.java]
                 )
             }
         }

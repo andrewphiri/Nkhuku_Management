@@ -1,7 +1,9 @@
 package and.drew.nkhukumanagement.userinterface.accounts
 
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.Income
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.GreenColor
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -83,12 +85,16 @@ object IncomeScreenDestination : NkhukuDestinations {
 @Composable
 fun IncomeScreen(
     modifier: Modifier = Modifier,
-    navigateToAddIncomeScreen: (Int,Int) -> Unit = {_,_ ->},
+    navigateToAddIncomeScreen: (Int, Int) -> Unit = { _, _ -> },
     incomeViewModel: IncomeViewModel = hiltViewModel(),
-    accountsViewModel: AccountsViewModel = hiltViewModel()
+    accountsViewModel: AccountsViewModel = hiltViewModel(),
+    userPrefsViewModel: UserPrefsViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val currency by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
     val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState()
     Scaffold(
         floatingActionButton = {
@@ -97,7 +103,7 @@ fun IncomeScreen(
                 elevation = FloatingActionButtonDefaults.elevation(),
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-                onClick = { navigateToAddIncomeScreen(0,accountsViewModel.id) }) {
+                onClick = { navigateToAddIncomeScreen(0, accountsViewModel.id) }) {
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -118,7 +124,7 @@ fun IncomeScreen(
             modifier = modifier.padding(innerPadding),
             incomeList = accountsWithIncome.incomeList,
             onItemClick = { income ->
-                navigateToAddIncomeScreen(income.id,accountsViewModel.id)
+                navigateToAddIncomeScreen(income.id, accountsViewModel.id)
             },
             onDeleteIncome = { income ->
                 coroutineScope.launch {
@@ -128,8 +134,8 @@ fun IncomeScreen(
                     )
                     incomeViewModel.deleteIncome(income)
                 }
-
-            }
+            },
+            currencyLocale = currency.currencyLocale
         )
     }
 }
@@ -162,7 +168,8 @@ fun IncomeList(
     modifier: Modifier = Modifier,
     incomeList: List<Income>,
     onItemClick: (Income) -> Unit,
-    onDeleteIncome: (Income) -> Unit
+    onDeleteIncome: (Income) -> Unit,
+    currencyLocale: String
 ) {
     if (incomeList.isEmpty()) {
         Box(
@@ -184,7 +191,8 @@ fun IncomeList(
                 IncomeCardItem(
                     income = incomeItem,
                     onItemClick = { onItemClick(incomeItem) },
-                    onDeleteIncome = {onDeleteIncome(incomeItem)}
+                    onDeleteIncome = { onDeleteIncome(incomeItem) },
+                    currencyLocale = currencyLocale
                 )
             }
         }
@@ -197,7 +205,8 @@ fun IncomeCardItem(
     modifier: Modifier = Modifier,
     income: Income,
     onItemClick: () -> Unit = {},
-    onDeleteIncome: () -> Unit
+    onDeleteIncome: () -> Unit,
+    currencyLocale: String
 ) {
     var isMenuShowing by remember { mutableStateOf(false) }
     var isAlertDialogShowing by remember { mutableStateOf(false) }
@@ -256,7 +265,10 @@ fun IncomeCardItem(
                 )
                 BaseAccountRow(
                     labelA = "Unit Price",
-                    titleA = currencyFormatter(incomeUiState.pricePerItem.toDouble()),
+                    titleA = currencyFormatter(
+                        incomeUiState.pricePerItem.toDouble(),
+                        currencyLocale
+                    ),
                     labelB = "Quantity",
                     titleB = incomeUiState.quantity
                 )
@@ -279,7 +291,10 @@ fun IncomeCardItem(
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = currencyFormatter(incomeUiState.totalIncome.toDouble()),
+                        text = currencyFormatter(
+                            incomeUiState.totalIncome.toDouble(),
+                            currencyLocale
+                        ),
                         color = Color.Green,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -306,7 +321,8 @@ fun IncomeCardPreview() {
                 flockUniqueID = "",
                 cumulativeTotalIncome = 10000.25,
                 notes = "",
-            ), onDeleteIncome = {}
+            ), onDeleteIncome = {},
+            currencyLocale = "en_ZM"
         )
     }
 }

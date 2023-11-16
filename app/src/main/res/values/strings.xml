@@ -44,4 +44,5 @@
     <string name="signin">Sign In</string>
     <string name="signup">Sign Up</string>
     <string name="account_setup">Account Setup</string>
+    <string name="settings">Settings</string>
 </resources>

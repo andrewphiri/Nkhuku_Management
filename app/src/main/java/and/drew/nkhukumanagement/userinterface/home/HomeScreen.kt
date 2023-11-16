@@ -83,7 +83,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     navigateToAddFlock: () -> Unit,
     navigateToFlockDetails: (Int) -> Unit,
-    onSignOut: () -> Unit = {},
+    onClickSettings: () -> Unit = {},
     homeViewModel: HomeViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
     vaccinationViewModel: VaccinationViewModel,
@@ -91,13 +91,17 @@ fun HomeScreen(
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val homeUiState by homeViewModel.homeUiState.collectAsState()
-    var accountSummary: AccountsSummary? = AccountsSummary(
-        flockUniqueID = "",
-        batchName = "",
-        totalIncome = 0.0,
-        totalExpenses = 0.0,
-        variance = 0.0
-    )
+    var accountSummary: AccountsSummary? by remember {
+        mutableStateOf(
+            AccountsSummary(
+                flockUniqueID = "",
+                batchName = "",
+                totalIncome = 0.0,
+                totalExpenses = 0.0,
+                variance = 0.0
+            )
+        )
+    }
     var flockList = homeUiState.flockList.filter { it.active }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -115,7 +119,7 @@ fun HomeScreen(
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Home.resourceId),
                 canNavigateBack = false,
-                onSignOut = onSignOut,
+                onClickSettings = onClickSettings,
                 isFilterButtonEnabled = homeUiState.flockList.isNotEmpty(),
                 onClickFilter = {
                     isFilterMenuShowing = !isFilterMenuShowing
@@ -191,7 +195,6 @@ fun HomeScreen(
                             accountSummary = flockAndSummary.accountsSummary
                         }
                     coroutineScope.launch {
-
                         if (flock.active) {
                             flockEntryViewModel.updateItem(
                                 flockUiState = flock.toFlockUiState().copy(active = false)
@@ -328,7 +331,7 @@ fun FlockCard(
 
     ShowAlertDialog(
         onDismissAlertDialog = { isCloseAlertDialogShowing = false },
-        onDelete = {
+        onConfirm = {
             onClose(flock)
             isCloseAlertDialogShowing = false
         },
@@ -486,7 +489,7 @@ fun ShowOverflowMenu(
 
     ShowAlertDialog(
         onDismissAlertDialog = onDismissAlertDialog,
-        onDelete = onDelete,
+        onConfirm = onDelete,
         isAlertDialogShowing = isAlertDialogShowing,
         title = title,
         message = message

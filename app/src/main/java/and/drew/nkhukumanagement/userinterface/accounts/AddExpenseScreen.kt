@@ -2,6 +2,8 @@ package and.drew.nkhukumanagement.userinterface.accounts
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
@@ -89,6 +91,7 @@ fun AddExpenseScreen(
     modifier: Modifier = Modifier,
     expenseViewModel: ExpenseViewModel = hiltViewModel(),
     accountsViewModel: AccountsViewModel = hiltViewModel(),
+    userPrefsViewModel: UserPrefsViewModel,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit
 ) {
@@ -96,10 +99,13 @@ fun AddExpenseScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
     val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState()
+    val currency by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
 
     val expense by expenseViewModel.getExpense.collectAsState(
         initial = expenseViewModel.expenseUiState.copy(
-            date =  DateUtils().dateToStringShortFormat(
+            date = DateUtils().dateToStringShortFormat(
                 LocalDate.now()
             ), costPerItem = "0", quantity = "0", totalExpense = "0",
             cumulativeTotalExpense = "0"
@@ -225,7 +231,8 @@ fun AddExpenseScreen(
                         )
                     }
                     localDateToString
-                }
+                },
+                currencySymbol = currency.symbol
             )
         }
 
@@ -248,7 +255,8 @@ fun AddExpenseCard(
     onDismissed: () -> Unit,
     updateShowDialogOnClick: (Boolean) -> Unit,
     saveDateSelected: (DatePickerState) -> String?,
-    state: DatePickerState
+    state: DatePickerState,
+    currencySymbol: String
 ) {
     Column(
         modifier = modifier.padding(16.dp),
@@ -296,12 +304,10 @@ fun AddExpenseCard(
                 )
             },
             prefix = {
-                currencySymbol()?.let {
                     Text(
                         modifier = Modifier.padding(end = 4.dp),
-                        text = it
+                        text = currencySymbol
                     )
-                }
             },
             label = { Text("Unit Price") },
             singleLine = true,

@@ -3,6 +3,9 @@ package and.drew.nkhukumanagement.userinterface.navigation
 import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
 import and.drew.nkhukumanagement.auth.SignInViewModel
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
+import and.drew.nkhukumanagement.settings.SettingsDestination
+import and.drew.nkhukumanagement.settings.SettingsScreen
 import and.drew.nkhukumanagement.userinterface.accounts.AccountsScreen
 import and.drew.nkhukumanagement.userinterface.accounts.AddExpenseScreen
 import and.drew.nkhukumanagement.userinterface.accounts.AddExpenseScreenDestination
@@ -59,7 +62,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -71,7 +73,7 @@ fun NkhukuNavHost(
     plannerViewModel: PlannerViewModel = viewModel(),
     googleAuthUiClient: GoogleAuthUiClient,
     authUiClient: AuthUiClient,
-
+    userPrefsViewModel: UserPrefsViewModel
     ) {
     val coroutineScope = rememberCoroutineScope()
     val signInViewModel = viewModel<SignInViewModel>()
@@ -102,12 +104,14 @@ fun NkhukuNavHost(
                 flockEntryViewModel = flockEntryViewModel,
                 vaccinationViewModel = vaccinationViewModel,
                 plannerViewModel = plannerViewModel,
-                onClickSignOut = {
-                    coroutineScope.launch {
-                        googleAuthUiClient.signOut()
-                        signInViewModel.resetState()
-                        signInViewModel.setUserLoggedIn(false)
-                    }.invokeOnCompletion { navController.navigate(GraphRoutes.AUTH) }
+                userPrefsViewModel = userPrefsViewModel,
+                onClickSettings = {
+                    navController.navigate(SettingsDestination.route)
+//                    coroutineScope.launch {
+//                        googleAuthUiClient.signOut()
+//                        signInViewModel.resetState()
+//                        signInViewModel.setUserLoggedIn(false)
+//                    }.invokeOnCompletion { navController.navigate(GraphRoutes.AUTH) }
                 }
             )
             detailsGraph(
@@ -115,7 +119,8 @@ fun NkhukuNavHost(
                 flockEntryViewModel = flockEntryViewModel,
             )
             accountDetailsGraph(
-                navController = navController
+                navController = navController,
+                userPrefsViewModel = userPrefsViewModel
             )
         }
     } else {
@@ -138,7 +143,9 @@ fun NkhukuNavHost(
                 flockEntryViewModel = flockEntryViewModel,
                 vaccinationViewModel = vaccinationViewModel,
                 plannerViewModel = plannerViewModel,
-                onClickSignOut = {
+                userPrefsViewModel = userPrefsViewModel,
+                onClickSettings = {
+                    navController.navigate(SettingsDestination.route)
                 }
             )
             detailsGraph(
@@ -146,7 +153,8 @@ fun NkhukuNavHost(
                 flockEntryViewModel = flockEntryViewModel,
             )
             accountDetailsGraph(
-                navController = navController
+                navController = navController,
+                userPrefsViewModel = userPrefsViewModel
             )
         }
     }
@@ -191,7 +199,8 @@ fun NavGraphBuilder.homeGraph(
     flockEntryViewModel: FlockEntryViewModel,
     vaccinationViewModel: VaccinationViewModel,
     plannerViewModel: PlannerViewModel,
-    onClickSignOut: () -> Unit
+    userPrefsViewModel: UserPrefsViewModel,
+    onClickSettings: () -> Unit
 ) {
     navigation(
         route = GraphRoutes.HOME,
@@ -207,7 +216,7 @@ fun NavGraphBuilder.homeGraph(
                 },
                 flockEntryViewModel = flockEntryViewModel,
                 vaccinationViewModel = vaccinationViewModel,
-                onSignOut = onClickSignOut
+                onClickSettings = onClickSettings
 
             )
         }
@@ -216,14 +225,17 @@ fun NavGraphBuilder.homeGraph(
             AccountsScreen(
                 navigateToTransactionsScreen = { id ->
                     navController.navigate(route = "${TransactionsScreenDestination.route}/$id")
-                }
+                },
+                onClickSettings = onClickSettings,
+                userPrefsViewModel = userPrefsViewModel
             )
         }
 
         composable(route = NavigationBarScreens.Planner.route) {
             PlannerScreen(
                 navigateToResultsScreen = { navController.navigate(PlannerResultsDestination.route) },
-                plannerViewModel = plannerViewModel
+                plannerViewModel = plannerViewModel,
+                onClickSettings = onClickSettings
             )
         }
 
@@ -231,7 +243,8 @@ fun NavGraphBuilder.homeGraph(
             TipsScreen(
                 navigateToArticlesListScreen = { title, id ->
                     navController.navigate("${TipsArticlesListDestination.route}/$title/$id")
-                }
+                },
+                onClickSettings = onClickSettings
             )
         }
         composable(
@@ -263,7 +276,8 @@ fun NavGraphBuilder.homeGraph(
                 },
                 navigateToFlockOverviewScreen = {
                     navController.navigate(FlockOverviewDestination.route)
-                }
+                },
+                onClickSettings = onClickSettings
             )
         }
         composable(AddFlockDestination.route) {
@@ -275,7 +289,8 @@ fun NavGraphBuilder.homeGraph(
                     val id = it.id
                     navController.navigate(route = "${AddVaccinationsDestination.route}/$id")
                 },
-                viewModel = flockEntryViewModel
+                viewModel = flockEntryViewModel,
+                userPrefsViewModel = userPrefsViewModel
             )
         }
         composable(
@@ -306,12 +321,19 @@ fun NavGraphBuilder.homeGraph(
         }
         composable(route = AccountOverviewDestination.route) {
             AccountOverviewScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                userPrefsViewModel = userPrefsViewModel
             )
         }
         composable(route = FlockOverviewDestination.route) {
             FlockOverviewScreen(
                 onNavigateUp = { navController.navigateUp() }
+            )
+        }
+        composable(route = SettingsDestination.route) {
+            SettingsScreen(
+                onNavigateUp = { navController.navigateUp() },
+                userPrefsViewModel = userPrefsViewModel
             )
         }
     }
@@ -390,7 +412,8 @@ fun NavGraphBuilder.detailsGraph(
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.accountDetailsGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    userPrefsViewModel: UserPrefsViewModel
 ) {
     navigation(
         route = GraphRoutes.ACCOUNT_DETAILS,
@@ -407,8 +430,10 @@ fun NavGraphBuilder.accountDetailsGraph(
                 },
                 navigateToAddExpenseScreen = { expenseId, accountId ->
                     navController.navigate(
-                        "${AddExpenseScreenDestination.route}/$expenseId/$accountId")
-                }
+                        "${AddExpenseScreenDestination.route}/$expenseId/$accountId"
+                    )
+                },
+                userPrefsViewModel = userPrefsViewModel
             )
         }
         composable(
@@ -416,7 +441,8 @@ fun NavGraphBuilder.accountDetailsGraph(
             arguments = AddIncomeScreenDestination.arguments
         ) {
             AddIncomeScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                userPrefsViewModel = userPrefsViewModel
             )
         }
         composable(
@@ -424,7 +450,8 @@ fun NavGraphBuilder.accountDetailsGraph(
             arguments = AddExpenseScreenDestination.arguments
         ) {
             AddExpenseScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                userPrefsViewModel = userPrefsViewModel
             )
         }
     }
