@@ -12,4 +12,5 @@ object Constants {
     const val FLOCK_ID = "flock_ID"
     const val DATA_STORE_FILE_NAME = "user_prefs.pb"
     const val USER_PREFERENCES_NAME = "user_preferences"
+    const val MY_PERMISSIONS_REQUEST_POST_NOTIFICATIONS = 187431
 }

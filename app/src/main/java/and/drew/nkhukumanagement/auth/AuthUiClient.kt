@@ -1,6 +1,7 @@
 package and.drew.nkhukumanagement.auth
 
 import android.content.Context
+import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.ktx.auth
@@ -8,7 +9,10 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
 
-class AuthUiClient(val context: Context) {
+class AuthUiClient(
+    private val context: Context,
+    private val oneTapClient: SignInClient
+) {
     private val auth = Firebase.auth
 
     suspend fun createUserWithEmailAndPassWord(email: String, password: String): SignInResult {
@@ -69,11 +73,33 @@ class AuthUiClient(val context: Context) {
 
     suspend fun signOut() {
         try {
+            oneTapClient.signOut().await()
             auth.signOut()
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
         }
+    }
+
+    suspend fun deleteAccount() {
+        try {
+            if (auth.currentUser != null) {
+                auth.currentUser?.delete()?.await()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (e is CancellationException) throw e
+        }
+
+    }
+
+    fun signedInUser(): User {
+        val userSignedIn = auth.currentUser
+        return User(
+            email = userSignedIn?.email,
+            userId = userSignedIn?.uid,
+            username = userSignedIn?.displayName
+        )
     }
 
 }

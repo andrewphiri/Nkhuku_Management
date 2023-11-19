@@ -27,7 +27,10 @@ class MainActivity : ComponentActivity() {
         )
     }
     private val authUiClient by lazy {
-        AuthUiClient(applicationContext)
+        AuthUiClient(
+            applicationContext,
+            oneTapClient = Identity.getSignInClient(applicationContext)
+        )
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

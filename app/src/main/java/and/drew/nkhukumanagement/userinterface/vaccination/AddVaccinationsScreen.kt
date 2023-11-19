@@ -2,7 +2,9 @@ package and.drew.nkhukumanagement.userinterface.vaccination
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.Vaccination
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.accounts.AccountsViewModel
 import and.drew.nkhukumanagement.userinterface.feed.FeedViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
@@ -91,7 +93,6 @@ object AddVaccinationsDestination : NkhukuDestinations {
             type = NavType.IntType
         },
     )
-
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -107,6 +108,7 @@ fun AddVaccinationsScreen(
     weightViewModel: WeightViewModel = hiltViewModel(),
     feedViewModel: FeedViewModel = hiltViewModel(),
     accountsViewModel: AccountsViewModel = hiltViewModel(),
+    userPrefsViewModel: UserPrefsViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -115,7 +117,9 @@ fun AddVaccinationsScreen(
     var vaccinesList: List<Vaccination> = listOf()
     val vaccinesStateList: MutableList<VaccinationUiState> = mutableListOf()
     val flockList by detailsViewModel.allFlocks.collectAsState()
-    var minutes: Long by remember { mutableStateOf(1) }
+    val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
 
     var title by remember { mutableStateOf("") }
     title = stringResource(AddVaccinationsDestination.resourceId)
@@ -213,16 +217,18 @@ fun AddVaccinationsScreen(
                         val flock =
                             if (!flockList.flockList.isNullOrEmpty()) flockList.flockList.last() else
                                 flockEntryViewModel.flockUiState.toFlock()
-                        vaccinationViewModel.getInitialVaccinationList().forEach {
-                            flock.toFlockUiState().let { flock ->
-                                vaccinationViewModel.schedule(
-                                    it.toVaccination(),
-                                    flock.copy(id = flock.id + 1)
-                                )
-                                Log.i(
-                                    "VACCINATION_HASHCODE",
-                                    it.toVaccination().hashCode().toString()
-                                )
+                        if (userPreferences.receiveNotifications) {
+                            vaccinationViewModel.getInitialVaccinationList().forEach {
+                                flock.toFlockUiState().let { flock ->
+                                    vaccinationViewModel.schedule(
+                                        it.toVaccination(),
+                                        flock.copy(id = flock.id + 1)
+                                    )
+                                    Log.i(
+                                        "VACCINATION_HASHCODE",
+                                        it.toVaccination().hashCode().toString()
+                                    )
+                                }
                             }
                         }
 
@@ -259,16 +265,16 @@ fun AddVaccinationsScreen(
                         withVaccinationsToEdit?.vaccinations?.forEach {
                             vaccinationViewModel.cancelAlarm(it)
                         }
-                        vaccinationViewModel.getInitialVaccinationList().forEach {
-                            vaccinationViewModel.schedule(
-                                vaccination = it.toVaccination(),
-                                flock = flockEntryViewModel.flockUiState
-                            )
-                            Log.i(
-                                "VACCINE_STATE_HASHCODE",
-                                it.toVaccination().hashCode().toString()
-                            )
+
+                        if (userPreferences.receiveNotifications) {
+                            vaccinationViewModel.getInitialVaccinationList().forEach {
+                                vaccinationViewModel.schedule(
+                                    vaccination = it.toVaccination(),
+                                    flock = flockEntryViewModel.flockUiState
+                                )
+                            }
                         }
+
                         coroutineScope.launch {
                             vaccinationViewModel.deleteVaccination(flockUniqueID)
 

@@ -35,7 +35,9 @@ class BackupAndRestoreViewModel @Inject constructor(
             val backupFile = File(
                 Environment.getExternalStorageDirectory(), "${Constants.DATABASE_NAME}.bak"
             )
+
             databaseFile.copyTo(backupFile, true)
+
 
             //Share the backup file
             val shareIntent = Intent(Intent.ACTION_SEND)
@@ -60,12 +62,9 @@ class BackupAndRestoreViewModel @Inject constructor(
         //Get database file
         val databaseFile = application.applicationContext.getDatabasePath(Constants.DATABASE_NAME)
 
-        //Get backup file path
+        //Read data from backup Uri
         val inputStream = backupFileUri?.let { application.contentResolver.openInputStream(it) }
 
-//        if (!inputStream.exists()) {
-//            return
-//        }
         if (inputStream != null) {
             try {
                 copyFiles(inputStream as FileInputStream, FileOutputStream(databaseFile))

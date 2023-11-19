@@ -4,6 +4,7 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.auth.UserUiState
 import and.drew.nkhukumanagement.auth.isValid
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
+import and.drew.nkhukumanagement.utils.BaseSignInPassword
 import and.drew.nkhukumanagement.utils.BaseSignInRow
 import and.drew.nkhukumanagement.utils.SignInGoogleButton
 import android.os.Build
@@ -22,6 +23,10 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +49,7 @@ fun SignUpScreen(
     userUiState: UserUiState,
     onValueChanged: (UserUiState) -> Unit,
 ) {
+    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     Column(modifier = modifier) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -76,21 +82,18 @@ fun SignUpScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
-            BaseSignInRow(
+            BaseSignInPassword(
                 value = userUiState.password,
                 placeholder = "Password",
                 onValueChanged = {
                     onValueChanged(userUiState.copy(password = it))
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                isPasswordVisible = isPasswordVisible,
+                onPasswordVisibilityClicked = {
+                    isPasswordVisible = !isPasswordVisible
+                }
             )
-
-//                BaseSignInRow(
-//                    value = "",
-//                    placeholder = "Retype Password",
-//                    onValueChanged = {},
-//                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-//                )
 
 
             FilledTonalButton(

@@ -9,7 +9,9 @@ import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.getAllCurrenciesInUse
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.icu.util.Currency
 import android.icu.util.ULocale
 import android.net.Uri
@@ -46,6 +48,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -64,6 +67,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -73,6 +77,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -91,8 +96,10 @@ fun SettingsScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     userPrefsViewModel: UserPrefsViewModel,
-    backupAndRestore: BackupAndRestoreViewModel = hiltViewModel()
+    backupAndRestore: BackupAndRestoreViewModel = hiltViewModel(),
+    navigateToAccountInfoScreen: () -> Unit
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showRestoreDialog by remember { mutableStateOf(false) }
@@ -112,6 +119,8 @@ fun SettingsScreen(
             )
         )
     }
+    var receiveNotifications by remember { mutableStateOf(true) }
+    receiveNotifications = userPreferences.receiveNotifications
     selectedCurrency = Currency.getInstance(
         ULocale(userPreferences.currencyLocale)
     )
@@ -125,6 +134,27 @@ fun SettingsScreen(
             showSuccesfulAfterRestoreDialog = true
         } else {
             showRestoreDialog = true
+        }
+    }
+
+    val requestPermission = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            coroutineScope.launch {
+                isCircularIndicatorShowing = true
+                delay(3000)
+                backupAndRestore.backupAndShareFile()
+            }.invokeOnCompletion {
+                isCircularIndicatorShowing = false
+            }
+        } else {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "This feature is unavailable because it requires access to the phone's storage.",
+                    duration = SnackbarDuration.Long
+                )
+            }
         }
     }
 
@@ -163,13 +193,28 @@ fun SettingsScreen(
 
                 },
                 onClickBackup = {
-                    coroutineScope.launch {
-                        isCircularIndicatorShowing = true
-                        delay(3000)
-                        backupAndRestore.backupAndShareFile()
-                    }.invokeOnCompletion {
-                        isCircularIndicatorShowing = false
+
+                    when (PackageManager.PERMISSION_GRANTED) {
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        ) -> {
+                            coroutineScope.launch {
+                                isCircularIndicatorShowing = true
+                                delay(3000)
+                                backupAndRestore.backupAndShareFile()
+                            }.invokeOnCompletion {
+                                isCircularIndicatorShowing = false
+                            }
+                        }
+
+                        else -> {
+                            requestPermission.launch(
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            )
+                        }
                     }
+
 
                 },
                 isCircularIndicatorShowing = isCircularIndicatorShowing,
@@ -196,7 +241,12 @@ fun SettingsScreen(
                 onDismissRestoreBackupDialog = { showRestoreDialog = false },
                 onDismissSuccessAlertDialog = { showSuccesfulAfterRestoreDialog = false },
                 isSuccessAlertDialogShowing = showSuccesfulAfterRestoreDialog,
-                isFileValid = isFileValid
+                isFileValid = isFileValid,
+                receiveNotifications = receiveNotifications,
+                onCheckedChange = {
+                    userPrefsViewModel.updateNotifications(it)
+                },
+                navigateToAccountInfoScreen = navigateToAccountInfoScreen
             )
         }
     }
@@ -218,7 +268,10 @@ fun SettingsCard(
     onDismissRestoreBackupDialog: () -> Unit,
     onDismissSuccessAlertDialog: () -> Unit,
     isSuccessAlertDialogShowing: Boolean,
-    isFileValid: Boolean
+    isFileValid: Boolean,
+    receiveNotifications: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    navigateToAccountInfoScreen: () -> Unit
 ) {
 
     Box(
@@ -238,7 +291,7 @@ fun SettingsCard(
             modifier = Modifier
                 .fillMaxSize()
                 .alpha(if (isCircularIndicatorShowing) 0.5f else 1f),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             currencyPickerDialog(
                 showDialog = showCurrencyDialog,
@@ -269,7 +322,10 @@ fun SettingsCard(
                 color = MaterialTheme.colorScheme.tertiary
             )
             Text(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = navigateToAccountInfoScreen)
+                    .padding(vertical = 8.dp),
                 text = "Account Information"
             )
 
@@ -280,17 +336,21 @@ fun SettingsCard(
             )
 
             Text(
+                modifier = Modifier.padding(top = 8.dp),
                 text = "CURRENCY",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = {
-                    if (!isCircularIndicatorShowing) {
-                        onShowCurrencyDialog()
-                    }
-                })) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = {
+                        if (!isCircularIndicatorShowing) {
+                            onShowCurrencyDialog()
+                        }
+                    })
+                    .padding(vertical = 8.dp)
+            ) {
                 Text(
                     text = "Default"
                 )
@@ -301,26 +361,25 @@ fun SettingsCard(
                 )
             }
             Divider(
-                modifier = Modifier.fillMaxWidth(),
                 thickness = Dp.Hairline,
                 color = Color.DarkGray
             )
-
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = "BACKUP AND RESTORE",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.tertiary
+            )
             Column {
-                Text(
-                    text = "BACKUP AND RESTORE",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
                         .clickable(onClick = {
                             if (!isCircularIndicatorShowing) {
                                 onClickBackup()
                             }
-                        }),
+                        })
+                        .padding(vertical = 8.dp),
                     text = "Create backup"
                 )
                 Text(
@@ -331,25 +390,28 @@ fun SettingsCard(
                             if (!isCircularIndicatorShowing) {
                                 onClickRestore()
                             }
-                        }),
+                        })
+                        .padding(vertical = 8.dp),
                     text = "Restore"
                 )
             }
 
-
             Divider(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 thickness = Dp.Hairline,
                 color = Color.DarkGray
             )
             Text(
+                modifier = Modifier.padding(top = 8.dp),
                 text = "NOTIFICATIONS",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -360,8 +422,8 @@ fun SettingsCard(
                     modifier = Modifier
                         .size(16.dp)
                         .weight(0.2f),
-                    checked = true,
-                    onCheckedChange = {}
+                    checked = receiveNotifications,
+                    onCheckedChange = onCheckedChange
                 )
             }
         }
@@ -515,7 +577,7 @@ fun ShowSuccessfulDialog(
                     } else {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Restore failed. Please choose a valid file.",
+                            text = "This file is not supported. Please choose a valid file.",
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center
                         )

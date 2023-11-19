@@ -4,6 +4,8 @@ import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
 import and.drew.nkhukumanagement.auth.SignInViewModel
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
+import and.drew.nkhukumanagement.settings.AccountInfoScreen
+import and.drew.nkhukumanagement.settings.AccountInformationDestination
 import and.drew.nkhukumanagement.settings.SettingsDestination
 import and.drew.nkhukumanagement.settings.SettingsScreen
 import and.drew.nkhukumanagement.userinterface.accounts.AccountsScreen
@@ -112,7 +114,9 @@ fun NkhukuNavHost(
 //                        signInViewModel.resetState()
 //                        signInViewModel.setUserLoggedIn(false)
 //                    }.invokeOnCompletion { navController.navigate(GraphRoutes.AUTH) }
-                }
+                },
+                authUiClient = authUiClient,
+                signInViewModel = signInViewModel
             )
             detailsGraph(
                 navController = navController,
@@ -146,7 +150,9 @@ fun NkhukuNavHost(
                 userPrefsViewModel = userPrefsViewModel,
                 onClickSettings = {
                     navController.navigate(SettingsDestination.route)
-                }
+                },
+                authUiClient = authUiClient,
+                signInViewModel = signInViewModel
             )
             detailsGraph(
                 navController = navController,
@@ -200,7 +206,9 @@ fun NavGraphBuilder.homeGraph(
     vaccinationViewModel: VaccinationViewModel,
     plannerViewModel: PlannerViewModel,
     userPrefsViewModel: UserPrefsViewModel,
-    onClickSettings: () -> Unit
+    onClickSettings: () -> Unit,
+    authUiClient: AuthUiClient,
+    signInViewModel: SignInViewModel
 ) {
     navigation(
         route = GraphRoutes.HOME,
@@ -310,7 +318,8 @@ fun NavGraphBuilder.homeGraph(
                     }
                 },
                 onNavigateUp = { navController.navigateUp() },
-                flockEntryViewModel = flockEntryViewModel
+                flockEntryViewModel = flockEntryViewModel,
+                userPrefsViewModel = userPrefsViewModel
             )
         }
         composable(route = PlannerResultsDestination.route) {
@@ -333,7 +342,26 @@ fun NavGraphBuilder.homeGraph(
         composable(route = SettingsDestination.route) {
             SettingsScreen(
                 onNavigateUp = { navController.navigateUp() },
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                navigateToAccountInfoScreen = { navController.navigate(route = AccountInformationDestination.route) }
+            )
+        }
+        composable(route = AccountInformationDestination.route) {
+            AccountInfoScreen(
+                authUiClient = authUiClient,
+                onNavigateUp = { navController.navigateUp() },
+                navigateToSignInScreen = {
+                    navController.navigate(route = AccountSetupDestination.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = false
+                        }
+                        navController.popBackStack(
+                            AccountSetupDestination.route,
+                            inclusive = true
+                        )
+                    }
+                },
+                signInViewModel = signInViewModel
             )
         }
     }
