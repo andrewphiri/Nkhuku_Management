@@ -6,9 +6,7 @@ import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.SignInViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
-import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -24,12 +22,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,17 +66,22 @@ fun AccountInfoScreen(
     onNavigateUp: () -> Unit,
     authUiClient: AuthUiClient,
     navigateToSignInScreen: () -> Unit,
-    signInViewModel: SignInViewModel
+    signInViewModel: SignInViewModel,
+    onNavigateToConfirmAccountScreen: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var emailSignedIn by remember { mutableStateOf("") }
+    val emailVerified by signInViewModel.emailVerified.collectAsState()
+    LaunchedEffect(key1 = emailVerified) {
+        signInViewModel.setEmailVerification(
+            emailVerified = authUiClient.isEmailVerified()
+        )
+    }
     emailSignedIn = authUiClient.signedInUser().email.toString()
     var title by remember { mutableStateOf(context.getString(R.string.add_account)) }
     title = if (emailSignedIn != "null")
         context.getString(AccountInformationDestination.resourceId) else context.getString(R.string.add_account)
-    Log.i("EMAIL_SIGNED_IN", emailSignedIn)
-    var isConfirmAlertDialogShowing by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -96,20 +102,9 @@ fun AccountInfoScreen(
                         signInViewModel.setUserLoggedIn(false)
                     }
                 },
-                onDeleteAccount = {
-                    isConfirmAlertDialogShowing = true
-                },
-                isAlertDialogShowing = isConfirmAlertDialogShowing,
-                onDismiss = { isConfirmAlertDialogShowing = false },
-                onConfirmDelete = {
-                    coroutineScope.launch {
-                        authUiClient.deleteAccount()
-                        signInViewModel.resetState()
-                        signInViewModel.setUserLoggedIn(false)
-                        isConfirmAlertDialogShowing = false
-                    }
-                },
-                navigateToSignInScreen = navigateToSignInScreen
+                onNavigateToConfirmAccountScreen = onNavigateToConfirmAccountScreen,
+                navigateToSignInScreen = navigateToSignInScreen,
+                isEmailVerified = emailVerified
             )
         }
     }
@@ -119,14 +114,13 @@ fun AccountInfoScreen(
 fun AccountInfoCard(
     modifier: Modifier = Modifier,
     email: String,
+    isEmailVerified: Boolean,
     onNavigateUp: () -> Unit,
     onSignOut: () -> Unit,
-    onDeleteAccount: () -> Unit,
-    isAlertDialogShowing: Boolean,
-    onConfirmDelete: () -> Unit,
-    onDismiss: () -> Unit,
-    navigateToSignInScreen: () -> Unit,
+    onNavigateToConfirmAccountScreen: () -> Unit,
+    navigateToSignInScreen: () -> Unit
 ) {
+
     if (email == "null") {
         Box(
             modifier = modifier.fillMaxSize().padding(16.dp),
@@ -145,11 +139,13 @@ fun AccountInfoCard(
                     .padding(bottom = 8.dp, end = 8.dp),
                 onClick = navigateToSignInScreen,
                 shape = CircleShape,
-                border = BorderStroke(Dp.Hairline, color = MaterialTheme.colorScheme.primary)
+                border = BorderStroke(Dp.Hairline, color = MaterialTheme.colorScheme.secondary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
             ) {
                 Icon(
                     imageVector = Icons.Default.PersonAdd,
-                    contentDescription = "Add email account"
+                    contentDescription = "Add email account",
+                    tint = MaterialTheme.colorScheme.onSecondary
                 )
             }
         }
@@ -161,18 +157,25 @@ fun AccountInfoCard(
             contentAlignment = Alignment.TopCenter
         ) {
             Column {
-                ShowAlertDialog(
-                    onDismissAlertDialog = onDismiss,
-                    onConfirm = onConfirmDelete,
-                    confirmButtonText = "Yes",
-                    dismissButtonText = "No",
-                    isAlertDialogShowing = isAlertDialogShowing,
-                    message = "Are you sure you want to delete your account?",
-                    title = "Delete Account"
-                )
-                Text(
-                    text = "Current email"
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "Current email",
+                        textAlign = TextAlign.Start
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = if (isEmailVerified) "Verified" else "Unverified",
+                        color = if (isEmailVerified) Color.Green else Color.Red,
+                        textAlign = TextAlign.End
+                    )
+                }
+
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -218,7 +221,7 @@ fun AccountInfoCard(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(onClick = onDeleteAccount)
+                        .clickable(onClick = onNavigateToConfirmAccountScreen)
                         .padding(vertical = 8.dp),
                     textAlign = TextAlign.Center,
                     text = "Delete",
@@ -236,15 +239,12 @@ fun AccountInfoCard(
 @Composable
 fun AccountInfoPreview() {
     NkhukuManagementTheme {
-        AccountInfoCard(
-            email = "abcf@gmail.com",
-            onNavigateUp = {},
-            onSignOut = {},
-            onDeleteAccount = {},
-            onDismiss = {},
-            onConfirmDelete = {},
-            isAlertDialogShowing = false,
-            navigateToSignInScreen = {}
-        )
+//        AccountInfoCard(
+//            email = "abcf@gmail.com",
+//            onNavigateUp = {},
+//            onSignOut = {},
+//            onNavigateToConfirmAccountScreen = {},
+//            navigateToSignInScreen = {}
+//        )
     }
 }

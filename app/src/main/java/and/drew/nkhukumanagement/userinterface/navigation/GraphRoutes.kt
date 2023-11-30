@@ -6,4 +6,6 @@ object GraphRoutes {
     const val HOME = "home_graph"
     const val DETAILS = "details_graph"
     const val ACCOUNT_DETAILS = "account_details_graph"
+    const val SETTINGS = "settings_graph"
+    const val VERIFICATION = " verification_graph"
 }

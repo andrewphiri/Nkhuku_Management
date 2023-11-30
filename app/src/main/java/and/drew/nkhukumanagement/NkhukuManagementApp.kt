@@ -213,6 +213,7 @@ fun FlockManagementTopAppBar(
                         )
                     }
                 }
+
                 IconButton(
                     onClick = onClickSettings
                 ) {
@@ -221,6 +222,7 @@ fun FlockManagementTopAppBar(
                         contentDescription = "Settings"
                     )
                 }
+
 
             }
         )

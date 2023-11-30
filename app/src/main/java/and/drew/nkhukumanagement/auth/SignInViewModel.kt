@@ -15,6 +15,9 @@ class SignInViewModel : ViewModel() {
     private val _userLoggedIn = MutableStateFlow(false)
     val userLoggedIn = _userLoggedIn.asStateFlow()
 
+    private val _emailVerified = MutableStateFlow(false)
+    val emailVerified = _emailVerified.asStateFlow()
+
     var userUiStateSignIn by mutableStateOf(UserUiState())
         private set
 
@@ -46,6 +49,10 @@ class SignInViewModel : ViewModel() {
 
     fun setUserLoggedIn(loggedIn: Boolean) {
         _userLoggedIn.value = loggedIn
+    }
+
+    fun setEmailVerification(emailVerified: Boolean) {
+        _emailVerified.value = emailVerified
     }
 
     fun resetState() {

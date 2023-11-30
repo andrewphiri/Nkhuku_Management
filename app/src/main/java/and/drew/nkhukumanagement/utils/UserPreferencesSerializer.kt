@@ -1,6 +1,5 @@
 package and.drew.nkhukumanagement.utils
 
-
 import and.drew.nkhukumanagement.UserPreferences
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer

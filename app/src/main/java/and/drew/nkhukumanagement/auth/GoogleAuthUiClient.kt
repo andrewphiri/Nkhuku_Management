@@ -7,6 +7,7 @@ import android.content.IntentSender
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.BeginSignInRequest.GoogleIdTokenRequestOptions
 import com.google.android.gms.auth.api.identity.SignInClient
+import com.google.android.gms.auth.api.identity.SignInCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -66,6 +67,16 @@ class GoogleAuthUiClient(
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
+        }
+    }
+
+    suspend fun signInGetCredential(intent: Intent): SignInCredential? {
+        return try {
+            oneTapClient.getSignInCredentialFromIntent(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (e is CancellationException) throw e
+            null
         }
     }
 

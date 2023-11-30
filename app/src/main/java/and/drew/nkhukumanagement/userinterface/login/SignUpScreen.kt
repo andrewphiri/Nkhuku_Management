@@ -56,23 +56,6 @@ fun SignUpScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-//                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-//                    BaseSignInRow(
-//                        modifier = Modifier.weight(1f),
-//                        value = "",
-//                        placeholder = "First name",
-//                        onValueChanged = {},
-//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-//                    )
-//                    BaseSignInRow(
-//                        modifier = Modifier.weight(1f),
-//                        value = "",
-//                        placeholder = "Last name",
-//                        onValueChanged = {},
-//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-//                    )
-//                }
-
             BaseSignInRow(
                 value = userUiState.email,
                 placeholder = "Email address",

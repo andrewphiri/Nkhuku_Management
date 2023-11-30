@@ -9,6 +9,7 @@ import and.drew.nkhukumanagement.utils.BaseSignInRow
 import and.drew.nkhukumanagement.utils.SignInGoogleButton
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,6 +49,7 @@ fun SignInScreen(
     isLoadingGoogleButton: Boolean,
     userUiState: UserUiState,
     onValueChanged: (UserUiState) -> Unit,
+    onClickForgotPassword: () -> Unit
 ) {
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     Column(modifier = modifier) {
@@ -79,7 +81,10 @@ fun SignInScreen(
             )
 
             Text(
-                modifier = Modifier.align(Alignment.End),
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(8.dp)
+                    .clickable(onClick = onClickForgotPassword),
                 text = "Forgot password?"
             )
 

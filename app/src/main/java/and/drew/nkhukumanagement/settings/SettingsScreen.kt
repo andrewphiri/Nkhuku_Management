@@ -8,6 +8,7 @@ import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
+import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
 import and.drew.nkhukumanagement.utils.getAllCurrenciesInUse
 import android.Manifest
 import android.content.Intent
@@ -16,14 +17,9 @@ import android.icu.util.Currency
 import android.icu.util.ULocale
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,9 +35,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
@@ -64,14 +58,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -127,7 +119,6 @@ fun SettingsScreen(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
-        Log.i("FILE_PICKED", it.data?.data.toString())
         restoreBackupUri = it.data?.data
         isFileValid = backupAndRestore.isFileValid(restoreBackupUri)
         if (!isFileValid) {
@@ -314,7 +305,7 @@ fun SettingsCard(
             ShowSuccessfulDialog(
                 onDismissSuccessAlertDialog = onDismissSuccessAlertDialog,
                 isSuccessAlertDialogShowing = isSuccessAlertDialogShowing,
-                isFileValid = isFileValid
+                isActionSuccessful = isFileValid
             )
             Text(
                 text = "ACCOUNT",
@@ -528,77 +519,7 @@ fun currencyPickerDialog(
     }
 }
 
-/**
- * Restore successful dialog
- */
-@Composable
-fun ShowSuccessfulDialog(
-    modifier: Modifier = Modifier,
-    onDismissSuccessAlertDialog: () -> Unit,
-    isSuccessAlertDialogShowing: Boolean,
-    title: String = "Restore Successful",
-    dismissSuccessButtonText: String = "Close",
-    animDuration: Int = 1000,
-    isFileValid: Boolean
-) {
 
-    val animateRotation by animateFloatAsState(
-        targetValue = if (isSuccessAlertDialogShowing) -90f * 12f else 0f,
-        animationSpec = tween(
-            durationMillis = animDuration,
-            delayMillis = 0,
-            easing = LinearOutSlowInEasing
-        )
-    )
-    if (isSuccessAlertDialogShowing) {
-        Dialog(
-            onDismissRequest = onDismissSuccessAlertDialog,
-            properties = DialogProperties()
-        ) {
-            ElevatedCard {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = if (isFileValid) title else "Restore Failed",
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center
-                    )
-                    if (isFileValid) {
-                        Image(
-                            modifier = Modifier.size(100.dp)
-                                .rotate(animateRotation),
-                            imageVector = Icons.Default.Check,
-                            contentDescription = title
-                        )
-                    } else {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = "This file is not supported. Please choose a valid file.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Button(
-                            modifier = Modifier.align(Alignment.End),
-                            onClick = onDismissSuccessAlertDialog
-                        ) {
-                            Text(
-                                modifier = Modifier,
-                                text = dismissSuccessButtonText
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 
 @RequiresApi(Build.VERSION_CODES.O)

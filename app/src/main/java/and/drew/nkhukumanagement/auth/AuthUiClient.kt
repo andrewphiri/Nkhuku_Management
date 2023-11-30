@@ -1,9 +1,14 @@
 package and.drew.nkhukumanagement.auth
 
 import android.content.Context
+import android.content.Intent
+import android.util.Log
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.SignInMethodQueryResult
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -81,16 +86,51 @@ class AuthUiClient(
         }
     }
 
-    suspend fun deleteAccount() {
+    suspend fun deleteAccount(
+        email: String?, password: String,
+        googleAuthUiClient: GoogleAuthUiClient, intent: Intent?
+    ): Boolean {
+        //val googleAccount = GoogleSignIn.getLastSignedInAccount(context)
+
+        val account = if (intent != Intent()) intent?.let {
+            googleAuthUiClient.signInGetCredential(
+                it
+            )
+        } else null
+        val idToken = account?.googleIdToken
+//        val userSignInMethods = auth.currentUser?.email?.let { auth.fetchSignInMethodsForEmail(it).result.signInMethods }
+        //val userSignInMethods = email?.let { fetchSignInMethods(it)?.signInMethods }
+
+        val signInMethod = if (idToken != null)
+            GoogleAuthProvider.getCredential(idToken, null).signInMethod else ""
+
+        Log.i("Email_Provider", signInMethod)
+
         try {
-            if (auth.currentUser != null) {
-                auth.currentUser?.delete()?.await()
+            if (signInMethod == "google.com") {
+                Log.i("Email", email.toString())
+                val googleCredential = GoogleAuthProvider.getCredential(idToken, null)
+                auth.currentUser?.reauthenticate(googleCredential)?.addOnSuccessListener { task ->
+                    auth.currentUser?.delete()
+                }
+            } else {
+                val credential = email?.let { EmailAuthProvider.getCredential(it, password) }
+                if (credential != null) {
+                    auth.currentUser?.reauthenticate(credential)?.addOnSuccessListener { task ->
+                        auth.currentUser?.delete()
+                    }
+                }
             }
+            return true
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
+            return false
         }
+    }
 
+    suspend fun fetchSignInMethods(email: String?): SignInMethodQueryResult? {
+        return email?.let { auth.fetchSignInMethodsForEmail(it).await() }
     }
 
     fun signedInUser(): User {
@@ -102,4 +142,44 @@ class AuthUiClient(
         )
     }
 
+    suspend fun verifyEmail() {
+        try {
+            auth.currentUser?.sendEmailVerification()?.await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (e is CancellationException) throw e
+        }
+    }
+
+    fun isEmailVerified(): Boolean {
+        return try {
+            auth.currentUser?.reload()
+            auth.currentUser?.isEmailVerified == true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (e is CancellationException) throw e
+            auth.currentUser?.isEmailVerified == true
+        }
+    }
+
+    suspend fun resetPassword(email: String): Boolean {
+        var emailSentSuccessfully = false
+        try {
+            auth.sendPasswordResetEmail(email).addOnSuccessListener {
+                emailSentSuccessfully = true
+            }
+                .addOnFailureListener { e ->
+                    e.printStackTrace()
+                    if (e is CancellationException) throw e
+                }.await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (e is CancellationException) throw e
+        }
+        return emailSentSuccessfully
+    }
+
+    suspend fun isResetPasswordLinkSentSuccessfully(email: String) {
+        resetPassword(email)
+    }
 }

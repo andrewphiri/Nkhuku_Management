@@ -29,6 +29,12 @@ import and.drew.nkhukumanagement.userinterface.flock.FlockHealthScreenDestinatio
 import and.drew.nkhukumanagement.userinterface.home.HomeScreen
 import and.drew.nkhukumanagement.userinterface.login.AccountSetupDestination
 import and.drew.nkhukumanagement.userinterface.login.AccountSetupScreen
+import and.drew.nkhukumanagement.userinterface.login.AuthenticateScreen
+import and.drew.nkhukumanagement.userinterface.login.ReauthenticationScreenDestination
+import and.drew.nkhukumanagement.userinterface.login.ResetPasswordDestination
+import and.drew.nkhukumanagement.userinterface.login.ResetPasswordScreen
+import and.drew.nkhukumanagement.userinterface.login.VerifyEmailDestination
+import and.drew.nkhukumanagement.userinterface.login.VerifyEmailScreen
 import and.drew.nkhukumanagement.userinterface.overview.AccountOverviewDestination
 import and.drew.nkhukumanagement.userinterface.overview.AccountOverviewScreen
 import and.drew.nkhukumanagement.userinterface.overview.FlockOverviewDestination
@@ -54,7 +60,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -77,16 +82,23 @@ fun NkhukuNavHost(
     authUiClient: AuthUiClient,
     userPrefsViewModel: UserPrefsViewModel
     ) {
-    val coroutineScope = rememberCoroutineScope()
     val signInViewModel = viewModel<SignInViewModel>()
-    LaunchedEffect(signInViewModel.userLoggedIn) {
+    val emailVerified by signInViewModel.emailVerified.collectAsState()
+
+    val userSignedIn by signInViewModel.userLoggedIn.collectAsState(initial = false)
+
+    LaunchedEffect(
+        key1 = signInViewModel.userLoggedIn,
+        key2 = signInViewModel.emailVerified
+    ) {
         signInViewModel.setUserLoggedIn(loggedIn = googleAuthUiClient.getSignedInUser() != null)
+        signInViewModel.setEmailVerification(emailVerified = authUiClient.isEmailVerified())
     }
-    val userSignedIn by signInViewModel.userLoggedIn.collectAsState()
-    signInViewModel.setUserLoggedIn(
-        loggedIn = googleAuthUiClient.getSignedInUser() != null
-    )
-    if (userSignedIn) {
+//    signInViewModel.setUserLoggedIn(loggedIn = googleAuthUiClient.getSignedInUser() != null)
+//    signInViewModel.setEmailVerification(emailVerified = authUiClient.isEmailVerified())
+
+
+    if (userSignedIn && emailVerified) {
         // User is signed in, show the HomeGraph
         NavHost(
             navController = navController,
@@ -98,7 +110,8 @@ fun NkhukuNavHost(
                 navController = navController,
                 signInViewModel = signInViewModel,
                 googleAuthUiClient = googleAuthUiClient,
-                authUiClient = authUiClient
+                authUiClient = authUiClient,
+                isEmailVerified = emailVerified
             )
 
             homeGraph(
@@ -109,14 +122,7 @@ fun NkhukuNavHost(
                 userPrefsViewModel = userPrefsViewModel,
                 onClickSettings = {
                     navController.navigate(SettingsDestination.route)
-//                    coroutineScope.launch {
-//                        googleAuthUiClient.signOut()
-//                        signInViewModel.resetState()
-//                        signInViewModel.setUserLoggedIn(false)
-//                    }.invokeOnCompletion { navController.navigate(GraphRoutes.AUTH) }
-                },
-                authUiClient = authUiClient,
-                signInViewModel = signInViewModel
+                }
             )
             detailsGraph(
                 navController = navController,
@@ -126,7 +132,62 @@ fun NkhukuNavHost(
                 navController = navController,
                 userPrefsViewModel = userPrefsViewModel
             )
+            settingsGraph(
+                navController = navController,
+                signInViewModel = signInViewModel,
+                authUiClient = authUiClient,
+                googleAuthUiClient = googleAuthUiClient,
+                userPrefsViewModel = userPrefsViewModel
+            )
         }
+
+    } else if (userSignedIn) {
+        NavHost(
+            navController = navController,
+            startDestination = GraphRoutes.VERIFICATION,
+            modifier = modifier,
+            route = GraphRoutes.ROOT
+        ) {
+            loginGraphVerification(
+                navController = navController,
+                signInViewModel = signInViewModel,
+                authUiClient = authUiClient
+            )
+            loginGraph(
+                navController = navController,
+                signInViewModel = signInViewModel,
+                googleAuthUiClient = googleAuthUiClient,
+                authUiClient = authUiClient,
+                isEmailVerified = emailVerified
+            )
+
+            homeGraph(
+                navController = navController,
+                flockEntryViewModel = flockEntryViewModel,
+                vaccinationViewModel = vaccinationViewModel,
+                plannerViewModel = plannerViewModel,
+                userPrefsViewModel = userPrefsViewModel,
+                onClickSettings = {
+                    navController.navigate(SettingsDestination.route)
+                }
+            )
+            detailsGraph(
+                navController = navController,
+                flockEntryViewModel = flockEntryViewModel,
+            )
+            accountDetailsGraph(
+                navController = navController,
+                userPrefsViewModel = userPrefsViewModel
+            )
+            settingsGraph(
+                navController = navController,
+                signInViewModel = signInViewModel,
+                authUiClient = authUiClient,
+                googleAuthUiClient = googleAuthUiClient,
+                userPrefsViewModel = userPrefsViewModel
+            )
+        }
+
     } else {
         // User is not signed in, show the LoginGraph
         NavHost(
@@ -135,10 +196,18 @@ fun NkhukuNavHost(
             modifier = modifier,
             route = GraphRoutes.ROOT
         ) {
+
             loginGraph(
                 navController = navController,
                 signInViewModel = signInViewModel,
                 googleAuthUiClient = googleAuthUiClient,
+                authUiClient = authUiClient,
+                isEmailVerified = emailVerified
+            )
+
+            loginGraphVerification(
+                navController = navController,
+                signInViewModel = signInViewModel,
                 authUiClient = authUiClient
             )
 
@@ -150,9 +219,7 @@ fun NkhukuNavHost(
                 userPrefsViewModel = userPrefsViewModel,
                 onClickSettings = {
                     navController.navigate(SettingsDestination.route)
-                },
-                authUiClient = authUiClient,
-                signInViewModel = signInViewModel
+                }
             )
             detailsGraph(
                 navController = navController,
@@ -162,17 +229,24 @@ fun NkhukuNavHost(
                 navController = navController,
                 userPrefsViewModel = userPrefsViewModel
             )
+            settingsGraph(
+                navController = navController,
+                signInViewModel = signInViewModel,
+                authUiClient = authUiClient,
+                googleAuthUiClient = googleAuthUiClient,
+                userPrefsViewModel = userPrefsViewModel
+            )
         }
     }
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.loginGraph(
     navController: NavHostController,
     signInViewModel: SignInViewModel,
     googleAuthUiClient: GoogleAuthUiClient,
-    authUiClient: AuthUiClient
+    authUiClient: AuthUiClient,
+    isEmailVerified: Boolean
 ) {
     navigation(
         route = GraphRoutes.AUTH,
@@ -183,6 +257,13 @@ fun NavGraphBuilder.loginGraph(
         ) {
             val state by signInViewModel.state.collectAsState()
             AccountSetupScreen(
+                navigateToVerificationScreen = {
+                    navController.navigate(route = GraphRoutes.VERIFICATION) {
+                        popUpTo(GraphRoutes.AUTH) {
+                            inclusive = true
+                        }
+                    }
+                },
                 navigateToHome = {
                     navController.navigate(route = GraphRoutes.HOME) {
                         popUpTo(GraphRoutes.AUTH) {
@@ -193,7 +274,58 @@ fun NavGraphBuilder.loginGraph(
                 googleAuthUiClient = googleAuthUiClient,
                 authUiClient = authUiClient,
                 signInViewModel = signInViewModel,
-                state = state
+                state = state,
+                isEmailVerified = isEmailVerified,
+                onClickForgotPassword = {
+                    navController.navigate(route = ResetPasswordDestination.route)
+                }
+            )
+        }
+        composable(route = ResetPasswordDestination.route) {
+            ResetPasswordScreen(
+                onNavigateUp = {
+                    navController.navigate(route = AccountSetupDestination.route) {
+                        popUpTo(route = ResetPasswordDestination.route) {
+                            inclusive = true
+                        }
+                    }
+                },
+                navigateToAccountSetupScreen = {
+                    navController.navigate(route = AccountSetupDestination.route)
+                },
+                signInViewModel = signInViewModel,
+                authUiClient = authUiClient
+            )
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun NavGraphBuilder.loginGraphVerification(
+    navController: NavHostController,
+    signInViewModel: SignInViewModel,
+    authUiClient: AuthUiClient,
+) {
+    navigation(
+        route = GraphRoutes.VERIFICATION,
+        startDestination = VerifyEmailDestination.route
+    ) {
+        composable(
+            route = VerifyEmailDestination.route
+        ) {
+            VerifyEmailScreen(
+                authUiClient = authUiClient,
+                navigateToHome = {
+                    navController.navigate(route = GraphRoutes.HOME) {
+                        popUpTo(GraphRoutes.VERIFICATION) {
+                            inclusive = true
+                        }
+                    }
+                },
+                signInViewModel = signInViewModel,
+                onClickSettings = {
+                    navController.navigate(SettingsDestination.route)
+                }
             )
         }
     }
@@ -206,9 +338,7 @@ fun NavGraphBuilder.homeGraph(
     vaccinationViewModel: VaccinationViewModel,
     plannerViewModel: PlannerViewModel,
     userPrefsViewModel: UserPrefsViewModel,
-    onClickSettings: () -> Unit,
-    authUiClient: AuthUiClient,
-    signInViewModel: SignInViewModel
+    onClickSettings: () -> Unit
 ) {
     navigation(
         route = GraphRoutes.HOME,
@@ -339,6 +469,21 @@ fun NavGraphBuilder.homeGraph(
                 onNavigateUp = { navController.navigateUp() }
             )
         }
+
+    }
+}
+
+fun NavGraphBuilder.settingsGraph(
+    navController: NavHostController,
+    signInViewModel: SignInViewModel,
+    authUiClient: AuthUiClient,
+    googleAuthUiClient: GoogleAuthUiClient,
+    userPrefsViewModel: UserPrefsViewModel
+) {
+    navigation(
+        route = GraphRoutes.SETTINGS,
+        startDestination = SettingsDestination.route
+    ) {
         composable(route = SettingsDestination.route) {
             SettingsScreen(
                 onNavigateUp = { navController.navigateUp() },
@@ -361,8 +506,20 @@ fun NavGraphBuilder.homeGraph(
                         )
                     }
                 },
-                signInViewModel = signInViewModel
+                signInViewModel = signInViewModel,
+                onNavigateToConfirmAccountScreen = {
+                    navController.navigate(route = ReauthenticationScreenDestination.route)
+                }
             )
+        }
+        composable(route = ReauthenticationScreenDestination.route) {
+            AuthenticateScreen(
+                authUiClient = authUiClient,
+                onNavigateUp = { navController.navigateUp() },
+                googleAuthUiClient = googleAuthUiClient,
+                signInViewModel = signInViewModel,
+
+                )
         }
     }
 }
