@@ -5,7 +5,6 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.SignInViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -70,7 +69,123 @@ fun VerifyEmailScreen(
             emailVerified = authUiClient.isEmailVerified()
         )
     }
+
+    MainVerifyEmailScreen(
+        modifier = modifier,
+        authUiClient = authUiClient,
+        canNavigateBack = canNavigateBack,
+        navigateToHome = navigateToHome,
+        onClickSettings = onClickSettings,
+        emailVerified = emailVerified,
+        setEmailVerification = {
+            signInViewModel.setEmailVerification(it)
+        }
+    )
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(VerifyEmailDestination.resourceId),
+//                canNavigateBack = canNavigateBack,
+//                onClickSettings = onClickSettings
+//            )
+//        },
+//        snackbarHost = { SnackbarHost(snackbarHostState) }
+//    ) { innerPadding ->
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(innerPadding)
+//                .padding(16.dp)
+//                .alpha(if (isCircularIndicatorShowing) 0.5f else 1f)
+//        ) {
+//            if (isCircularIndicatorShowing) {
+//                CircularProgressIndicator(
+//                    modifier = Modifier.align(Alignment.Center),
+//                    strokeWidth = 2.dp,
+//                    color = MaterialTheme.colorScheme.primary
+//                )
+//            }
+//            Column(
+//                modifier = Modifier.align(Alignment.Center),
+//                verticalArrangement = Arrangement.spacedBy(16.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                Text(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    text = "An email was sent to your email address. Please check your inbox, " +
+//                            "spam or junk folder to verify your email, then press proceed. ",
+//                    textAlign = TextAlign.Center
+//                )
+//                Button(
+//                    enabled = !isCircularIndicatorShowing,
+//                    onClick = {
+//                        coroutineScope.launch {
+//                            authUiClient.verifyEmail()
+//                        }
+//
+//                    },
+//                ) {
+//                    Text(
+//                        text = "Resend Verification Email"
+//                    )
+//                }
+//            }
+//
+//            FilledTonalButton(
+//                modifier = Modifier.align(Alignment.BottomEnd),
+//                onClick = {
+//                    coroutineScope.launch {
+//                        signInViewModel.setEmailVerification(
+//                            emailVerified = authUiClient.isEmailVerified()
+//                        )
+//                        isCircularIndicatorShowing = true
+//                        delay(2000)
+//                        if (emailVerified) {
+//                            navigateToHome()
+//                        } else {
+//                            isCircularIndicatorShowing = false
+//                            snackbarHostState.showSnackbar(
+//                                message = "Your email has not yet been verified. Verify your email, then proceed",
+//                                duration = SnackbarDuration.Long
+//                            )
+//                        }
+//                        Log.i("Email_Verified1", authUiClient.isEmailVerified().toString())
+//                        isCircularIndicatorShowing = false
+//                    }
+//
+//                }
+//            ) {
+//                Text(
+//                    text = "Proceed"
+//                )
+//            }
+//        }
+//    }
+}
+
+@Composable
+fun MainVerifyEmailScreen(
+    modifier: Modifier = Modifier,
+    authUiClient: AuthUiClient,
+    canNavigateBack: Boolean = false,
+    navigateToHome: () -> Unit,
+    onClickSettings: () -> Unit,
+    emailVerified: Boolean,
+    setEmailVerification: (Boolean) -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    //val emailVerified by signInViewModel.emailVerified.collectAsState()
+
+    var isCircularIndicatorShowing by remember { mutableStateOf(false) }
+    var snackbarHostState = remember { SnackbarHostState() }
+//    Log.i("Email_Verified", authUiClient.isEmailVerified().toString())
+    LaunchedEffect(key1 = emailVerified) {
+        setEmailVerification(
+            authUiClient.isEmailVerified()
+        )
+    }
     Scaffold(
+        modifier = modifier,
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(VerifyEmailDestination.resourceId),
@@ -124,8 +239,8 @@ fun VerifyEmailScreen(
                 modifier = Modifier.align(Alignment.BottomEnd),
                 onClick = {
                     coroutineScope.launch {
-                        signInViewModel.setEmailVerification(
-                            emailVerified = authUiClient.isEmailVerified()
+                        setEmailVerification(
+                            authUiClient.isEmailVerified()
                         )
                         isCircularIndicatorShowing = true
                         delay(2000)
@@ -138,7 +253,7 @@ fun VerifyEmailScreen(
                                 duration = SnackbarDuration.Long
                             )
                         }
-                        Log.i("Email_Verified1", authUiClient.isEmailVerified().toString())
+//                        Log.i("Email_Verified1", authUiClient.isEmailVerified().toString())
                         isCircularIndicatorShowing = false
                     }
 

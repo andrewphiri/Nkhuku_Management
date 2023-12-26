@@ -60,11 +60,77 @@ fun AccountsScreen(
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
+
+    MainAccountsScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        accountsSummaryList = accountsSummaryList.accountsSummary,
+        navigateToTransactionsScreen = navigateToTransactionsScreen,
+        onClickSettings = onClickSettings,
+        currencyLocale = currency.currencyLocale
+    )
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(NavigationBarScreens.Accounts.resourceId),
+//                isFilterButtonEnabled = accountsSummaryList.accountsSummary.isNotEmpty(),
+//                canNavigateBack = canNavigateBack,
+//                onClickFilter = {
+//                    isFilterMenuShowing = !isFilterMenuShowing
+//                },
+//                onClickSettings = onClickSettings
+//            )
+//        }
+//    ) { innerPadding ->
+//        Column(modifier = Modifier.padding(innerPadding)) {
+//            ShowFilterOverflowMenu(
+//                modifier = Modifier.align(Alignment.End),
+//                isOverflowMenuExpanded = isFilterMenuShowing,
+//                onDismiss = { isFilterMenuShowing = false },
+//                onClickAll = {
+//                    accountsList = accountsSummaryList.accountsSummary
+//                    isFilterMenuShowing = false
+//                },
+//                onClickActive = {
+//                    accountsList = accountsSummaryList.accountsSummary.filter { it.flockActive }
+//                    isFilterMenuShowing = false
+//                },
+//                onClickInactive = {
+//                    accountsList = accountsSummaryList.accountsSummary.filter { !it.flockActive }
+//                    isFilterMenuShowing = false
+//                }
+//            )
+//
+//            AccountsList(
+//                accountsList = accountsList,
+//                onItemClick = { accountSummary ->
+//                    if (accountSummary.flockActive) {
+//                        navigateToTransactionsScreen(accountSummary.id)
+//                    }
+//                },
+//                currencyLocale = currency.currencyLocale
+//            )
+//        }
+//    }
+}
+
+@Composable
+fun MainAccountsScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean,
+    accountsSummaryList: List<AccountsSummary>,
+    navigateToTransactionsScreen: (Int) -> Unit,
+    onClickSettings: () -> Unit,
+    currencyLocale: String
+) {
+    var accountsList = accountsSummaryList.filter { it.flockActive }
+    var isFilterMenuShowing by remember { mutableStateOf(false) }
     Scaffold(
+        modifier = modifier,
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Accounts.resourceId),
-                isFilterButtonEnabled = accountsSummaryList.accountsSummary.isNotEmpty(),
+                isFilterButtonEnabled = accountsSummaryList.isNotEmpty(),
                 canNavigateBack = canNavigateBack,
                 onClickFilter = {
                     isFilterMenuShowing = !isFilterMenuShowing
@@ -79,15 +145,15 @@ fun AccountsScreen(
                 isOverflowMenuExpanded = isFilterMenuShowing,
                 onDismiss = { isFilterMenuShowing = false },
                 onClickAll = {
-                    accountsList = accountsSummaryList.accountsSummary
+                    accountsList = accountsSummaryList
                     isFilterMenuShowing = false
                 },
                 onClickActive = {
-                    accountsList = accountsSummaryList.accountsSummary.filter { it.flockActive }
+                    accountsList = accountsSummaryList.filter { it.flockActive }
                     isFilterMenuShowing = false
                 },
                 onClickInactive = {
-                    accountsList = accountsSummaryList.accountsSummary.filter { !it.flockActive }
+                    accountsList = accountsSummaryList.filter { !it.flockActive }
                     isFilterMenuShowing = false
                 }
             )
@@ -99,7 +165,7 @@ fun AccountsScreen(
                         navigateToTransactionsScreen(accountSummary.id)
                     }
                 },
-                currencyLocale = currency.currencyLocale
+                currencyLocale = currencyLocale
             )
         }
     }

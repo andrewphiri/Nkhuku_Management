@@ -47,6 +47,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -80,7 +82,63 @@ fun AddFlockScreen(
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
+
+    MainAddFlockScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        onNavigateUp = onNavigateUp,
+        navigateToVaccinationsScreen = navigateToVaccinationsScreen,
+        flockUiState = viewModel.flockUiState,
+        onItemValueChange = viewModel::updateUiState,
+        currencySymbol = currency.symbol
+    )
+//    Scaffold(
+//        modifier = Modifier.semantics { contentDescription = "Add flock screen" },
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(AddFlockDestination.resourceId),
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = { onNavigateUp() }
+//            )
+//        },
+//        snackbarHost = { SnackbarHost(snackBarHostState) }
+//    ) { innerPadding ->
+//        Column(modifier = modifier.padding(innerPadding).verticalScroll(scrollState)) {
+//            AddFlockBody(
+//                flockUiState = viewModel.flockUiState,
+//                onItemValueChange = viewModel::updateUiState,
+//                onVaccinationsScreen = {
+//                    if (checkNumberExceptions(viewModel.flockUiState)) {
+//                        viewModel.flockUiState.setStock(it.quantity, it.donorFlock)
+//                        navigateToVaccinationsScreen(viewModel.flockUiState)
+//                    } else {
+//                        coroutineScope.launch {
+//                            snackBarHostState.showSnackbar(message = "Please enter a valid number.")
+//                        }
+//                    }
+//                },
+//                currencySymbol = currency.symbol
+//            )
+//        }
+//    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainAddFlockScreen(
+    modifier: Modifier = Modifier,
+    onNavigateUp: () -> Unit,
+    canNavigateBack: Boolean,
+    navigateToVaccinationsScreen: (FlockUiState) -> Unit,
+    flockUiState: FlockUiState,
+    onItemValueChange: (FlockUiState) -> Unit,
+    currencySymbol: String
+) {
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
     Scaffold(
+        modifier = Modifier.semantics { contentDescription = "Add flock screen" },
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(AddFlockDestination.resourceId),
@@ -92,19 +150,19 @@ fun AddFlockScreen(
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding).verticalScroll(scrollState)) {
             AddFlockBody(
-                flockUiState = viewModel.flockUiState,
-                onItemValueChange = viewModel::updateUiState,
+                flockUiState = flockUiState,
+                onItemValueChange = onItemValueChange,
                 onVaccinationsScreen = {
-                    if (checkNumberExceptions(viewModel.flockUiState)) {
-                        viewModel.flockUiState.setStock(it.quantity, it.donorFlock)
-                        navigateToVaccinationsScreen(viewModel.flockUiState)
+                    if (checkNumberExceptions(flockUiState)) {
+                        flockUiState.setStock(it.quantity, it.donorFlock)
+                        navigateToVaccinationsScreen(flockUiState)
                     } else {
                         coroutineScope.launch {
                             snackBarHostState.showSnackbar(message = "Please enter a valid number.")
                         }
                     }
                 },
-                currencySymbol = currency.symbol
+                currencySymbol = currencySymbol
             )
         }
     }
@@ -129,7 +187,10 @@ fun AddFlockBody(
             currencySymbol = currencySymbol
         )
         Button(
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            modifier = Modifier
+                .semantics { contentDescription = "navigate to vaccination screen" }
+                .fillMaxWidth()
+                .padding(top = 16.dp),
             onClick = { onVaccinationsScreen(flockUiState) },
             enabled = flockUiState.enabled
         ) {
@@ -172,7 +233,7 @@ fun AddFlockInputForm(
     ) {
         Row {
             DropDownMenuDialog(
-                modifier = modifier.weight(0.8f),
+                modifier = Modifier.weight(0.8f),
                 value = flockUiState.breed,
                 expanded = expanded,
                 onExpand = {
@@ -214,7 +275,9 @@ fun AddFlockInputForm(
         )
 
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "batch" },
             value = flockUiState.batchName,
             onValueChange = { onValueChanged(flockUiState.copy(batchName = it)) },
             label = { Text("Batch name") },
@@ -246,7 +309,9 @@ fun AddFlockInputForm(
             }
         )
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .semantics { contentDescription = "quantity" }
+                .fillMaxWidth(),
             value = flockUiState.quantity,
             onValueChange = { onValueChanged(flockUiState.copy(quantity = it)) },
             label = { Text("Number of chicks placed") },
@@ -257,7 +322,9 @@ fun AddFlockInputForm(
         )
 
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .semantics { contentDescription = "price per bird" }
+                .fillMaxWidth(),
             value = flockUiState.cost,
             onValueChange = { onValueChanged(flockUiState.copy(cost = it)) },
             label = { Text("Price Per Bird") },
@@ -275,7 +342,9 @@ fun AddFlockInputForm(
         )
 
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .semantics { contentDescription = "donor flock" }
+                .fillMaxWidth(),
             value = flockUiState.donorFlock,
             onValueChange = { onValueChanged(flockUiState.copy(donorFlock = it)) },
             label = { Text("Donor flock") },

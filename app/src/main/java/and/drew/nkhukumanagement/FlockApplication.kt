@@ -1,7 +1,6 @@
 package and.drew.nkhukumanagement
 
 import and.drew.nkhukumanagement.utils.Constants
-import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.graphics.Color
@@ -10,7 +9,7 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @HiltAndroidApp
-class FlockApplication : Application() {
+class FlockApplication : BaseFlockApplication() {
 
     @Inject
     lateinit var notificationManager: NotificationManager

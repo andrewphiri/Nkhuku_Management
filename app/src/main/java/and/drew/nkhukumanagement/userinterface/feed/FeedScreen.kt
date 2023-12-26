@@ -34,6 +34,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -113,6 +114,102 @@ fun FeedScreen(
     }
     feedViewModel.setFeedList(feedUiStateList.toMutableStateList())
 
+    MainFeedScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        onNavigateUp = onNavigateUp,
+        flockUiState = flockEntryViewModel.flockUiState,
+        feedList = flockWithFeed.feedList,
+        setFeedList = {
+            feedViewModel.setFeedList(it.toMutableStateList())
+        },
+        onItemChange = feedViewModel::updateFeedState,
+        updateFeed = {
+            coroutineScope.launch {
+                feedViewModel.updateFeed(it)
+            }
+        },
+        feedUiState = feedViewModel.feedUiState,
+        feedStateList = feedUiStateList,
+        setFeedState = {
+            feedViewModel.setFeedState(it)
+        }
+    )
+
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(FeedScreenDestination.resourceId),
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = onNavigateUp
+//            )
+//        },
+//        snackbarHost = { SnackbarHost(snackBarHostState) }
+//    ) { innerPadding ->
+//        Column(modifier = modifier.padding(innerPadding)) {
+//            FeedConsumptionList(
+//                feedViewModel = feedViewModel,
+//                onItemChange = feedViewModel::updateFeedState,
+//                onItemClick = {
+//                    showDialog = true
+//                },
+//                showDialog = showDialog,
+//                expanded = expanded,
+//                onExpand = { expanded = !expanded },
+//                onDismiss = {
+//                    showDialog = false
+//                    expanded = false
+//                },
+//                onTypeDialogShowing = { isAddTypeDialogShowing = true },
+//                onInnerDialogDismiss = { isAddTypeDialogShowing = false },
+//                isAddFeedTypeDialogShowing = isAddTypeDialogShowing,
+//                flockUiState = flockEntryViewModel.flockUiState,
+//                onUpdateFeed = { feedUiState ->
+//                    if (checkNumberExceptions(feedUiState)) {
+//                        coroutineScope.launch {
+//                            feedViewModel.updateFeed(feedUiState)
+//                        }.invokeOnCompletion {
+//                            showDialog = false
+//                        }
+//                    } else {
+//                        coroutineScope.launch { snackBarHostState.showSnackbar(message = "Please enter a valid number.") }
+//                    }
+//                }
+//            )
+//        }
+//    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainFeedScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean,
+    onNavigateUp: () -> Unit,
+    flockUiState: FlockUiState,
+    feedList: List<Feed>?,
+    setFeedList: (MutableList<FeedUiState>) -> Unit,
+    onItemChange: (Int, FeedUiState) -> Unit,
+    updateFeed: (FeedUiState) -> Unit,
+    feedUiState: FeedUiState,
+    feedStateList: List<FeedUiState>,
+    setFeedState: (FeedUiState) -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+//    val feedList: List<Feed> = flockWithFeed.feedList ?: listOf()
+    val feedUiStateList: MutableList<FeedUiState> = mutableListOf()
+    var showDialog by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    var isAddTypeDialogShowing by remember { mutableStateOf(false) }
+    val snackBarHostState = remember { SnackbarHostState() }
+
+    if (feedList != null) {
+        for (feedState in feedList) {
+            feedUiStateList.add(feedState.toFeedUiState())
+        }
+    }
+    setFeedList(feedUiStateList.toMutableStateList())
 
     Scaffold(
         topBar = {
@@ -126,8 +223,7 @@ fun FeedScreen(
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding)) {
             FeedConsumptionList(
-                feedViewModel = feedViewModel,
-                onItemChange = feedViewModel::updateFeedState,
+                onItemChange = onItemChange,
                 onItemClick = {
                     showDialog = true
                 },
@@ -141,19 +237,21 @@ fun FeedScreen(
                 onTypeDialogShowing = { isAddTypeDialogShowing = true },
                 onInnerDialogDismiss = { isAddTypeDialogShowing = false },
                 isAddFeedTypeDialogShowing = isAddTypeDialogShowing,
-                flockUiState = flockEntryViewModel.flockUiState,
+                flockUiState = flockUiState,
                 onUpdateFeed = { feedUiState ->
-
                     if (checkNumberExceptions(feedUiState)) {
                         coroutineScope.launch {
-                            feedViewModel.updateFeed(feedUiState)
+                            updateFeed(feedUiState)
                         }.invokeOnCompletion {
                             showDialog = false
                         }
                     } else {
                         coroutineScope.launch { snackBarHostState.showSnackbar(message = "Please enter a valid number.") }
                     }
-                }
+                },
+                feedList = feedStateList,
+                feedUiState = feedUiState,
+                setFeedState = setFeedState
             )
         }
     }
@@ -163,8 +261,10 @@ fun FeedScreen(
 @Composable
 fun FeedConsumptionList(
     modifier: Modifier = Modifier,
-    feedViewModel: FeedViewModel,
     flockUiState: FlockUiState,
+    feedUiState: FeedUiState,
+    feedList: List<FeedUiState>,
+    setFeedState: (FeedUiState) -> Unit,
     onItemChange: (Int, FeedUiState) -> Unit,
     onItemClick: () -> Unit,
     showDialog: Boolean,
@@ -192,7 +292,7 @@ fun FeedConsumptionList(
                 style = MaterialTheme.typography.titleSmall
             )
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.weight(0.02f).fillMaxHeight(),
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
@@ -239,7 +339,7 @@ fun FeedConsumptionList(
         }
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            itemsIndexed(feedViewModel.getFeedList()) { index, feedItem ->
+            itemsIndexed(feedList) { index, feedItem ->
                 FeedCardItem(
                     feedUiState = feedItem,
                     onChangedValue = {
@@ -247,7 +347,7 @@ fun FeedConsumptionList(
                     },
                     onItemClick = {
                         onItemClick()
-                        feedViewModel.setFeedState(feedItem)
+                        setFeedState(feedItem)
                     }
                 )
             }
@@ -260,12 +360,12 @@ fun FeedConsumptionList(
             onDismiss = onDismiss,
             onTypeDialogShowing = onTypeDialogShowing,
             onInnerDialogDismiss = onInnerDialogDismiss,
-            feedUiState = feedViewModel.feedUiState,
+            feedUiState = feedUiState,
             isAddFeedTypeDialogShowing = isAddFeedTypeDialogShowing,
             onChangedValue = {
                 try {
-                    feedViewModel.setFeedState(
-                        feedViewModel.feedUiState.copy(
+                    setFeedState(
+                        feedUiState.copy(
                             type = it.type,
                             actualConsumed = it.actualConsumed, actualConsumptionPerBird = String
                                 .format(
@@ -276,8 +376,8 @@ fun FeedConsumptionList(
                         )
                     )
                 } catch (e: NumberFormatException) {
-                    feedViewModel.setFeedState(
-                        feedViewModel.feedUiState.copy(
+                    setFeedState(
+                        feedUiState.copy(
                             type = it.type,
                             actualConsumed = it.actualConsumed
                         )

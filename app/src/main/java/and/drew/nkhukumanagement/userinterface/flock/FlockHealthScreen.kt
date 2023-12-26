@@ -35,6 +35,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -86,6 +87,75 @@ fun FlockHealthScreen(
 ) {
     val flockWithHealth by editFlockViewModel.flockWithHealth.collectAsState()
     val listState = rememberLazyListState()
+
+    flockWithHealth.health?.let {
+        MainFlockHealthScreen(
+            modifier = modifier,
+            canNavigateBack = canNavigateBack,
+            onNavigateUp = onNavigateUp,
+            navigateToFlockEditScreen = navigateToFlockEditScreen,
+            flockHealthList = it,
+            flockId = flockWithHealth.flock?.id
+        )
+    }
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(FlockHealthScreenDestination.resourceId),
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = onNavigateUp
+//            )
+//        },
+//        floatingActionButton = {
+//            AnimatedVisibility(visible = listState.isScrollingUp(),
+//                enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
+//                    initialOffset = {
+//                        IntOffset(180, 90)
+//                    }),
+//                exit = slideOut(tween(200, easing = FastOutSlowInEasing)) {
+//                    IntOffset(180, 90)
+//                }
+//            ) {
+//                FloatingActionButton(
+//                    onClick = { navigateToFlockEditScreen(flockWithHealth.flock?.id, 0) },
+//                    modifier = Modifier.navigationBarsPadding(),
+//                    shape = ShapeDefaults.Small,
+//                    containerColor = MaterialTheme.colorScheme.secondary,
+//                    elevation = FloatingActionButtonDefaults.elevation()
+//                ) {
+//                    Icon(
+//                        imageVector = Icons.Default.Add,
+//                        contentDescription = "Add mortality and/or cull",
+//                        tint = MaterialTheme.colorScheme.onPrimary
+//                    )
+//                }
+//            }
+//        }
+//    ) { innerPadding ->
+//        Column(modifier = modifier.padding(innerPadding)) {
+//            flockWithHealth.health?.let {
+//                FlockHealthList(
+//                    onItemClick = { healthId ->
+//                        navigateToFlockEditScreen(flockWithHealth.flock?.id, healthId)
+//                    },
+//                    flockHealthList = it
+//                )
+//            }
+//        }
+//    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainFlockHealthScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+    navigateToFlockEditScreen: (Int?, Int) -> Unit,
+    flockHealthList: List<FlockHealth>,
+    flockId: Int?,
+) {
+    val listState = rememberLazyListState()
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -105,7 +175,7 @@ fun FlockHealthScreen(
                 }
             ) {
                 FloatingActionButton(
-                    onClick = { navigateToFlockEditScreen(flockWithHealth.flock?.id, 0) },
+                    onClick = { navigateToFlockEditScreen(flockId, 0) },
                     modifier = Modifier.navigationBarsPadding(),
                     shape = ShapeDefaults.Small,
                     containerColor = MaterialTheme.colorScheme.secondary,
@@ -121,18 +191,15 @@ fun FlockHealthScreen(
         }
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding)) {
-            flockWithHealth.health?.let {
-                FlockHealthList(
-                    onItemClick = { healthId ->
-                        navigateToFlockEditScreen(flockWithHealth.flock?.id, healthId)
-                    },
-                    flockHealthList = it
-                )
-            }
+            FlockHealthList(
+                onItemClick = { healthId ->
+                    navigateToFlockEditScreen(flockId, healthId)
+                },
+                flockHealthList = flockHealthList
+            )
         }
     }
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -174,7 +241,7 @@ fun FlockHealthList(
                     textAlign = TextAlign.Center
                 )
 
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.weight(0.01f).fillMaxHeight(),
                     thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
                 )

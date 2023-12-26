@@ -4,6 +4,8 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.Account
+import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.home.HomeViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -103,6 +105,99 @@ fun AccountOverviewScreen(
             playAnimation = true
         }
     }
+
+    MainAccountOverviewScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        onNavigateUp = onNavigateUp,
+        accountsTotalsList = overviewUiState.accountsList,
+        setAccountsList = {
+            overviewViewModel.accountsTotalsList(it)
+        },
+        flockList = flockList.flockList,
+        currencyLocale = currency.currencyLocale
+    )
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(AccountOverviewDestination.resourceId),
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = onNavigateUp
+//            )
+//        },
+//    ) { innerPadding ->
+//        if (overviewUiState.accountsList.isEmpty()) {
+//            Box(
+//                modifier = modifier.fillMaxSize(),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Text(
+//                    modifier = Modifier.align(Alignment.Center),
+//                    text = stringResource(R.string.no_records),
+//                    style = MaterialTheme.typography.bodyMedium
+//                )
+//            }
+//        } else {
+//            Column(
+//                modifier = Modifier.padding(innerPadding)
+//                    .verticalScroll(state = scrollState, enabled = true),
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                OverviewAccountsCard(
+//                    totalAccountsList = accountList,
+//                    playAnimation = playAnimation,
+//                    value = defaultDropDownMenuValue,
+//                    isExpanded = isExpanded,
+//                    onExpanded = { isExpanded = !isExpanded },
+//                    onDismissed = { isExpanded = false },
+//                    onValueChanged = {
+//                        defaultDropDownMenuValue = it
+//                    },
+//                    flockOptions = flockOptions.values.toList(),
+//                    currencyLocale = currency.currencyLocale
+//                )
+//            }
+//        }
+//    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainAccountOverviewScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+    accountsTotalsList: List<AccountsSummary>,
+    setAccountsList: (List<AccountsSummary>) -> List<Account>,
+    flockList: List<Flock>,
+    currencyLocale: String
+) {
+    // val overviewUiState by overviewViewModel.accountsList.collectAsState()
+    // val flockList by homeViewModel.homeUiState.collectAsState()
+    val flockOptions: MutableMap<String, String> = mutableMapOf("All" to "All flock")
+
+
+    var playAnimation by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    var isExpanded by remember { mutableStateOf(false) }
+    var defaultDropDownMenuValue by remember { mutableStateOf(flockOptions["All"] ?: "") }
+
+    flockList.forEach {
+        flockOptions[it.uniqueId] = it.batchName
+    }
+    // Filter the list based on the batch picked
+    //Use the batch name(value) to get the key(unique ID) and compare it to the Account Summary unique ID
+    val accountList: List<Account> = if (defaultDropDownMenuValue == flockOptions["All"])
+        setAccountsList(accountsTotalsList) else
+        setAccountsList(accountsTotalsList
+            .filter { it.flockUniqueID == flockOptions.entries.find { it.value == defaultDropDownMenuValue }?.key })
+
+
+    LaunchedEffect(accountList) {
+        if (accountsTotalsList.isNotEmpty()) {
+            playAnimation = true
+        }
+    }
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -112,7 +207,7 @@ fun AccountOverviewScreen(
             )
         },
     ) { innerPadding ->
-        if (overviewUiState.accountsList.isEmpty()) {
+        if (accountsTotalsList.isEmpty()) {
             Box(
                 modifier = modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -140,7 +235,7 @@ fun AccountOverviewScreen(
                         defaultDropDownMenuValue = it
                     },
                     flockOptions = flockOptions.values.toList(),
-                    currencyLocale = currency.currencyLocale
+                    currencyLocale = currencyLocale
                 )
             }
         }

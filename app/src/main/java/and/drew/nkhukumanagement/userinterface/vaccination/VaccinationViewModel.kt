@@ -1,6 +1,6 @@
 package and.drew.nkhukumanagement.userinterface.vaccination
 
-import and.drew.nkhukumanagement.FlockApplication
+import and.drew.nkhukumanagement.BaseFlockApplication
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.Vaccination
@@ -41,7 +41,7 @@ import javax.inject.Inject
 @HiltViewModel
 class VaccinationViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val application: FlockApplication,
+    private val application: BaseFlockApplication,
     private val flockRepository: FlockRepository
 ) : ViewModel(), AlarmScheduler {
     companion object {

@@ -2,6 +2,7 @@ package and.drew.nkhukumanagement.userinterface.accounts
 
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Expense
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -78,6 +79,7 @@ object ExpenseScreenDestination : NkhukuDestinations {
     })
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ExpenseScreen(
@@ -92,6 +94,86 @@ fun ExpenseScreen(
         initial = UserPreferences.getDefaultInstance()
     )
     val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState()
+
+    MainExpenseScreen(
+        navigateToAddExpenseScreen = navigateToAddExpenseScreen,
+        deleteExpense = {
+            coroutineScope.launch {
+                expenseViewModel.deleteExpense(it)
+            }
+        },
+        accountsSummary = accountsWithExpense.accountsSummary,
+        expenseList = accountsWithExpense.expenseList,
+        accountsIdArg = accountsViewModel.id,
+        updateAccountWhenDeletingExpense = { accountsSummary, expense ->
+            coroutineScope.launch {
+                accountsViewModel.updateAccountWhenDeletingExpense(
+                    accountsSummary = accountsSummary,
+                    expense = expense
+                )
+            }
+        },
+        currencyLocale = currency.currencyLocale
+    )
+//    Scaffold(
+//        floatingActionButton = {
+//            FloatingActionButton(
+//                shape = ShapeDefaults.Small,
+//                elevation = FloatingActionButtonDefaults.elevation(),
+//                containerColor = MaterialTheme.colorScheme.secondary,
+//                contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
+//                onClick = { navigateToAddExpenseScreen(0, accountsViewModel.id) }) {
+//                Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+//                    Icon(
+//                        imageVector = Icons.Default.Add,
+//                        contentDescription = null
+//                    )
+//                    AnimatedVisibility(visible = listState.isScrollingUp()) {
+//                        Text(
+//                            text = "Expense",
+//                            modifier = Modifier.padding(start = 8.dp, top = 3.dp)
+//                        )
+//                    }
+//
+//                }
+//            }
+//        }
+//    ) { innerPadding ->
+//        ExpenseList(
+//            modifier = Modifier.padding(innerPadding),
+//            expenseList = accountsWithExpense.expenseList,
+//            onItemClick = { expense ->
+//                navigateToAddExpenseScreen(expense.id, accountsViewModel.id)
+//            },
+//            onDeleteExpense = { expense ->
+//                coroutineScope.launch {
+//                    accountsViewModel.updateAccountWhenDeletingExpense(
+//                        accountsSummary = accountsWithExpense.accountsSummary,
+//                        expense = expense
+//                    )
+//                    expenseViewModel.deleteExpense(expense)
+//                }
+//            },
+//            currencyLocale = currency.currencyLocale
+//        )
+//    }
+
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainExpenseScreen(
+    navigateToAddExpenseScreen: (Int, Int) -> Unit = { _, _ -> },
+    deleteExpense: (Expense) -> Unit,
+    accountsSummary: AccountsSummary,
+    expenseList: List<Expense>,
+    accountsIdArg: Int,
+    updateAccountWhenDeletingExpense: (AccountsSummary, Expense) -> Unit,
+    currencyLocale: String
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -99,7 +181,7 @@ fun ExpenseScreen(
                 elevation = FloatingActionButtonDefaults.elevation(),
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-                onClick = { navigateToAddExpenseScreen(0, accountsViewModel.id) }) {
+                onClick = { navigateToAddExpenseScreen(0, accountsIdArg) }) {
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -118,24 +200,23 @@ fun ExpenseScreen(
     ) { innerPadding ->
         ExpenseList(
             modifier = Modifier.padding(innerPadding),
-            expenseList = accountsWithExpense.expenseList,
+            expenseList = expenseList,
             onItemClick = { expense ->
-                navigateToAddExpenseScreen(expense.id, accountsViewModel.id)
+                navigateToAddExpenseScreen(expense.id, accountsIdArg)
             },
             onDeleteExpense = { expense ->
-                coroutineScope.launch {
-                    accountsViewModel.updateAccountWhenDeletingExpense(
-                        accountsSummary = accountsWithExpense.accountsSummary,
-                        expense = expense
-                    )
-                    expenseViewModel.deleteExpense(expense)
-                }
+                updateAccountWhenDeletingExpense(
+                    accountsSummary,
+                    expense
+                )
+                deleteExpense(expense)
             },
-            currencyLocale = currency.currencyLocale
+            currencyLocale = currencyLocale
         )
     }
 
 }
+
 
 /**
  * Composable function to detect scroll position of list

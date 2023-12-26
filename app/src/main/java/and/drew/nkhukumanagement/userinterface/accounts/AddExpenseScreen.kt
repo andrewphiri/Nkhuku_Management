@@ -3,13 +3,14 @@ package and.drew.nkhukumanagement.userinterface.accounts
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.data.Expense
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import and.drew.nkhukumanagement.utils.currencySymbol
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -140,10 +141,201 @@ fun AddExpenseScreen(
         }
     }
 
+    MainAddExpenseScreen(
+        modifier = modifier,
+        expenseUiState = expenseViewModel.expenseUiState,
+        expense = expense,
+        accountsSummary = accountsWithExpense.accountsSummary,
+        updateState = expenseViewModel::updateState,
+        insertExpense = {
+            coroutineScope.launch {
+                expenseViewModel.insertExpense(it)
+            }
+        },
+        updateExpense = {
+            coroutineScope.launch {
+                expenseViewModel.updateExpense(it)
+            }
+        },
+        updateAccountSummary = { accountSummary, expenseUiState ->
+            coroutineScope.launch {
+                accountsViewModel.updateAccount(
+                    accountsSummary = accountSummary,
+                    expenseUiState = expenseUiState
+                )
+            }
+        },
+        expenseIDArg = expenseViewModel.expenseID,
+        canNavigateBack = canNavigateBack,
+        onNavigateUp = onNavigateUp,
+        currencySymbol = currency.symbol
+    )
+
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = if (expenseViewModel.expenseUiState.id > 0) context.resources.getString(R.string.edit_expense)
+//                else title,
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = onNavigateUp
+//            )
+//        },
+//        snackbarHost = { SnackbarHost(snackbarHostState) }
+//    ) { innerPadding ->
+//
+//        isUpdateButtonEnabled = if (expenseViewModel.expenseID > 0) expenseViewModel.expenseUiState !=
+//                expense.toExpenseUiState(enabled = true) else expenseViewModel.expenseUiState.isEnabled
+//
+//        Column(
+//            modifier = modifier.verticalScroll(
+//                state = scrollState
+//            ).padding(innerPadding)
+//        ) {
+//            AddExpenseCard(
+//                expensesUiState = expenseViewModel.expenseUiState,
+//                onValueChanged = expenseViewModel::updateState,
+//                onNavigateUp = onNavigateUp,
+//                isUpdateButtonEnabled = isUpdateButtonEnabled,
+//                onSaveExpense = {
+//                    if (expenseViewModel.expenseID > 0) {
+//                        if (handleNumberExceptions(
+//                                expenseViewModel.expenseUiState.copy(
+//                                    cumulativeTotalExpense = calculateCumulativeExpenseUpdate(
+//                                        expenseViewModel.expenseUiState.cumulativeTotalExpense,
+//                                        totalExpense = expenseViewModel.expenseUiState.totalExpense,
+//                                        initialItemExpense = expenseViewModel.expenseUiState.initialItemExpense
+//                                    ).toString()
+//                                )
+//                            )
+//                        ) {
+//                            coroutineScope.launch {
+//                                expenseViewModel.updateExpense(expenseViewModel.expenseUiState)
+//                                    accountsViewModel.updateAccount(
+//                                        accountsSummary = accountsWithExpense.accountsSummary,
+//                                        expenseUiState = expenseViewModel.expenseUiState
+//                                    )
+//                            }.invokeOnCompletion { onNavigateUp() }
+//                        } else {
+//                            coroutineScope.launch {
+//                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
+//                            }
+//                        }
+//                    } else {
+//                        if (handleNumberExceptions(expenseViewModel.expenseUiState)) {
+//                            coroutineScope.launch {
+//                                expenseViewModel.insertExpense(
+//                                    expenseViewModel.expenseUiState.copy(
+//                                        flockUniqueID = accountsWithExpense.accountsSummary.flockUniqueID,
+//                                        cumulativeTotalExpense = calculateCumulativeExpense(
+//                                            accountsWithExpense.accountsSummary.totalExpenses.toString(),
+//                                            expenseViewModel.expenseUiState.totalExpense
+//                                        ).toString()
+//                                    )
+//                                )
+//                                accountsViewModel.updateAccount(
+//                                    accountsSummary = accountsWithExpense.accountsSummary,
+//                                    expenseUiState = expenseViewModel.expenseUiState
+//                                )
+//                            }.invokeOnCompletion { onNavigateUp() }
+//                        } else {
+//                            coroutineScope.launch {
+//                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
+//                            }
+//                            Log.i("EXPENSEUISTATE", accountsWithExpense.accountsSummary.flockUniqueID)
+//                        }
+//                    }
+//                },
+//                showDialog = showDialog,
+//                onDismissed = { showDialog = false },
+//                updateShowDialogOnClick = { showDialog = true },
+//                label = "Date",
+//                state = dateState,
+//                saveDateSelected = { dateState ->
+//                    val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
+//                        DateUtils().convertMillisToLocalDate(
+//                            millis
+//                        )
+//                    }
+//                    val localDateToString = millisToLocalDate?.let { date ->
+//                        DateUtils().dateToStringShortFormat(
+//                            date
+//                        )
+//                    }
+//                    localDateToString
+//                },
+//                currencySymbol = currency.symbol
+//            )
+//        }
+//
+//    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainAddExpenseScreen(
+    modifier: Modifier = Modifier,
+    expenseUiState: ExpensesUiState,
+    expense: Expense,
+    accountsSummary: AccountsSummary,
+    updateState: (ExpensesUiState) -> Unit,
+    insertExpense: (ExpensesUiState) -> Unit,
+    updateExpense: (ExpensesUiState) -> Unit,
+    updateAccountSummary: (AccountsSummary, ExpensesUiState) -> Unit,
+    expenseIDArg: Int,
+    canNavigateBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+    currencySymbol: String,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scrollState = rememberScrollState()
+
+
+//    val expense by expenseViewModel.getExpense.collectAsState(
+//        initial = expenseViewModel.expenseUiState.copy(
+//            date = DateUtils().dateToStringShortFormat(
+//                LocalDate.now()
+//            ), costPerItem = "0", quantity = "0", totalExpense = "0",
+//            cumulativeTotalExpense = "0"
+//        ).toExpense()
+//    )
+
+    //if id is 0, set initial date to today's date else get date from expense
+    val dateState = if (expenseUiState.id == 0) rememberDatePickerState(
+        initialDisplayMode = DisplayMode.Picker,
+        initialSelectedDateMillis = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
+            .toEpochMilli()
+    )
+    else rememberDatePickerState(
+        initialDisplayMode = DisplayMode.Picker,
+        initialSelectedDateMillis = expense.date
+            .atStartOfDay()
+            .atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
+    )
+
+    var isUpdateButtonEnabled by remember { mutableStateOf(false) }
+    var title by remember { mutableStateOf("") }
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    title = stringResource(AddExpenseScreenDestination.resourceId)
+
+    /**
+     * if nav argument expenseID is greater than zero, update state. LaunchedEffect used because this
+     * only updates the state once. Recomposition does not reset the expenseUiState values.
+     * This should only be called again when expense changes(KEY)
+     */
+    LaunchedEffect(expense) {
+        if (expenseIDArg > 0) {
+            updateState(expense.toExpenseUiState(enabled = true))
+        }
+    }
+
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
-                title = if (expenseViewModel.expenseUiState.id > 0) context.resources.getString(R.string.edit_expense)
+                title = if (expenseUiState.id > 0) context.resources.getString(R.string.edit_expense)
                 else title,
                 canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp
@@ -152,8 +344,8 @@ fun AddExpenseScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
 
-        isUpdateButtonEnabled = if (expenseViewModel.expenseID > 0) expenseViewModel.expenseUiState !=
-                expense.toExpenseUiState(enabled = true) else expenseViewModel.expenseUiState.isEnabled
+        isUpdateButtonEnabled = if (expenseIDArg > 0) expenseUiState !=
+                expense.toExpenseUiState(enabled = true) else expenseUiState.isEnabled
 
         Column(
             modifier = modifier.verticalScroll(
@@ -161,56 +353,53 @@ fun AddExpenseScreen(
             ).padding(innerPadding)
         ) {
             AddExpenseCard(
-                expensesUiState = expenseViewModel.expenseUiState,
-                onValueChanged = expenseViewModel::updateState,
+                expensesUiState = expenseUiState,
+                onValueChanged = updateState,
                 onNavigateUp = onNavigateUp,
                 isUpdateButtonEnabled = isUpdateButtonEnabled,
                 onSaveExpense = {
-                    if (expenseViewModel.expenseID > 0) {
+                    if (expenseIDArg > 0) {
                         if (handleNumberExceptions(
-                                expenseViewModel.expenseUiState.copy(
+                                expenseUiState.copy(
                                     cumulativeTotalExpense = calculateCumulativeExpenseUpdate(
-                                        expenseViewModel.expenseUiState.cumulativeTotalExpense,
-                                        totalExpense = expenseViewModel.expenseUiState.totalExpense,
-                                        initialItemExpense = expenseViewModel.expenseUiState.initialItemExpense
+                                        expenseUiState.cumulativeTotalExpense,
+                                        totalExpense = expenseUiState.totalExpense,
+                                        initialItemExpense = expenseUiState.initialItemExpense
                                     ).toString()
                                 )
                             )
                         ) {
-                            coroutineScope.launch {
-                                expenseViewModel.updateExpense(expenseViewModel.expenseUiState)
-                                    accountsViewModel.updateAccount(
-                                        accountsSummary = accountsWithExpense.accountsSummary,
-                                        expenseUiState = expenseViewModel.expenseUiState
-                                    )
-                            }.invokeOnCompletion { onNavigateUp() }
+                            updateExpense(expenseUiState)
+                            updateAccountSummary(
+                                accountsSummary,
+                                expenseUiState
+                            )
+                            onNavigateUp()
                         } else {
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(message = "Please enter a valid number.")
                             }
                         }
                     } else {
-                        if (handleNumberExceptions(expenseViewModel.expenseUiState)) {
-                            coroutineScope.launch {
-                                expenseViewModel.insertExpense(
-                                    expenseViewModel.expenseUiState.copy(
-                                        flockUniqueID = accountsWithExpense.accountsSummary.flockUniqueID,
-                                        cumulativeTotalExpense = calculateCumulativeExpense(
-                                            accountsWithExpense.accountsSummary.totalExpenses.toString(),
-                                            expenseViewModel.expenseUiState.totalExpense
-                                        ).toString()
-                                    )
+                        if (handleNumberExceptions(expenseUiState)) {
+                            insertExpense(
+                                expenseUiState.copy(
+                                    flockUniqueID = accountsSummary.flockUniqueID,
+                                    cumulativeTotalExpense = calculateCumulativeExpense(
+                                        accountsSummary.totalExpenses.toString(),
+                                        expenseUiState.totalExpense
+                                    ).toString()
                                 )
-                                accountsViewModel.updateAccount(
-                                    accountsSummary = accountsWithExpense.accountsSummary,
-                                    expenseUiState = expenseViewModel.expenseUiState
-                                )
-                            }.invokeOnCompletion { onNavigateUp() }
+                            )
+                            updateAccountSummary(
+                                accountsSummary,
+                                expenseUiState
+                            )
+                            onNavigateUp()
                         } else {
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(message = "Please enter a valid number.")
                             }
-                            Log.i("EXPENSEUISTATE", accountsWithExpense.accountsSummary.flockUniqueID)
                         }
                     }
                 },
@@ -232,7 +421,7 @@ fun AddExpenseScreen(
                     }
                     localDateToString
                 },
-                currencySymbol = currency.symbol
+                currencySymbol = currencySymbol
             )
         }
 

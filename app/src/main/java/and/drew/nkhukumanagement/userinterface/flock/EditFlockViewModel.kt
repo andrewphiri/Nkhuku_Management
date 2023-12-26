@@ -39,7 +39,7 @@ class EditFlockViewModel @Inject constructor(
     val flock: Flow<Flock> =
         flockRepository.getFlock(flockId)
 
-    val flockHealth: Flow<FlockHealth> =
+    val flockHealth: Flow<FlockHealth?> =
         flockRepository.getFlockHealthItem(healthId)
 
     val flockWithHealth: StateFlow<FlockWithHealth> =

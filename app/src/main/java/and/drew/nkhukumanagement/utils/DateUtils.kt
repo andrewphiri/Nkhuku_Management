@@ -9,9 +9,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import java.time.Instant
 import java.time.LocalDate
-import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -155,10 +155,8 @@ class DateUtils {
      * Fun to calculate age of birds
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun calculateAge(birthDate: LocalDate): Int {
-        println("Age is ${LocalDate.now().compareTo(birthDate.minusDays(1))}")
-        val age = Period.between(birthDate.minusDays(1), LocalDate.now())
-        return age.days
+    fun calculateAge(birthDate: LocalDate): Long {
+        return ChronoUnit.DAYS.between(birthDate, LocalDate.now())
     }
 
     /**

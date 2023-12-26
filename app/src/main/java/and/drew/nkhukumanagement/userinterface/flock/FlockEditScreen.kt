@@ -2,6 +2,7 @@ package and.drew.nkhukumanagement.userinterface.flock
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.data.FlockHealth
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.DateUtils
@@ -110,7 +111,315 @@ fun FlockEditScreen(
         ).toFlock()
     )
     val flockUiState: FlockUiState = flock.toFlockUiState()
-    val dateState = if (editFlockViewModel.healthId == 0) rememberDatePickerState(
+
+
+//    val dateState = if (editFlockViewModel.healthId == 0) rememberDatePickerState(
+//        initialDisplayMode = DisplayMode.Picker,
+//        initialSelectedDateMillis = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
+//            .toEpochMilli()
+//    )
+//    else rememberDatePickerState(
+//        initialDisplayMode = DisplayMode.Picker,
+//        initialSelectedDateMillis = flockHealth.date
+//            .atStartOfDay()
+//            .atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
+//    )
+    flockEntryViewModel.updateUiState(flockUiState.copy(enabled = true))
+//    var mortality by rememberSaveable { mutableStateOf(0) }
+//    var culls by rememberSaveable { mutableStateOf(0) }
+
+//    var isCullsRemoveButtonEnabled by rememberSaveable { mutableStateOf(false) }
+//    var isMortalityRemoveButtonEnabled by rememberSaveable { mutableStateOf(false) }
+//    var isCullsAddButtonEnabled by rememberSaveable { mutableStateOf(true) }
+//    var isMortalityAddButtonEnabled by rememberSaveable { mutableStateOf(true) }
+//    var showDialog by rememberSaveable { mutableStateOf(false) }
+
+//    LaunchedEffect(flockHealth) {
+//        if (editFlockViewModel.healthId > 0) {
+//            mortality = flockHealth?.mortality ?: 0
+//            culls = flockHealth?.culls ?: 0
+//            date = flockHealth?.date?.let { DateUtils().dateToStringLongFormat(it) }.toString()
+//        }
+//    }
+//    Log.i("Health_ID", editFlockViewModel.id.toString())
+    var quantityRemaining by rememberSaveable {
+        mutableStateOf(
+            flockEntryViewModel.flockUiState.getStock().toInt()
+        )
+    }
+    //quantityRemaining = flockEntryViewModel.flockUiState.getStock().toInt() - mortality
+//    var isUpdateButtonEnabled by rememberSaveable { mutableStateOf(culls > 0 || mortality > 0) }
+
+//    isMortalityAddButtonEnabled = mortality < quantityRemaining
+////    mortality?.let { isMortalityAddButtonEnabled = it < quantityRemaining }
+//    isMortalityRemoveButtonEnabled = mortality > 0
+////    mortality?.let { isMortalityRemoveButtonEnabled = it > 0 }
+//    isCullsAddButtonEnabled = culls < quantityRemaining
+////    culls?.let { isCullsAddButtonEnabled = it < quantityRemaining }
+//    isCullsRemoveButtonEnabled = culls > 0
+////    culls?.let { isCullsRemoveButtonEnabled = it > 0 }
+//    isUpdateButtonEnabled = flock != flockEntryViewModel.flockUiState.toFlock()
+
+    MainFlockEditScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        flock = flock,
+        flockHealth = if (flockHealth != null) flockHealth!! else FlockHealth(
+            flockUniqueId = "",
+            mortality = 0,
+            culls = 0,
+            date = LocalDate.now()
+        ),
+        flockUiState = flockUiState,
+        insertHealth = {
+            coroutineScope.launch {
+                editFlockViewModel.insertHealth(it)
+            }
+        },
+        healthId = editFlockViewModel.healthId,
+        onNavigateUp = onNavigateUp,
+        quantityRemaining = quantityRemaining,
+        onQuantityChanged = {
+            quantityRemaining = it
+        },
+        updateFlock = {
+            coroutineScope.launch {
+                flockEntryViewModel.updateItem(it)
+            }
+        },
+        updateFlockUiState = flockEntryViewModel::updateUiState,
+        updateHealth = {
+            coroutineScope.launch {
+                editFlockViewModel.updateHealth(it)
+            }
+        }
+    )
+
+//    Scaffold(
+//        modifier = modifier,
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(EditFlockDestination.resourceId),
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = onNavigateUp
+//            )
+//        }
+//    ) { innerPadding ->
+//        isUpdateButtonEnabled =
+//            if (editFlockViewModel.healthId == 0) culls > 0 || mortality > 0 else
+//                (culls > 0 || mortality > 0) && (mortality != flockHealth.mortality || culls != flockHealth.culls)
+//        Column(
+//            modifier = Modifier.padding(innerPadding),
+//            verticalArrangement = Arrangement.spacedBy(16.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Card {
+//                Column(
+//                    modifier = Modifier.padding(16.dp),
+//                    verticalArrangement = Arrangement.spacedBy(16.dp),
+//                    horizontalAlignment = Alignment.CenterHorizontally
+//                ) {
+//                    PickerDateDialog(
+//                        showDialog = showDialog,
+//                        onDismissed = { showDialog = false },
+//                        label = "Date",
+//                        date = date,
+//                        updateShowDialogOnClick = { showDialog = true },
+//                        onValueChanged = {},
+//                        datePickerState = dateState,
+//                        saveDateSelected = { dateState ->
+//                            val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
+//                                DateUtils().convertMillisToLocalDate(
+//                                    millis
+//                                )
+//                            }
+//                            val localDateToString = millisToLocalDate?.let { date ->
+//                                DateUtils().dateToStringLongFormat(
+//                                    date
+//                                )
+//                            }
+//                            localDateToString
+//                        }
+//                    )
+//                    OutlinedTextField(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        value = quantityRemaining.toString(),
+//                        readOnly = true,
+//                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+//                        onValueChange = {
+//                            flockEntryViewModel.flockUiState.setStock(
+//                                quantityRemaining.toString(),
+//                                flockEntryViewModel.flockUiState.donorFlock
+//                            )
+//                        },
+//                        label = {
+//                            Text(
+//                                modifier = Modifier.fillMaxWidth(),
+//                                textAlign = TextAlign.Center,
+//                                text = "Stock"
+//                            )
+//                        },
+//                        enabled = true,
+//                        singleLine = true,
+//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+//                        isError = flockEntryViewModel.flockUiState.isSingleEntryValid(
+//                            flockEntryViewModel.flockUiState.quantity
+//                        )
+//                    )
+//
+//                    EditCard(
+//                        value = mortality.toString(),
+//                        label = "Mortality",
+//                        onChangedValue = {
+//                        },
+//                        onReduce = {
+//                            mortality -= 1
+//                            quantityRemaining =
+//                                flockEntryViewModel.flockUiState.getStock().toInt() - mortality
+//                            isMortalityRemoveButtonEnabled = mortality > 0
+//                            flockEntryViewModel.flockUiState.setStock(
+//                                quantityRemaining.toString(),
+//                                flockEntryViewModel.flockUiState.donorFlock
+//                            )
+//                        },
+//                        onIncrease = {
+//                            mortality += 1
+//                            quantityRemaining =
+//                                flockEntryViewModel.flockUiState.getStock().toInt() - mortality
+//                            flockEntryViewModel.flockUiState.setStock(
+//                                quantityRemaining.toString(),
+//                                flockEntryViewModel.flockUiState.donorFlock
+//                            )
+//                            isMortalityAddButtonEnabled = mortality < quantityRemaining
+//                        },
+//                        isAddButtonEnabled = isMortalityAddButtonEnabled,
+//                        isRemoveButtonEnabled = isMortalityRemoveButtonEnabled,
+//                        color = if (isMortalityRemoveButtonEnabled) MaterialTheme.colorScheme.primary else
+//                            Color.Unspecified
+//                    )
+//
+//                    EditCard(
+//                        value = culls.toString(),
+//                        label = "Culls",
+//                        onChangedValue = {
+//                            flockEntryViewModel.flockUiState.setCulls(it)
+//                        },
+//                        onReduce = {
+//                            culls -= 1
+//                            isCullsRemoveButtonEnabled = culls > 0
+//                        },
+//                        onIncrease = {
+//                            culls += 1
+//                            isCullsAddButtonEnabled = culls < quantityRemaining
+//                        },
+//                        isAddButtonEnabled = isCullsAddButtonEnabled,
+//                        isRemoveButtonEnabled = isCullsRemoveButtonEnabled,
+//                        color = if (isCullsRemoveButtonEnabled) MaterialTheme.colorScheme.primary else Color.Unspecified
+//                    )
+//                }
+//            }
+//            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+//                OutlinedButton(
+//                    modifier = Modifier.weight(1f),
+//                    onClick = onNavigateUp
+//                ) {
+//                    Text(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        text = "Cancel",
+//                        textAlign = TextAlign.Center
+//                    )
+//                }
+//                Button(
+//                    modifier = Modifier.weight(1f),
+//                    enabled = isUpdateButtonEnabled,
+//                    onClick = {
+//                        if (editFlockViewModel.healthId == 0) {
+//                            coroutineScope.launch {
+//                                flockEntryViewModel.updateItem(
+//                                    flockEntryViewModel.flockUiState.copy(
+//                                        mortality =
+//                                        (flockUiState.getMortality()
+//                                            .toInt() + mortality).toString(),
+//                                        culls = (flockUiState.getCulls()
+//                                            .toInt() + culls).toString(),
+//                                        stock = quantityRemaining.toString()
+//                                    )
+//                                )
+//
+//                                editFlockViewModel.insertHealth(
+//                                    FlockHealth(
+//                                        flockUniqueId = flockUiState.getUniqueId(),
+//                                        mortality = mortality,
+//                                        culls = culls,
+//                                        date = DateUtils().stringToLocalDate(date)
+//                                    )
+//                                )
+//                            }.invokeOnCompletion { onNavigateUp() }
+//                        } else {
+//                            val mort =
+//                                if (flockHealth.mortality < mortality) mortality - flockHealth.mortality else
+//                                    flockHealth.mortality - mortality
+//                            val cull = if (flockHealth.culls < culls) culls - flockHealth.culls else
+//                                flockHealth.culls - culls
+//                            coroutineScope.launch {
+//
+//                                flockEntryViewModel.updateItem(
+//                                    flockEntryViewModel.flockUiState.copy(
+//                                        mortality =
+//                                        (flockUiState.getMortality()
+//                                            .toInt() + mort).toString(),
+//                                        culls = (flockUiState.getCulls()
+//                                            .toInt() + cull).toString(),
+//                                        stock = quantityRemaining.toString()
+//                                    )
+//                                )
+//
+//                                editFlockViewModel.updateHealth(
+//                                    FlockHealth(
+//                                        id = flockHealth.id,
+//                                        flockUniqueId = flockHealth.flockUniqueId,
+//                                        mortality = mortality,
+//                                        culls = culls,
+//                                        date = DateUtils().stringToLocalDate(date)
+//                                    )
+//                                )
+//                            }.invokeOnCompletion { onNavigateUp() }
+//                        }
+//                    }
+//                ) {
+//                    Text(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        text = "Update",
+//                        textAlign = TextAlign.Center
+//                    )
+//                }
+//            }
+//        }
+//    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainFlockEditScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean,
+    onNavigateUp: () -> Unit,
+    flockHealth: FlockHealth,
+    healthId: Int = 0,
+    flock: Flock,
+    flockUiState: FlockUiState,
+    insertHealth: (FlockHealth) -> Unit,
+    updateHealth: (FlockHealth) -> Unit,
+    updateFlock: (FlockUiState) -> Unit,
+    updateFlockUiState: (FlockUiState) -> Unit,
+    quantityRemaining: Int,
+    onQuantityChanged: (Int) -> Unit,
+) {
+
+    val coroutineScope = rememberCoroutineScope()
+    var date by remember { mutableStateOf(DateUtils().dateToStringLongFormat(LocalDate.now())) }
+    val dateState = if (healthId == 0) rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
         initialSelectedDateMillis = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
             .toEpochMilli()
@@ -121,7 +430,7 @@ fun FlockEditScreen(
             .atStartOfDay()
             .atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
     )
-    flockEntryViewModel.updateUiState(flockUiState.copy(enabled = true))
+    updateFlockUiState(flockUiState.copy(enabled = true))
     var mortality by rememberSaveable { mutableStateOf(0) }
     var culls by rememberSaveable { mutableStateOf(0) }
 
@@ -132,26 +441,19 @@ fun FlockEditScreen(
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(flockHealth) {
-        if (editFlockViewModel.healthId > 0) {
+        if (healthId > 0) {
             mortality = flockHealth.mortality
             culls = flockHealth.culls
             date = DateUtils().dateToStringLongFormat(flockHealth.date)
         }
     }
-//    Log.i("Health_ID", editFlockViewModel.id.toString())
-    var quantityRemaining by rememberSaveable {
-        mutableStateOf(
-            flockEntryViewModel.flockUiState.getStock().toInt()
-        )
-    }
-    //quantityRemaining = flockEntryViewModel.flockUiState.getStock().toInt() - mortality
     var isUpdateButtonEnabled by rememberSaveable { mutableStateOf(culls > 0 || mortality > 0) }
 
     isMortalityAddButtonEnabled = mortality < quantityRemaining
     isMortalityRemoveButtonEnabled = mortality > 0
     isCullsAddButtonEnabled = culls < quantityRemaining
     isCullsRemoveButtonEnabled = culls > 0
-    isUpdateButtonEnabled = flock != flockEntryViewModel.flockUiState.toFlock()
+    isUpdateButtonEnabled = flock != flockUiState.toFlock()
 
     Scaffold(
         modifier = modifier,
@@ -164,7 +466,7 @@ fun FlockEditScreen(
         }
     ) { innerPadding ->
         isUpdateButtonEnabled =
-            if (editFlockViewModel.healthId == 0) culls > 0 || mortality > 0 else
+            if (healthId == 0) culls > 0 || mortality > 0 else
                 (culls > 0 || mortality > 0) && (mortality != flockHealth.mortality || culls != flockHealth.culls)
         Column(
             modifier = Modifier.padding(innerPadding),
@@ -205,9 +507,9 @@ fun FlockEditScreen(
                         readOnly = true,
                         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                         onValueChange = {
-                            flockEntryViewModel.flockUiState.setStock(
+                            flockUiState.setStock(
                                 quantityRemaining.toString(),
-                                flockEntryViewModel.flockUiState.donorFlock
+                                flockUiState.donorFlock
                             )
                         },
                         label = {
@@ -220,8 +522,8 @@ fun FlockEditScreen(
                         enabled = true,
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        isError = flockEntryViewModel.flockUiState.isSingleEntryValid(
-                            flockEntryViewModel.flockUiState.quantity
+                        isError = flockUiState.isSingleEntryValid(
+                            flockUiState.quantity
                         )
                     )
 
@@ -232,21 +534,20 @@ fun FlockEditScreen(
                         },
                         onReduce = {
                             mortality -= 1
-                            quantityRemaining =
-                                flockEntryViewModel.flockUiState.getStock().toInt() - mortality
+
+                            onQuantityChanged(flockUiState.getStock().toInt() - mortality)
                             isMortalityRemoveButtonEnabled = mortality > 0
-                            flockEntryViewModel.flockUiState.setStock(
+                            flockUiState.setStock(
                                 quantityRemaining.toString(),
-                                flockEntryViewModel.flockUiState.donorFlock
+                                flockUiState.donorFlock
                             )
                         },
                         onIncrease = {
                             mortality += 1
-                            quantityRemaining =
-                                flockEntryViewModel.flockUiState.getStock().toInt() - mortality
-                            flockEntryViewModel.flockUiState.setStock(
+                            onQuantityChanged(flockUiState.getStock().toInt() - mortality)
+                            flockUiState.setStock(
                                 quantityRemaining.toString(),
-                                flockEntryViewModel.flockUiState.donorFlock
+                                flockUiState.donorFlock
                             )
                             isMortalityAddButtonEnabled = mortality < quantityRemaining
                         },
@@ -259,14 +560,24 @@ fun FlockEditScreen(
                         value = culls.toString(),
                         label = "Culls",
                         onChangedValue = {
-                            flockEntryViewModel.flockUiState.setCulls(it)
+                            flockUiState.setCulls(it)
                         },
                         onReduce = {
                             culls -= 1
+                            onQuantityChanged(flockUiState.getStock().toInt() - culls)
+                            flockUiState.setStock(
+                                quantityRemaining.toString(),
+                                flockUiState.donorFlock
+                            )
                             isCullsRemoveButtonEnabled = culls > 0
                         },
                         onIncrease = {
                             culls += 1
+                            onQuantityChanged(flockUiState.getStock().toInt() - culls)
+                            flockUiState.setStock(
+                                quantityRemaining.toString(),
+                                flockUiState.donorFlock
+                            )
                             isCullsAddButtonEnabled = culls < quantityRemaining
                         },
                         isAddButtonEnabled = isCullsAddButtonEnabled,
@@ -290,10 +601,10 @@ fun FlockEditScreen(
                     modifier = Modifier.weight(1f),
                     enabled = isUpdateButtonEnabled,
                     onClick = {
-                        if (editFlockViewModel.healthId == 0) {
+                        if (healthId == 0) {
                             coroutineScope.launch {
-                                flockEntryViewModel.updateItem(
-                                    flockEntryViewModel.flockUiState.copy(
+                                updateFlock(
+                                    flockUiState.copy(
                                         mortality =
                                         (flockUiState.getMortality()
                                             .toInt() + mortality).toString(),
@@ -303,7 +614,7 @@ fun FlockEditScreen(
                                     )
                                 )
 
-                                editFlockViewModel.insertHealth(
+                                insertHealth(
                                     FlockHealth(
                                         flockUniqueId = flockUiState.getUniqueId(),
                                         mortality = mortality,
@@ -320,8 +631,8 @@ fun FlockEditScreen(
                                 flockHealth.culls - culls
                             coroutineScope.launch {
 
-                                flockEntryViewModel.updateItem(
-                                    flockEntryViewModel.flockUiState.copy(
+                                updateFlock(
+                                    flockUiState.copy(
                                         mortality =
                                         (flockUiState.getMortality()
                                             .toInt() + mort).toString(),
@@ -331,7 +642,7 @@ fun FlockEditScreen(
                                     )
                                 )
 
-                                editFlockViewModel.updateHealth(
+                                updateHealth(
                                     FlockHealth(
                                         id = flockHealth.id,
                                         flockUniqueId = flockHealth.flockUniqueId,

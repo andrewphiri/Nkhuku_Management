@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 
 object ReadArticleDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -58,13 +60,62 @@ fun ReadArticleScreen(
     onNavigateUp: () -> Unit,
     articleViewModel: ArticleViewModel = hiltViewModel()
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val article by articleViewModel.article.collectAsState(
         initial = Article()
     )
-    LaunchedEffect(articleViewModel.article) {
-        articleViewModel.generateSingleArticle(
-            id = articleViewModel.categoryId,
-            documentId = articleViewModel.articleId
+
+    MainReadArticleScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        onNavigateUp = onNavigateUp,
+        article = article,
+        generateSingleArticle = { categoryId, documentId ->
+            coroutineScope.launch {
+                articleViewModel.generateSingleArticle(
+                    id = categoryId,
+                    documentId = documentId
+                )
+            }
+        },
+        categoryId = articleViewModel.categoryId,
+        articleId = articleViewModel.articleId
+    )
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = article.title,
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = onNavigateUp
+//            )
+//        }
+//    ) { innerPadding ->
+//        Column(modifier = modifier.padding(innerPadding)) {
+//            ReadArticleCard(
+//                article = article
+//            )
+//        }
+//    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainReadArticleScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+    article: Article,
+    generateSingleArticle: (Int, String) -> Unit,
+    categoryId: Int,
+    articleId: String
+) {
+//    val article by articleViewModel.article.collectAsState(
+//        initial = Article()
+//    )
+    LaunchedEffect(article) {
+        generateSingleArticle(
+            categoryId,
+            articleId
         )
     }
     Scaffold(
@@ -83,7 +134,6 @@ fun ReadArticleScreen(
         }
     }
 }
-
 
 @Composable
 fun ReadArticleCard(modifier: Modifier = Modifier, article: Article) {

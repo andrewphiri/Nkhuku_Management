@@ -48,6 +48,55 @@ fun PlannerResultScreen(
     onNavigateUp: () -> Unit,
     plannerViewModel: PlannerViewModel
 ) {
+    MainPlannerResultScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        onNavigateUp = onNavigateUp,
+        plannerUiState = plannerViewModel.plannerUiState
+    )
+//    Scaffold(
+//        modifier = modifier,
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(PlannerResultsDestination.resourceId),
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = onNavigateUp
+//            )
+//        }
+//    ) { innerPadding ->
+//
+//        LazyVerticalGrid(
+//            modifier = modifier.padding(innerPadding),
+//            verticalArrangement = Arrangement.spacedBy(16.dp),
+//            columns = GridCells.Fixed(1),
+//            contentPadding = PaddingValues(16.dp)
+//        ) {
+//            item {
+//                FeedResultsCard(planner = plannerViewModel.plannerUiState.toPlanner())
+//            }
+//            if (!plannerViewModel.plannerUiState.areFeedersAvailable) {
+//                item {
+//                    FeedersResultsCard(
+//                        planner = plannerViewModel.plannerUiState.toPlanner()
+//                    )
+//                }
+//            }
+//            if (!plannerViewModel.plannerUiState.areDrinkersAvailable) {
+//                item {
+//                    DrinkersResultsCard(planner = plannerViewModel.plannerUiState.toPlanner())
+//                }
+//            }
+//        }
+//    }
+}
+
+@Composable
+fun MainPlannerResultScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+    plannerUiState: PlannerUiState
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -66,18 +115,18 @@ fun PlannerResultScreen(
             contentPadding = PaddingValues(16.dp)
         ) {
             item {
-                FeedResultsCard(planner = plannerViewModel.plannerUiState.toPlanner())
+                FeedResultsCard(planner = plannerUiState.toPlanner())
             }
-            if (!plannerViewModel.plannerUiState.areFeedersAvailable) {
+            if (!plannerUiState.areFeedersAvailable) {
                 item {
                     FeedersResultsCard(
-                        planner = plannerViewModel.plannerUiState.toPlanner()
+                        planner = plannerUiState.toPlanner()
                     )
                 }
             }
-            if (!plannerViewModel.plannerUiState.areDrinkersAvailable) {
+            if (!plannerUiState.areDrinkersAvailable) {
                 item {
-                    DrinkersResultsCard(planner = plannerViewModel.plannerUiState.toPlanner())
+                    DrinkersResultsCard(planner = plannerUiState.toPlanner())
                 }
             }
         }

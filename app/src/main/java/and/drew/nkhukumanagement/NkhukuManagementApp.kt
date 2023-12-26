@@ -9,8 +9,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Remove
@@ -21,7 +21,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,10 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -53,17 +54,28 @@ fun NkhukuApp(
     userPrefsViewModel: UserPrefsViewModel
 ) {
 
+    val screens = listOf(
+        NavigationBarScreens.Home,
+        NavigationBarScreens.Accounts,
+        NavigationBarScreens.Planner,
+        NavigationBarScreens.Tips,
+        NavigationBarScreens.Overview
+    )
+    val navBackStackEntry by navHostController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    val navigationBarShowing = screens.any { it.route == currentDestination?.route }
     Scaffold(
         bottomBar = {
-            BottomNavigationForApp(navHostController)
+            BottomNavigationForApp(
+                navController = navHostController,
+                screens = screens,
+                isNavigationBarShowing = navigationBarShowing
+            )
         }
     ) { innerPadding ->
         NkhukuNavHost(
             navController = navHostController,
             modifier = Modifier.padding(innerPadding),
-            googleAuthUiClient = googleAuthUiClient,
-            authUiClient = authUiClient,
-            userPrefsViewModel = userPrefsViewModel
         )
     }
 }
@@ -72,42 +84,44 @@ fun NkhukuApp(
  * Bottom navigation with 5 screens for the app
  */
 @Composable
-fun BottomNavigationForApp(navController: NavController) {
-    val items = listOf(
-        NavigationBarScreens.Home,
-        NavigationBarScreens.Accounts,
-        NavigationBarScreens.Planner,
-        NavigationBarScreens.Tips,
-        NavigationBarScreens.Overview
-    )
+fun BottomNavigationForApp(
+    navController: NavController,
+    isNavigationBarShowing: Boolean = true,
+    screens: List<NavigationBarScreens> = listOf(),
+    currentDestination: NavDestination? = navController.currentDestination
+) {
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-    val navigationBarShowing = items.any { it.route == currentDestination?.route }
     var isIconSelected by remember { mutableStateOf(false) }
 
-    if (navigationBarShowing) {
-        NavigationBar() {
-            items.forEach { screen ->
+
+    if (isNavigationBarShowing) {
+        NavigationBar(
+        ) {
+            screens.forEach { screen ->
                 screen.isIconSelected = isIconSelected
                 NavigationBarItem(
+                    modifier = Modifier.semantics { contentDescription = screen.route },
                     icon = {
                         isIconSelected = currentDestination?.route == screen.route
                         if (isIconSelected) {
-                            Icon(screen.iconSelected, contentDescription = screen.route)
+                            Icon(screen.iconSelected, contentDescription = "${screen.route} screen")
                         } else {
-                            Icon(screen.icon, contentDescription = screen.route)
+                            Icon(screen.icon, contentDescription = "${screen.route} screen")
                         }
                     },
-                    label = { Text(stringResource(screen.resourceId)) },
+                    label = {
+                        Text(
+                            stringResource(screen.resourceId),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
                     selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                    colors = NavigationBarItemDefaults.colors(indicatorColor = MaterialTheme.colorScheme.secondary),
                     onClick = {
                         navController.navigate(screen.route) {
                             // Pop up to the start destination of the graph to
                             // avoid building up a large stack of destinations
                             // on the back stack as users select items
-                            popUpTo(navController.graph.findStartDestination().id) {
+                            popUpTo(NavigationBarScreens.Home.route) {
                                 saveState = true
                             }
                             // Avoid multiple copies of the same destination when
@@ -158,7 +172,7 @@ fun FlockManagementTopAppBar(
             navigationIcon = {
                 IconButton(onClick = navigateUp) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.back)
                     )
                 }

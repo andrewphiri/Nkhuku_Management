@@ -40,6 +40,15 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     /**
+     * Skip account setup
+     */
+    suspend fun updateSkipAccountSetup(skipAccount: Boolean) {
+        userPrefsDataStore.updateData { currentPreferences ->
+            currentPreferences.toBuilder().setSkipAccountSetup(skipAccount).build()
+        }
+    }
+
+    /**
      * Save Currency Selected
      */
     suspend fun updateDefaultCurrency(currency: Currency, uLocale: String) {

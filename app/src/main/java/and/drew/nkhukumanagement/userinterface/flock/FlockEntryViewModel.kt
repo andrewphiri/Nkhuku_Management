@@ -27,7 +27,6 @@ class FlockEntryViewModel @Inject constructor(
     var flockUiState by mutableStateOf(FlockUiState())
         private set
 
-
     /**
      * Update the FlockUiState with the passed in value
      */

@@ -1,4 +1,4 @@
-package and.drew.nkhukumanagement.utils
+package and.drew.nkhukumanagement.prefs
 
 import and.drew.nkhukumanagement.UserPreferences
 import androidx.datastore.core.CorruptionException
@@ -17,6 +17,7 @@ object UserPreferencesSerializer : Serializer<UserPreferences> {
         .setCurrencyCode("ZMW")
         .setReceiveNotifications(true)
         .setCurrencyLocale("en_ZM")
+        .setSkipAccountSetup(false)
         .build()
 
     override suspend fun readFrom(input: InputStream): UserPreferences {

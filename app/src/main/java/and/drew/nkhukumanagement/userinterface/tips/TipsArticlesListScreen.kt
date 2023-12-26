@@ -23,9 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -35,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 
 object TipsArticlesListDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -65,6 +64,7 @@ fun TipsArticlesListScreen(
     navigateToReadArticle: (Int, String) -> Unit,
     tipsViewModel: TipsViewModel = hiltViewModel()
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val tipsCategories = listOf(
         TipsCategories.Placement,
         TipsCategories.Brooding,
@@ -73,17 +73,69 @@ fun TipsArticlesListScreen(
         TipsCategories.Equipment,
         TipsCategories.BlogArticles
     )
-    var title: Int? by remember { mutableStateOf(0) }
     val articlesList by tipsViewModel.articlesList.collectAsState(
         initial = mutableListOf()
     )
     LaunchedEffect(tipsViewModel.articlesList) {
         tipsViewModel.generateArticles(tipsViewModel.articleIdCategory)
     }
+
+    MainTipsArticlesListScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        onNavigateUp = onNavigateUp,
+        navigateToReadArticle = navigateToReadArticle,
+        articles = articlesList,
+        generateArticles = {
+            coroutineScope.launch {
+                tipsViewModel.generateArticles(it)
+            }
+        },
+        articleIdCategory = tipsViewModel.articleIdCategory,
+        title = tipsViewModel.title
+    )
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = tipsViewModel.title,
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = onNavigateUp
+//            )
+//        }
+//    ) { innerPadding ->
+//        Column(modifier = modifier.padding(innerPadding)) {
+//            ArticlesList(
+//                articles = articlesList,
+//                onArticleClick = navigateToReadArticle,
+//                categoryId = tipsViewModel.articleIdCategory
+//            )
+//        }
+//    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainTipsArticlesListScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+    navigateToReadArticle: (Int, String) -> Unit,
+    articles: List<Article>,
+    generateArticles: (Int) -> Unit,
+    articleIdCategory: Int,
+    title: String
+) {
+
+//    val articlesList by tipsViewModel.articlesList.collectAsState(
+//        initial = mutableListOf()
+//    )
+    LaunchedEffect(articles) {
+        generateArticles(articleIdCategory)
+    }
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
-                title = tipsViewModel.title,
+                title = title,
                 canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp
             )
@@ -91,14 +143,13 @@ fun TipsArticlesListScreen(
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding)) {
             ArticlesList(
-                articles = articlesList,
+                articles = articles,
                 onArticleClick = navigateToReadArticle,
-                categoryId = tipsViewModel.articleIdCategory
+                categoryId = articleIdCategory
             )
         }
     }
 }
-
 @Composable
 fun ArticlesList(
     modifier: Modifier = Modifier,

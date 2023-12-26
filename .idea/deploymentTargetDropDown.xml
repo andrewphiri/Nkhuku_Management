@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="deploymentTargetDropDown">
+    <value>
+      <entry key="addNewFlockFlow()">
+        <State />
+      </entry>
+      <entry key="app">
+        <State />
+      </entry>
+      <entry key="verifyAccountsScreen()">
+        <State />
+      </entry>
+      <entry key="verifyOverviewScreen()">
+        <State />
+      </entry>
+      <entry key="verifyPlannerScreen()">
+        <State />
+      </entry>
+      <entry key="verifyTipsScreen()">
+        <State />
+      </entry>
+    </value>
+  </component>
+</project>

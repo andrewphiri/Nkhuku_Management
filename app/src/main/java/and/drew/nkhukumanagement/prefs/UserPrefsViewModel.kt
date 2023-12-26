@@ -19,6 +19,12 @@ class UserPrefsViewModel @Inject constructor(
         }
     }
 
+    fun updateSkipAccountSetup(skipAccount: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateSkipAccountSetup(skipAccount)
+        }
+    }
+
     fun updateCurrency(currency: Currency?, uLocale: String) {
         viewModelScope.launch {
             if (currency != null) {

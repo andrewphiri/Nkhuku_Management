@@ -3,12 +3,14 @@ package and.drew.nkhukumanagement.userinterface.vaccination
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.accounts.AccountsViewModel
 import and.drew.nkhukumanagement.userinterface.feed.FeedViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
+import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.flock.toFlock
 import and.drew.nkhukumanagement.userinterface.flock.toFlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -62,12 +64,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -162,7 +167,117 @@ fun AddVaccinationsScreen(
         vaccinationViewModel.setInitialVaccinationDates(vaccinesStateList.toMutableStateList())
     }
 
+//    MainAddVaccinationsScreen(
+//    modifier = modifier,
+//    canNavigateBack = canNavigateBack,
+//    onNavigateUp = onNavigateUp,
+//    flockId = flockEntryViewModel.flockUiState.id ,
+//    vaccinationList =  vaccinationViewModel.getInitialVaccinationList() ,
+//    setInitialVaccinationDate = {
+//                                vaccinationViewModel.setInitialVaccinationDates(it.toMutableStateList())
+//    },
+//    flockWithVaccinations = withVaccinationsToEdit,
+//    flockUiState = flockEntryViewModel.flockUiState,
+//    vaccinationUiState = vaccinationViewModel.vaccinationUiState,
+//    defaultVaccinationDates = {flockUiState, vaccinationUiState ->
+//                     vaccinationViewModel.defaultVaccinationDates(flockUiState, vaccinationUiState)
+//    },
+//    onSaveToDatabase = {
+//        if (flockEntryViewModel.flockUiState.id == 0) {
+//            val uniqueId = UUID.randomUUID().toString()
+//            flockEntryViewModel.flockUiState.setUniqueId(uniqueID = uniqueId)
+//            vaccinationViewModel.vaccinationUiState.setUniqueId(uniqueID = uniqueId)
+//
+//            weightViewModel.setWeightList(
+//                weightViewModel.defaultWeight(
+//                    flockEntryViewModel.flockUiState
+//                )
+//            )
+//            feedViewModel.setFeedList(
+//                feedViewModel.defaultFeedInformationList(
+//                    flockEntryViewModel.flockUiState
+//                )
+//            )
+//            val flock =
+//                if (!flockList.flockList.isNullOrEmpty()) flockList.flockList.last() else
+//                    flockEntryViewModel.flockUiState.toFlock()
+//            if (userPreferences.receiveNotifications) {
+//                vaccinationViewModel.getInitialVaccinationList().forEach {
+//                    flock.toFlockUiState().let { flock ->
+//                        vaccinationViewModel.schedule(
+//                            it.toVaccination(),
+//                            flock.copy(id = flock.id + 1)
+//                        )
+//                        Log.i(
+//                            "VACCINATION_HASHCODE",
+//                            it.toVaccination().hashCode().toString()
+//                        )
+//                    }
+//                }
+//            }
+//
+//            coroutineScope.launch {
+//                flockEntryViewModel.saveItem()
+//                accountsViewModel.insertAccount(
+//                    accountsViewModel
+//                        .Accounts(flockEntryViewModel.flockUiState)
+//                )
+//                accountsViewModel.insertExpense(
+//                    accountsViewModel
+//                        .ExpenseToInsert(flockEntryViewModel.flockUiState)
+//                )
+//                weightViewModel.getWeightList().forEach {
+//                    weightViewModel.saveInitialWeight(it)
+//                }
+//                feedViewModel.getFeedList().forEach {
+//                    feedViewModel.saveFeed(it)
+//                }
+//                vaccinationViewModel.getInitialVaccinationList().forEach {
+//                    vaccinationViewModel.saveVaccination(
+//                        it.copy(
+//                            flockUniqueId = flockEntryViewModel.flockUiState.getUniqueId()
+//                        )
+//                    )
+//
+//                }
+//            }.invokeOnCompletion {
+//
+//                navigateBack()
+//            }
+//        } else {
+//            val flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId()
+//            withVaccinationsToEdit?.vaccinations?.forEach {
+//                vaccinationViewModel.cancelAlarm(it)
+//            }
+//
+//            if (userPreferences.receiveNotifications) {
+//                vaccinationViewModel.getInitialVaccinationList().forEach {
+//                    vaccinationViewModel.schedule(
+//                        vaccination = it.toVaccination(),
+//                        flock = flockEntryViewModel.flockUiState
+//                    )
+//                }
+//            }
+//
+//            coroutineScope.launch {
+//                vaccinationViewModel.deleteVaccination(flockUniqueID)
+//
+//                vaccinationViewModel.getInitialVaccinationList().forEach {
+//                    vaccinationViewModel.saveVaccination(it.copy(flockUniqueId = flockUniqueID))
+//                }
+//
+//            }.invokeOnCompletion { onNavigateUp() }
+//        }
+//    },
+//    onItemChange = vaccinationViewModel::updateUiState,
+//    options = vaccinationViewModel.options,
+//        vaccinesList = vaccinesList,
+//        vaccinesStateList = vaccinesStateList
+//    )
+
     Scaffold(
+        modifier = Modifier
+            .semantics { contentDescription = "Vaccination Screen" },
         topBar = {
             FlockManagementTopAppBar(
                 title = title,
@@ -337,10 +452,174 @@ fun AddVaccinationsScreen(
         VaccinationInputList(
             modifier = modifier.padding(innerPadding),
             onItemChange = vaccinationViewModel::updateUiState,
-            vaccinationViewModel = vaccinationViewModel,
-            flockEntryViewModel = flockEntryViewModel,
             isEditingEnabled = isEditingEnabled,
-            options = vaccinationViewModel.options
+            options = vaccinationViewModel.options,
+            vaccinationList = vaccinationViewModel.getInitialVaccinationList()
+        )
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainAddVaccinationsScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+    flockId: Int,
+    vaccinationList: MutableList<VaccinationUiState>,
+    setInitialVaccinationDate: (SnapshotStateList<VaccinationUiState>) -> Unit,
+    flockWithVaccinations: FlockWithVaccinations?,
+    flockUiState: FlockUiState,
+    vaccinationUiState: VaccinationUiState,
+    vaccinesList: List<Vaccination>,
+    vaccinesStateList: MutableList<VaccinationUiState>,
+    defaultVaccinationDates: (FlockUiState, VaccinationUiState) -> SnapshotStateList<VaccinationUiState>,
+    onSaveToDatabase: () -> Unit,
+    onItemChange: (Int, VaccinationUiState) -> Unit,
+    options: MutableList<String>
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    // var vaccinesList: List<Vaccination> = listOf()
+    // val vaccinesStateList: MutableList<VaccinationUiState> = mutableListOf()
+//    val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
+//        initial = UserPreferences.getDefaultInstance()
+//    )
+
+    var title by remember { mutableStateOf("") }
+    title = stringResource(AddVaccinationsDestination.resourceId)
+    var isEditingEnabled by rememberSaveable { mutableStateOf(false) }
+    var isFABVisible by remember { mutableStateOf(false) }
+    var isDoneButtonShowing by remember { mutableStateOf(true) }
+    var isAddShowing by remember { mutableStateOf(true) }
+    val vaccinationDates = vaccinationList
+    var listSize by remember { mutableStateOf(vaccinationList.size) }
+    var isRemoveShowing by remember { mutableStateOf(true) }
+    var isDoneEnabled by rememberSaveable { mutableStateOf(true) }
+
+
+    if (flockId == 0) {
+        setInitialVaccinationDate(
+            defaultVaccinationDates(
+                flockUiState, vaccinationUiState
+            )
+        )
+        isEditingEnabled = true
+    } else {
+        title = stringResource(R.string.vaccinations)
+        isFABVisible = true
+        isDoneButtonShowing = false
+        isAddShowing = false
+        isRemoveShowing = false
+        //vaccinesList = flockWithVaccinations?.vaccinations ?: listOf()
+        flockWithVaccinations?.vaccinations?.let {
+
+        }
+        for ((index, vaccination) in vaccinesList.withIndex()) {
+            vaccinesStateList.add(
+                vaccination.toVaccinationUiState(
+                    enabled = true,
+                    vaccinationNumber = index + 1
+                )
+            )
+        }
+
+        setInitialVaccinationDate(vaccinesStateList.toMutableStateList())
+    }
+
+    Scaffold(
+        modifier = Modifier
+            .semantics { contentDescription = "Vaccination Screen" },
+        topBar = {
+            FlockManagementTopAppBar(
+                title = title,
+                canNavigateBack = canNavigateBack,
+                navigateUp = onNavigateUp,
+                isRemoveShowing = isRemoveShowing,
+                isAddShowing = isAddShowing,
+                isDoneShowing = isDoneButtonShowing,
+                isDoneEnabled = isDoneEnabled,
+                onClickRemove = {
+                    listSize--
+                    if (listSize == 1) {
+                        isRemoveShowing = false
+                    }
+                    //isDoneEnabled = vaccinationDates.all { it.isValid() }
+                    vaccinationList.removeAt(
+                        listSize
+                    )
+
+                },
+                onClickAdd = {
+                    listSize++
+                    isRemoveShowing = true
+                    //isDoneEnabled = vaccinationDates.all { it.isValid() }
+                    val newDate = DateUtils().stringToLocalDate(
+                        vaccinationList.last().getDate()
+                    )
+                    val vaccineDate =
+                        DateUtils().dateToStringLongFormat(DateUtils().calculateDate(newDate, 7))
+                    vaccinationList.add(
+                        vaccinationDates.last().copy(
+                            vaccinationNumber = listSize, name = "", date = vaccineDate
+                        )
+                    )
+                },
+                onSaveToDatabase = onSaveToDatabase
+            )
+        },
+        floatingActionButton = {
+            AnimatedVisibility(visible = isFABVisible,
+                enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
+                    initialOffset = {
+                        IntOffset(180, 90)
+                    }),
+                exit = slideOut(tween(200, easing = FastOutSlowInEasing)) {
+                    IntOffset(180, 90)
+                }) {
+                FloatingActionButton(
+                    onClick = {
+                        title = context.resources.getString(R.string.edit_vaccinations)
+                        isEditingEnabled = true
+                        isFABVisible = false
+                        isDoneButtonShowing = true
+                        isAddShowing = true
+                        isRemoveShowing = true
+
+                        vaccinationList.onEach {
+                            if (it.isExpanded) {
+                                it.isExpanded = false
+                            }
+                        }
+                    },
+                    shape = ShapeDefaults.Small,
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    elevation = FloatingActionButtonDefaults.elevation()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit Vaccinations",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        listSize = vaccinationList.size
+        isDoneEnabled = if (flockUiState.id > 0 &&
+            vaccinationList.size == vaccinesStateList.size
+        )
+            vaccinationList.all { it.isValid() } &&
+                    !vaccinesStateList.zip(vaccinationList)
+                        .all { it.first == it.second } else
+            vaccinationList.all { it.isValid() }
+
+        VaccinationInputList(
+            modifier = modifier.padding(innerPadding),
+            onItemChange = onItemChange,
+            vaccinationList = vaccinationList,
+            isEditingEnabled = isEditingEnabled,
+            options = options
         )
     }
 }
@@ -350,13 +629,12 @@ fun AddVaccinationsScreen(
 fun VaccinationInputList(
     modifier: Modifier,
     onItemChange: (Int, VaccinationUiState) -> Unit,
-    vaccinationViewModel: VaccinationViewModel,
-    flockEntryViewModel: FlockEntryViewModel,
+    vaccinationList: MutableList<VaccinationUiState>,
     isEditingEnabled: Boolean,
     options: MutableList<String>
 ) {
     LazyColumn(modifier = modifier) {
-        itemsIndexed(vaccinationViewModel.getInitialVaccinationList()) { index, vaccinationUiState ->
+        itemsIndexed(vaccinationList) { index, vaccinationUiState ->
             VaccinationCardEntry(
                 modifier = Modifier,
                 vaccinationUiState = vaccinationUiState,

@@ -47,6 +47,57 @@ fun PlannerScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var isCalculateButtonEnabled by remember { mutableStateOf(false) }
+
+    MainPlannerScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        plannerUiState = plannerViewModel.plannerUiState,
+        onClickSettings = onClickSettings,
+        onValueChanged = plannerViewModel::updateUiState,
+        navigateToResultsScreen = navigateToResultsScreen
+    )
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(NavigationBarScreens.Planner.resourceId),
+//                canNavigateBack = canNavigateBack,
+//                onClickSettings = onClickSettings
+//            )
+//        },
+//        snackbarHost = { SnackbarHost(snackbarHostState) }
+//    ) { innerPadding ->
+//        isCalculateButtonEnabled = plannerViewModel.plannerUiState.isValid()
+//        PlannerCardEntry(
+//            modifier = modifier.padding(innerPadding),
+//            isCalculateButtonEnabled = plannerViewModel.plannerUiState.isValid(),
+//            onCalculate = {
+//                if (checkNumberExceptions(plannerViewModel.plannerUiState)) {
+//                    navigateToResultsScreen()
+//                } else {
+//                    coroutineScope.launch {
+//                        snackbarHostState.showSnackbar(message = "Please enter a valid number.")
+//                    }
+//                }
+//            },
+//            plannerUiState = plannerViewModel.plannerUiState,
+//            onValueChanged = plannerViewModel::updateUiState
+//        )
+//    }
+
+}
+
+@Composable
+fun MainPlannerScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = false,
+    plannerUiState: PlannerUiState,
+    onValueChanged: (PlannerUiState) -> Unit,
+    navigateToResultsScreen: () -> Unit = {},
+    onClickSettings: () -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var isCalculateButtonEnabled by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -57,12 +108,12 @@ fun PlannerScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-        isCalculateButtonEnabled = plannerViewModel.plannerUiState.isValid()
+        isCalculateButtonEnabled = plannerUiState.isValid()
         PlannerCardEntry(
             modifier = modifier.padding(innerPadding),
-            isCalculateButtonEnabled = plannerViewModel.plannerUiState.isValid(),
+            isCalculateButtonEnabled = plannerUiState.isValid(),
             onCalculate = {
-                if (checkNumberExceptions(plannerViewModel.plannerUiState)) {
+                if (checkNumberExceptions(plannerUiState)) {
                     navigateToResultsScreen()
                 } else {
                     coroutineScope.launch {
@@ -70,8 +121,8 @@ fun PlannerScreen(
                     }
                 }
             },
-            plannerUiState = plannerViewModel.plannerUiState,
-            onValueChanged = plannerViewModel::updateUiState
+            plannerUiState = plannerUiState,
+            onValueChanged = onValueChanged
         )
     }
 

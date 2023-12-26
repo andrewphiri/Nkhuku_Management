@@ -103,7 +103,6 @@ fun TabScreenContent(
     navigateToAddExpenseScreen: (Int, Int) -> Unit,
     userPrefsViewModel: UserPrefsViewModel
 ) {
-
     HorizontalPager(
         modifier = Modifier,
         state = pagerState,

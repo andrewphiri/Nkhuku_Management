@@ -3,6 +3,7 @@ package and.drew.nkhukumanagement.userinterface.overview
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Account
+import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.userinterface.home.HomeViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
@@ -97,6 +98,95 @@ fun FlockOverviewScreen(
         }
     }
 
+    MainFlockOverviewScreen(
+        modifier = modifier,
+        canNavigateBack = canNavigateBack,
+        onNavigateUp = onNavigateUp,
+        flocks = homeUiState.flockList,
+        setFlockTotals = {
+            overviewViewModel.flockTotalsList(it)
+        }
+    )
+//    Scaffold(
+//        topBar = {
+//            FlockManagementTopAppBar(
+//                title = stringResource(FlockOverviewDestination.resourceId),
+//                canNavigateBack = canNavigateBack,
+//                navigateUp = onNavigateUp
+//            )
+//        },
+//    ) { innerPadding ->
+//        if (homeUiState.flockList.isEmpty()) {
+//            Box(
+//                modifier = modifier.fillMaxSize(),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Text(
+//                    modifier = Modifier.align(Alignment.Center),
+//                    text = stringResource(R.string.no_records),
+//                    style = MaterialTheme.typography.bodyMedium
+//                )
+//            }
+//        } else {
+//            Column(
+//                modifier = Modifier.padding(innerPadding)
+//                    .verticalScroll(state = scrollState, enabled = true),
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                OverviewFlockCard(
+//                    totalFlockList = flockList,
+//                    playAnimation = playAnimation,
+//                    value = defaultDropDownMenuValue,
+//                    isExpanded = isExpanded,
+//                    onExpanded = { isExpanded = !isExpanded },
+//                    onDismissed = { isExpanded = false },
+//                    onValueChanged = {
+//                        defaultDropDownMenuValue = it
+//                    },
+//                    flockOptions = flockOptions.values.toList()
+//                )
+//            }
+//        }
+//
+//
+//    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainFlockOverviewScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+    flocks: List<Flock>,
+    setFlockTotals: (List<Flock>) -> List<Account>,
+) {
+    //val homeUiState by homeViewModel.homeUiState.collectAsState()
+    val flockOptions: MutableMap<String, String> = mutableMapOf("All" to "All flock")
+    var playAnimation by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    var isExpanded by remember { mutableStateOf(false) }
+    var defaultDropDownMenuValue by remember { mutableStateOf(flockOptions["All"] ?: "") }
+
+    flocks.forEach {
+        flockOptions[it.uniqueId] = it.batchName
+    }
+    // Filter the list based on the batch picked
+    //Use the batch name(value) to get the key(unique ID) and compare it to the Account Summary unique ID
+    val flockList: List<Account> =
+        if (defaultDropDownMenuValue == flockOptions["All"]) setFlockTotals(
+            flocks
+        )
+        else setFlockTotals(flocks.filter {
+            it.uniqueId == flockOptions.entries.find { it.value == defaultDropDownMenuValue }?.key
+        })
+
+    LaunchedEffect(flockList) {
+        if (flocks.isNotEmpty()) {
+            playAnimation = true
+        }
+    }
+
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -106,7 +196,7 @@ fun FlockOverviewScreen(
             )
         },
     ) { innerPadding ->
-        if (homeUiState.flockList.isEmpty()) {
+        if (flocks.isEmpty()) {
             Box(
                 modifier = modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center

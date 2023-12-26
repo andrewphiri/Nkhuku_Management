@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement.dependencyInjection
 
+import and.drew.nkhukumanagement.BaseFlockApplication
 import and.drew.nkhukumanagement.FlockApplication
 import android.content.Context
 import dagger.Module
@@ -21,5 +22,15 @@ object AppModule {
     @Provides
     fun provideApplication(@ApplicationContext context: Context): FlockApplication {
         return context as FlockApplication
+    }
+
+    /**
+     * Provide for instances of FlockApplication that will be used
+     * to inject context in VaccinationViewModel
+     */
+    @Singleton
+    @Provides
+    fun provideBaseApplication(@ApplicationContext context: Context): BaseFlockApplication {
+        return context as BaseFlockApplication
     }
 }

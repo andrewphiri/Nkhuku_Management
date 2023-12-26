@@ -2,6 +2,7 @@ package and.drew.nkhukumanagement.userinterface.accounts
 
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.GreenColor
@@ -96,6 +97,85 @@ fun IncomeScreen(
         initial = UserPreferences.getDefaultInstance()
     )
     val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState()
+
+    MainIncomeScreen(
+        navigateToAddIncomeScreen = navigateToAddIncomeScreen,
+        deleteIncome = {
+            coroutineScope.launch {
+                incomeViewModel.deleteIncome(it)
+            }
+        },
+        accountsSummary = accountsWithIncome.accountsSummary,
+        incomeList = accountsWithIncome.incomeList,
+        accountsIdArg = accountsViewModel.id,
+        updateAccountWhenDeletingIncome = { accountsSummary, income ->
+            coroutineScope.launch {
+                accountsViewModel.updateAccountWhenDeletingIncome(
+                    accountsSummary = accountsSummary,
+                    income = income
+                )
+            }
+        },
+        currencyLocale = currency.currencyLocale
+    )
+//    Scaffold(
+//        floatingActionButton = {
+//            FloatingActionButton(
+//                shape = ShapeDefaults.Small,
+//                elevation = FloatingActionButtonDefaults.elevation(),
+//                containerColor = MaterialTheme.colorScheme.secondary,
+//                contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
+//                onClick = { navigateToAddIncomeScreen(0, accountsViewModel.id) }) {
+//                Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+//                    Icon(
+//                        imageVector = Icons.Default.Add,
+//                        contentDescription = null
+//                    )
+//                    AnimatedVisibility(visible = listState.isScrollingUp()) {
+//                        Text(
+//                            text = "Income",
+//                            modifier = Modifier.padding(start = 8.dp, top = 3.dp)
+//                        )
+//                    }
+//
+//                }
+//            }
+//        }
+//    ) { innerPadding ->
+//        IncomeList(
+//            modifier = modifier.padding(innerPadding),
+//            incomeList = accountsWithIncome.incomeList,
+//            onItemClick = { income ->
+//                navigateToAddIncomeScreen(income.id, accountsViewModel.id)
+//            },
+//            onDeleteIncome = { income ->
+//                coroutineScope.launch {
+//                    accountsViewModel.updateAccountWhenDeletingIncome(
+//                        accountsSummary = accountsWithIncome.accountsSummary,
+//                        income = income
+//                    )
+//                    incomeViewModel.deleteIncome(income)
+//                }
+//            },
+//            currencyLocale = currency.currencyLocale
+//        )
+//    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MainIncomeScreen(
+    modifier: Modifier = Modifier,
+    navigateToAddIncomeScreen: (Int, Int) -> Unit = { _, _ -> },
+    deleteIncome: (Income) -> Unit,
+    accountsSummary: AccountsSummary,
+    incomeList: List<Income>,
+    accountsIdArg: Int,
+    updateAccountWhenDeletingIncome: (AccountsSummary, Income) -> Unit,
+    currencyLocale: String
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -103,7 +183,7 @@ fun IncomeScreen(
                 elevation = FloatingActionButtonDefaults.elevation(),
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-                onClick = { navigateToAddIncomeScreen(0, accountsViewModel.id) }) {
+                onClick = { navigateToAddIncomeScreen(0, accountsIdArg) }) {
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -122,20 +202,20 @@ fun IncomeScreen(
     ) { innerPadding ->
         IncomeList(
             modifier = modifier.padding(innerPadding),
-            incomeList = accountsWithIncome.incomeList,
+            incomeList = incomeList,
             onItemClick = { income ->
-                navigateToAddIncomeScreen(income.id, accountsViewModel.id)
+                navigateToAddIncomeScreen(income.id, accountsIdArg)
             },
             onDeleteIncome = { income ->
                 coroutineScope.launch {
-                    accountsViewModel.updateAccountWhenDeletingIncome(
-                        accountsSummary = accountsWithIncome.accountsSummary,
-                        income = income
+                    updateAccountWhenDeletingIncome(
+                        accountsSummary,
+                        income
                     )
-                    incomeViewModel.deleteIncome(income)
+                    deleteIncome(income)
                 }
             },
-            currencyLocale = currency.currencyLocale
+            currencyLocale = currencyLocale
         )
     }
 }
