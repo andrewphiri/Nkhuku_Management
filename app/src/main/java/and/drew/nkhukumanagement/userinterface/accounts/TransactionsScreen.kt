@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -104,7 +106,7 @@ fun TabScreenContent(
     userPrefsViewModel: UserPrefsViewModel
 ) {
     HorizontalPager(
-        modifier = Modifier,
+        modifier = Modifier.semantics { contentDescription = "horizontal pager" },
         state = pagerState,
         pageSpacing = 0.dp,
         userScrollEnabled = true,

@@ -138,7 +138,7 @@ fun MainAddFlockScreen(
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     Scaffold(
-        modifier = Modifier.semantics { contentDescription = "Add flock screen" },
+        modifier = Modifier.semantics { contentDescription = "Add flock" },
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(AddFlockDestination.resourceId),
@@ -233,7 +233,7 @@ fun AddFlockInputForm(
     ) {
         Row {
             DropDownMenuDialog(
-                modifier = Modifier.weight(0.8f),
+                modifier = Modifier.weight(0.8f).semantics { contentDescription = "breed options" },
                 value = flockUiState.breed,
                 expanded = expanded,
                 onExpand = {
@@ -276,8 +276,7 @@ fun AddFlockInputForm(
 
         OutlinedTextField(
             modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentDescription = "batch" },
+                .fillMaxWidth(),
             value = flockUiState.batchName,
             onValueChange = { onValueChanged(flockUiState.copy(batchName = it)) },
             label = { Text("Batch name") },
@@ -310,7 +309,6 @@ fun AddFlockInputForm(
         )
         OutlinedTextField(
             modifier = Modifier
-                .semantics { contentDescription = "quantity" }
                 .fillMaxWidth(),
             value = flockUiState.quantity,
             onValueChange = { onValueChanged(flockUiState.copy(quantity = it)) },
@@ -323,7 +321,6 @@ fun AddFlockInputForm(
 
         OutlinedTextField(
             modifier = Modifier
-                .semantics { contentDescription = "price per bird" }
                 .fillMaxWidth(),
             value = flockUiState.cost,
             onValueChange = { onValueChanged(flockUiState.copy(cost = it)) },
@@ -343,7 +340,6 @@ fun AddFlockInputForm(
 
         OutlinedTextField(
             modifier = Modifier
-                .semantics { contentDescription = "donor flock" }
                 .fillMaxWidth(),
             value = flockUiState.donorFlock,
             onValueChange = { onValueChanged(flockUiState.copy(donorFlock = it)) },

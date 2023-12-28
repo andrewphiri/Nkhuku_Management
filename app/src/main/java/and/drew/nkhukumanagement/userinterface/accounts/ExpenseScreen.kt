@@ -55,6 +55,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -163,7 +165,7 @@ fun ExpenseScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainExpenseScreen(
-    navigateToAddExpenseScreen: (Int, Int) -> Unit = { _, _ -> },
+    navigateToAddExpenseScreen: (Int, Int) -> Unit,
     deleteExpense: (Expense) -> Unit,
     accountsSummary: AccountsSummary,
     expenseList: List<Expense>,
@@ -177,6 +179,7 @@ fun MainExpenseScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
+                modifier = Modifier.semantics { contentDescription = "Add Expense" },
                 shape = ShapeDefaults.Small,
                 elevation = FloatingActionButtonDefaults.elevation(),
                 containerColor = MaterialTheme.colorScheme.secondary,

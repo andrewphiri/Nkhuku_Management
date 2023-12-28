@@ -64,12 +64,16 @@ fun NkhukuApp(
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val navigationBarShowing = screens.any { it.route == currentDestination?.route }
+    var isIconSelected by remember { mutableStateOf(false) }
     Scaffold(
         bottomBar = {
             BottomNavigationForApp(
                 navController = navHostController,
                 screens = screens,
-                isNavigationBarShowing = navigationBarShowing
+                isNavigationBarShowing = navigationBarShowing,
+                onChangeIconSelected = {
+                    isIconSelected = it
+                }
             )
         }
     ) { innerPadding ->
@@ -88,11 +92,12 @@ fun BottomNavigationForApp(
     navController: NavController,
     isNavigationBarShowing: Boolean = true,
     screens: List<NavigationBarScreens> = listOf(),
-    currentDestination: NavDestination? = navController.currentDestination
+    currentDestination: NavDestination? = navController.currentDestination,
+    isIconSelected: Boolean = false,
+    onChangeIconSelected: (Boolean) -> Unit
 ) {
 
-    var isIconSelected by remember { mutableStateOf(false) }
-
+    //var isIconSelected by remember { mutableStateOf(false) }
 
     if (isNavigationBarShowing) {
         NavigationBar(
@@ -102,7 +107,8 @@ fun BottomNavigationForApp(
                 NavigationBarItem(
                     modifier = Modifier.semantics { contentDescription = screen.route },
                     icon = {
-                        isIconSelected = currentDestination?.route == screen.route
+                        onChangeIconSelected(currentDestination?.route == screen.route)
+                        // isIconSelected = currentDestination?.route == screen.route
                         if (isIconSelected) {
                             Icon(screen.iconSelected, contentDescription = "${screen.route} screen")
                         } else {

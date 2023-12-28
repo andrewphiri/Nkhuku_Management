@@ -277,7 +277,7 @@ fun AddExpenseScreen(
 fun MainAddExpenseScreen(
     modifier: Modifier = Modifier,
     expenseUiState: ExpensesUiState,
-    expense: Expense,
+    expense: Expense?,
     accountsSummary: AccountsSummary,
     updateState: (ExpensesUiState) -> Unit,
     insertExpense: (ExpensesUiState) -> Unit,
@@ -310,9 +310,9 @@ fun MainAddExpenseScreen(
     )
     else rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
-        initialSelectedDateMillis = expense.date
-            .atStartOfDay()
-            .atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
+        initialSelectedDateMillis = expense?.date
+            ?.atStartOfDay()
+            ?.atZone(ZoneId.of("UTC"))?.toInstant()?.toEpochMilli()
     )
 
     var isUpdateButtonEnabled by remember { mutableStateOf(false) }
@@ -328,7 +328,7 @@ fun MainAddExpenseScreen(
      */
     LaunchedEffect(expense) {
         if (expenseIDArg > 0) {
-            updateState(expense.toExpenseUiState(enabled = true))
+            expense?.toExpenseUiState(enabled = true)?.let { updateState(it) }
         }
     }
 
@@ -345,7 +345,7 @@ fun MainAddExpenseScreen(
     ) { innerPadding ->
 
         isUpdateButtonEnabled = if (expenseIDArg > 0) expenseUiState !=
-                expense.toExpenseUiState(enabled = true) else expenseUiState.isEnabled
+                expense?.toExpenseUiState(enabled = true) else expenseUiState.isEnabled
 
         Column(
             modifier = modifier.verticalScroll(

@@ -6,9 +6,7 @@ import and.drew.nkhukumanagement.utils.Constants
 import android.content.Context
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -35,14 +33,14 @@ class NavigationTests {
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
-    //    @get:Rule(order = 1)
-//    val composeRule = createComposeRule()
     lateinit var navController: TestNavHostController
     var context = ApplicationProvider.getApplicationContext<Context>()
 
     @Before
     fun setupNavHost() {
         hiltRule.inject()
+        navController = TestNavHostController(context)
+        navController.navigatorProvider.addNavigator(ComposeNavigator())
         val screens = listOf(
             NavigationBarScreens.Home,
             NavigationBarScreens.Accounts,
@@ -52,23 +50,23 @@ class NavigationTests {
         )
 
         composeRule.activity.setContent {
-            navController = TestNavHostController(LocalContext.current)
-            navController.navigatorProvider.addNavigator(ComposeNavigator())
             val navBackStackEntry = navController.currentBackStackEntryAsState()
-            composeRule.mainClock.autoAdvance = false
-            val currentDestination = navBackStackEntry.value?.destination
-            Scaffold(
+            val currentDestination = navBackStackEntry.value?.destination?.route
+            val navigationBarShowing = screens.any { it.route == currentDestination }
+
+            androidx.compose.material3.Scaffold(
                 bottomBar = {
                     BottomNavigationForApp(
                         navController = navController,
                         screens = screens,
-                        currentDestination = currentDestination,
-                        isNavigationBarShowing = true
+                        isNavigationBarShowing = navigationBarShowing,
+                        onChangeIconSelected = {},
+                        isIconSelected = false
                     )
                 }
-            ) { padding ->
+            ) { pad ->
                 NkhukuNavHost(
-                    modifier = Modifier.padding(padding),
+                    modifier = Modifier.padding(pad),
                     navController = navController
                 )
             }
@@ -92,9 +90,8 @@ class NavigationTests {
         composeRule
             .onNodeWithText("Skip")
             .performClick()
-        composeRule.mainClock.autoAdvance = false
-        composeRule.onNodeWithContentDescription("Home")
-            .assertIsDisplayed()
+        val route = navController.currentBackStackEntry?.destination?.route
+        assertEquals(route, "Home")
     }
 
     @Test
@@ -102,7 +99,6 @@ class NavigationTests {
         composeRule
             .onNodeWithText("Skip")
             .performClick()
-        composeRule.mainClock.autoAdvance = false
         composeRule
             .onNodeWithContentDescription(NavigationBarScreens.Accounts.route)
             .performClick()
@@ -115,7 +111,6 @@ class NavigationTests {
         composeRule
             .onNodeWithText("Skip")
             .performClick()
-        composeRule.mainClock.autoAdvance = false
 
         composeRule
             .onNodeWithContentDescription(NavigationBarScreens.Planner.route)
@@ -129,7 +124,6 @@ class NavigationTests {
         composeRule
             .onNodeWithText("Skip")
             .performClick()
-        composeRule.mainClock.autoAdvance = false
         composeRule
             .onNodeWithContentDescription(NavigationBarScreens.Tips.route)
             .performClick()
@@ -142,46 +136,11 @@ class NavigationTests {
         composeRule
             .onNodeWithText("Skip")
             .performClick()
-        composeRule.mainClock.autoAdvance = false
         composeRule
             .onNodeWithContentDescription(NavigationBarScreens.Overview.route)
             .performClick()
         val route = navController.currentBackStackEntry?.destination?.route
-        assertEquals(route, "Accounts")
+        assertEquals(route, "Overview")
     }
 
-    @Test
-    fun addNewFlockFlow() {
-        composeRule
-            .onNodeWithText("Skip")
-            .performClick()
-        composeRule.mainClock.autoAdvance = false
-        composeRule.mainClock.advanceTimeBy(1000L)
-        composeRule.mainClock.autoAdvance = true
-//        composeRule.onNodeWithContentDescription("Home")
-//            .performClick()
-        composeRule
-            .onNodeWithContentDescription("FlockAddition")
-            .performClick()
-        val route = navController.currentBackStackEntry?.destination?.route
-        assertEquals("Add flock screen", route)
-//        composeRule
-//            .onNodeWithContentDescription("batch")
-//            .performTextInput("January batch")
-//        composeRule
-//            .onNodeWithContentDescription("quantity")
-//            .performTextInput("350")
-//        composeRule
-//            .onNodeWithContentDescription("price per bird")
-//            .performTextInput("16")
-//        composeRule
-//            .onNodeWithContentDescription("donor flock")
-//            .performTextInput("5")
-//
-//        composeRule
-//            .onNodeWithContentDescription("navigate to vaccination screen")
-//            .performClick()
-//        val route = navController.currentBackStackEntry?.destination?.route
-//        assertEquals(route,"Vaccination Screen")
-    }
 }

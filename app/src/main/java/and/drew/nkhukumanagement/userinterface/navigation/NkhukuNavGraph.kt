@@ -81,8 +81,6 @@ fun NkhukuNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
 
-    skipAccountSetup: Boolean = false,
-
     ) {
     val appContext = LocalContext.current
     val googleAuthUiClient by lazy {

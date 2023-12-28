@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -92,143 +93,128 @@ fun WeightScreen(
     val flockWithWeights by weightViewModel.flockWithWeight.collectAsState()
     val weightList: List<Weight> = flockWithWeights.weights ?: listOf()
     val weightUiStateList: MutableList<WeightUiState> = mutableListOf()
-//    var isEditable by remember { mutableStateOf(false) }
-//    var isFABVisible by remember { mutableStateOf(true) }
+    var isEditable by remember { mutableStateOf(false) }
+    var isFABVisible by remember { mutableStateOf(true) }
     var title by remember { mutableStateOf("") }
     title = stringResource(WeightScreenDestination.resourceId)
-//    val context = LocalContext.current
-//    val snackBarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val snackBarHostState = remember { SnackbarHostState() }
 
-//    for (item in weightList) {
-//        weightUiStateList.add(item.toWeightUiState())
-//    }
-//    weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
-    //val weightViewModelList by remember(weightViewModel.getWeightList()) { derivedStateOf { weightViewModel.getWeightList().toMutableList() } }
-    //var isUpdateEnabled by remember { mutableStateOf(false) }
+    for (item in weightList) {
+        weightUiStateList.add(item.toWeightUiState())
+    }
+    weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
 
-    //isUpdateEnabled = weightViewModelList != weightUiStateList
-    MainWeightScreen(
-        modifier = modifier,
-        canNavigateBack = canNavigateBack,
-        onNavigateUp = onNavigateUp,
-        weightList = weightList,
-        weightUiStateList = weightUiStateList,
-        setWeightList = {
-            weightViewModel.setWeightList(it.toMutableStateList())
+    var isUpdateEnabled by remember { mutableStateOf(false) }
+
+
+
+    Scaffold(
+        topBar = {
+            FlockManagementTopAppBar(
+                title = title,
+                canNavigateBack = canNavigateBack,
+                navigateUp = onNavigateUp,
+            )
         },
-        updateWeight = {
-            scope.launch {
-                weightViewModel.updateWeight(it)
+        snackbarHost = { SnackbarHost(snackBarHostState) },
+        floatingActionButton = {
+            AnimatedVisibility(visible = isFABVisible,
+                enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
+                    initialOffset = {
+                        IntOffset(180, 90)
+                    }),
+                exit = slideOut(tween(200, easing = FastOutSlowInEasing)) {
+                    IntOffset(180, 90)
+                }) {
+                FloatingActionButton(
+                    onClick = {
+                        title = context.resources.getString(R.string.edit_weights)
+                        isEditable = true
+                        isFABVisible = false
+                    },
+                    shape = ShapeDefaults.Small,
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    elevation = FloatingActionButtonDefaults.elevation()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit weights"
+                    )
+                }
             }
-        },
-        updateWeightState = weightViewModel::updateWeightState
-    )
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = title,
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp,
-//            )
-//        },
-//        snackbarHost = { SnackbarHost(snackBarHostState) },
-//        floatingActionButton = {
-//            AnimatedVisibility(visible = isFABVisible,
-//                enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
-//                    initialOffset = {
-//                        IntOffset(180, 90)
-//                    }),
-//                exit = slideOut(tween(200, easing = FastOutSlowInEasing)) {
-//                    IntOffset(180, 90)
-//                }) {
-//                FloatingActionButton(
-//                    onClick = {
-//                        title = context.resources.getString(R.string.edit_weights)
-//                        isEditable = true
-//                        isFABVisible = false
-//                    },
-//                    shape = ShapeDefaults.Small,
-//                    containerColor = MaterialTheme.colorScheme.secondary,
-//                    elevation = FloatingActionButtonDefaults.elevation()
-//                ) {
-//                    Icon(
-//                        imageVector = Icons.Default.Edit,
-//                        contentDescription = "Edit weights"
-//                    )
-//                }
-//            }
-//        }
-//    ) { innerPadding ->
-//        isUpdateEnabled =
-//            weightViewModel.getWeightList().zip(weightUiStateList).all { it.first == it.second }
-//                .not()
-//        Column(
-//            modifier = Modifier.padding(innerPadding),
-//            verticalArrangement = Arrangement.spacedBy(16.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            WeightInputList(
-//                weightViewModel = weightViewModel,
-//                onItemChange = weightViewModel::updateWeightState,
-//                isEditable = isEditable
-//            )
-//            if (isEditable) {
-//                Row(
-//                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-//                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-//                ) {
-//                    OutlinedButton(
-//                        modifier = Modifier.weight(1f),
-//                        onClick = {
-//                            title = context.resources.getString(R.string.weight)
-//                            isEditable = false
-//                            isFABVisible = true
-//
-//                            weightUiStateList.clear()
-//                            for (item in weightList) {
-//                                weightUiStateList.add(item.toWeightUiState())
-//                            }
-//                            weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
-//                        }
-//                    ) {
-//                        Text(
-//                            modifier = Modifier.fillMaxWidth(),
-//                            text = "Cancel",
-//                            textAlign = TextAlign.Center
-//                        )
-//                    }
-//
-//                    Button(
-//                        modifier = Modifier.weight(1f),
-//                        enabled = isUpdateEnabled,
-//                        onClick = {
-//                            val weight = weightViewModel.getWeightList()
-//                            val updatedWeights = mutableListOf<Weight>()
-//
-//                            if (weight.all { checkNumberExceptions(it) }) {
-//                                weight.forEach {
-//                                    updatedWeights.add(it.toWeight())
-//                                }
-//                                scope.launch {
-//                                    weightViewModel.updateWeight(updatedWeights)
-//                                }.invokeOnCompletion { onNavigateUp() }
-//                            } else {
-//                                scope.launch {
-//                                    snackBarHostState.showSnackbar("Please enter a valid number.")
-//                                }
-//                            }
-//                        }
-//                    ) {
-//                        Text(
-//                            modifier = Modifier.fillMaxWidth(),
-//                            text = "Update",
-//                            textAlign = TextAlign.Center
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
+        }
+    ) { innerPadding ->
+        isUpdateEnabled =
+            weightViewModel.getWeightList().zip(weightUiStateList).all { it.first == it.second }
+                .not()
+        Column(
+            modifier = Modifier.padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            WeightInputList(
+                weightUiStateList = weightViewModel.getWeightList(),
+                onItemChange = weightViewModel::updateWeightState,
+                isEditable = isEditable
+            )
+            if (isEditable) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            title = context.resources.getString(R.string.weight)
+                            isEditable = false
+                            isFABVisible = true
+
+                            weightUiStateList.clear()
+                            for (item in weightList) {
+                                weightUiStateList.add(item.toWeightUiState())
+                            }
+                            weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
+                        }
+                    ) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Cancel",
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        enabled = isUpdateEnabled,
+                        onClick = {
+                            val weight = weightViewModel.getWeightList()
+                            val updatedWeights = mutableListOf<Weight>()
+
+                            if (weight.all { checkNumberExceptions(it) }) {
+                                weight.forEach {
+                                    updatedWeights.add(it.toWeight())
+                                }
+                                scope.launch {
+                                    weightViewModel.updateWeight(updatedWeights)
+                                }.invokeOnCompletion { onNavigateUp() }
+                            } else {
+                                scope.launch {
+                                    snackBarHostState.showSnackbar("Please enter a valid number.")
+                                }
+                            }
+                        }
+                    ) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Update",
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -239,7 +225,8 @@ fun MainWeightScreen(
     onNavigateUp: () -> Unit,
     weightList: List<Weight>,
     weightUiStateList: MutableList<WeightUiState>,
-    setWeightList: (List<WeightUiState>) -> Unit,
+    weightViewModelList: MutableList<WeightUiState>,
+    setWeightList: () -> Unit,
     updateWeight: (MutableList<Weight>) -> Unit,
     updateWeightState: (Int, WeightUiState) -> Unit
 
@@ -255,10 +242,13 @@ fun MainWeightScreen(
     val context = LocalContext.current
     val snackBarHostState = remember { SnackbarHostState() }
 
-    for (item in weightList) {
-        weightUiStateList.add(item.toWeightUiState())
+//    for (item in weightList) {
+//        weightUiStateList.add(item.toWeightUiState())
+//    }
+    LaunchedEffect(weightUiStateList) {
+        setWeightList()
     }
-    setWeightList(weightUiStateList.toMutableStateList())
+
     //val weightViewModelList by remember(weightViewModel.getWeightList()) { derivedStateOf { weightViewModel.getWeightList().toMutableList() } }
     var isUpdateEnabled by remember { mutableStateOf(false) }
 
@@ -303,7 +293,7 @@ fun MainWeightScreen(
         }
     ) { innerPadding ->
         isUpdateEnabled =
-            weightUiStateList.zip(weightUiStateList).all { it.first == it.second }
+            weightViewModelList.zip(weightUiStateList).all { it.first == it.second }
                 .not()
         Column(
             modifier = Modifier.padding(innerPadding),
@@ -311,7 +301,7 @@ fun MainWeightScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             WeightInputList(
-                weightUiStateList = weightUiStateList,
+                weightUiStateList = weightViewModelList,
                 onItemChange = updateWeightState,
                 isEditable = isEditable
             )
@@ -331,7 +321,7 @@ fun MainWeightScreen(
                             for (item in weightList) {
                                 weightUiStateList.add(item.toWeightUiState())
                             }
-                            setWeightList(weightUiStateList.toMutableStateList())
+                            setWeightList()
                         }
                     ) {
                         Text(
@@ -352,9 +342,9 @@ fun MainWeightScreen(
                                 weight.forEach {
                                     updatedWeights.add(it.toWeight())
                                 }
-                                scope.launch {
-                                    updateWeight(updatedWeights)
-                                }.invokeOnCompletion { onNavigateUp() }
+
+                                updateWeight(updatedWeights)
+                                onNavigateUp()
                             } else {
                                 scope.launch {
                                     snackBarHostState.showSnackbar("Please enter a valid number.")

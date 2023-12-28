@@ -384,6 +384,7 @@ fun MainHomeScreen(
             )
 
             FlockBody(
+                modifier = modifier,
                 flockList = flockList,
                 onItemClick = navigateToFlockDetails,
                 listState = listState,
@@ -467,7 +468,7 @@ fun FlockList(
     listState: LazyListState, onDelete: (Int) -> Unit
 ) {
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.semantics { contentDescription = "flockList" },
         state = listState
     ) {
         itemsIndexed(flockList) { index, flock ->

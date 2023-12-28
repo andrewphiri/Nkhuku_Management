@@ -128,9 +128,9 @@ dependencies {
     //Protobuf
     implementation "com.google.protobuf:protobuf-javalite:3.24.1"
     //ListDetailScaffold
-    implementation("androidx.compose.material3:material3-adaptive-android:1.0.0-alpha02")
+    implementation("androidx.compose.material3:material3-adaptive-android:1.0.0-alpha03")
     //NavigationBar/NavigationRail
-    implementation("androidx.compose.material3:material3-adaptive-navigation-suite-android:1.0.0-alpha01")
+    implementation("androidx.compose.material3:material3-adaptive-navigation-suite-android:1.0.0-alpha02")
     //Navigation Test
     androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
     //Test rules and transitive dependencies

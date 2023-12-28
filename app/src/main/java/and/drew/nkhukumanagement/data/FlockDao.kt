@@ -3,6 +3,7 @@ package and.drew.nkhukumanagement.data
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
@@ -13,28 +14,28 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface FlockDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertFlock(flock: Flock)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertVaccination(vaccination: Vaccination)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertFeed(feed: Feed)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertWeight(weight: Weight)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertFlockHealth(flockHealth: FlockHealth)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAccounts(accountsSummary: AccountsSummary)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIncome(income: Income)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertExpense(expense: Expense)
 
     @Update
@@ -99,6 +100,12 @@ interface FlockDao {
 
     @Query("SELECT * FROM health WHERE id = :id")
     fun retrieveHealth(id: Int): Flow<FlockHealth>
+
+    @Query("SELECT * FROM weight WHERE id = :id")
+    fun retrieveWeight(id: Int): Flow<Weight>
+
+    @Query("SELECT * FROM feed WHERE id = :id")
+    fun retrieveFeed(id: Int): Flow<Feed>
 
     @Query("SELECT * FROM flock")
     fun getAllFlockItems(): Flow<List<Flock>>

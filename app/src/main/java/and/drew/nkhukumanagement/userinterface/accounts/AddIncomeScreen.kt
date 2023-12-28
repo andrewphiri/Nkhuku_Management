@@ -275,7 +275,7 @@ fun AddIncomeScreen(
 fun MainAddIncomeScreen(
     modifier: Modifier = Modifier,
     incomeUiState: IncomeUiState,
-    income: Income,
+    income: Income?,
     accountsSummary: AccountsSummary,
     updateState: (IncomeUiState) -> Unit,
     insertIncome: (IncomeUiState) -> Unit,
@@ -299,9 +299,9 @@ fun MainAddIncomeScreen(
     )
     else rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
-        initialSelectedDateMillis = income.date
-            .atStartOfDay()
-            .atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
+        initialSelectedDateMillis = income?.date
+            ?.atStartOfDay()
+            ?.atZone(ZoneId.of("UTC"))?.toInstant()?.toEpochMilli()
     )
 
 
@@ -318,7 +318,7 @@ fun MainAddIncomeScreen(
      */
     LaunchedEffect(income) {
         if (incomeIDArg > 0) {
-            updateState(income.toIncomeUiState(enabled = true))
+            income?.toIncomeUiState(enabled = true)?.let { updateState(it) }
         }
     }
 
@@ -336,7 +336,7 @@ fun MainAddIncomeScreen(
 //        Log.i("INCOME", income.toIncomeUiState(true).toString())
 //        Log.i("INCOMEUISTATE", incomeViewModel.incomeUiState.toString())
         isUpdateButtonEnabled = if (incomeIDArg > 0) incomeUiState !=
-                income.toIncomeUiState(enabled = true) else incomeUiState.enabled
+                income?.toIncomeUiState(enabled = true) else incomeUiState.enabled
 
         Column(
             modifier = modifier.verticalScroll(
