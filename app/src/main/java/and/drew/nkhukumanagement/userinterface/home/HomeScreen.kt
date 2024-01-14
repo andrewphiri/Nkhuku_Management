@@ -4,36 +4,62 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Flock
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.accounts.AccountsViewModel
+import and.drew.nkhukumanagement.userinterface.feed.FeedScreen
+import and.drew.nkhukumanagement.userinterface.feed.FeedViewModel
+import and.drew.nkhukumanagement.userinterface.flock.EditFlockViewModel
+import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsScreen
+import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
+import and.drew.nkhukumanagement.userinterface.flock.FlockEditScreen
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
+import and.drew.nkhukumanagement.userinterface.flock.FlockHealthScreen
+import and.drew.nkhukumanagement.userinterface.flock.toFlock
 import and.drew.nkhukumanagement.userinterface.flock.toFlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
+import and.drew.nkhukumanagement.userinterface.vaccination.AddVaccinationsScreen
 import and.drew.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
+import and.drew.nkhukumanagement.userinterface.weight.WeightScreen
+import and.drew.nkhukumanagement.userinterface.weight.WeightViewModel
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
+import and.drew.nkhukumanagement.utils.ContentType
+import and.drew.nkhukumanagement.utils.CurrentScreen.DETAILS_SCREEN
+import and.drew.nkhukumanagement.utils.CurrentScreen.EDIT_FLOCK_SCREEN
+import and.drew.nkhukumanagement.utils.CurrentScreen.FEED_SCREEN
+import and.drew.nkhukumanagement.utils.CurrentScreen.FLOCK_HEALTH_SCREEN
+import and.drew.nkhukumanagement.utils.CurrentScreen.VACCINATION_SCREEN
+import and.drew.nkhukumanagement.utils.CurrentScreen.WEIGHT_SCREEN
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -61,6 +87,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,22 +101,30 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(
+    contentType: ContentType,
     modifier: Modifier = Modifier,
     navigateToAddFlock: () -> Unit,
     navigateToFlockDetails: (Int) -> Unit,
     onClickSettings: () -> Unit = {},
     homeViewModel: HomeViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
-    vaccinationViewModel: VaccinationViewModel,
-    accountsViewModel: AccountsViewModel = hiltViewModel()
+    vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
+    accountsViewModel: AccountsViewModel = hiltViewModel(),
+    detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
+    editFlockViewModel: EditFlockViewModel = hiltViewModel(),
+    feedViewModel: FeedViewModel = hiltViewModel(),
+    weightViewModel: WeightViewModel = hiltViewModel(),
+    userPrefsViewModel: UserPrefsViewModel
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val homeUiState by homeViewModel.homeUiState.collectAsState()
@@ -104,10 +139,20 @@ fun HomeScreen(
             )
         )
     }
-    var flockList = homeUiState.flockList.filter { it.active }
-    val listState = rememberLazyListState()
+
+    val flock: Flock? by detailsViewModel
+        .flock
+        .collectAsState(
+            initial = flockEntryViewModel.flockUiState.copy(
+                datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
+                quantity = "0",
+                donorFlock = "0",
+                cost = "0"
+            ).toFlock()
+        )
+
     val coroutineScope = rememberCoroutineScope()
-    var isFilterMenuShowing by remember { mutableStateOf(false) }
+
 
     DisposableEffect(Unit) {
         onDispose {
@@ -115,186 +160,328 @@ fun HomeScreen(
         }
     }
 
-    MainHomeScreen(
-        modifier = modifier,
-        navigateToAddFlock = navigateToAddFlock,
-        navigateToFlockDetails = navigateToFlockDetails,
-        onClickSettings = onClickSettings,
-        flocks = homeUiState.flockList,
-        resetFlock = {
-            flockEntryViewModel.resetAll()
-        },
-        deleteFlock = { index ->
-            coroutineScope.launch {
-                val uniqueId = homeUiState.flockList[index].uniqueId
-                flockEntryViewModel.deleteFlock(uniqueId)
-                vaccinationViewModel.deleteVaccination(uniqueId)
-                vaccinationViewModel.deleteFeed(uniqueId)
-                vaccinationViewModel.deleteWeight(uniqueId)
-                flockEntryViewModel.deleteFlockHealth(uniqueId)
-            }
-        },
-        onClose = { flock ->
-
-            accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
-                .observe(lifecycleOwner) { flockAndSummary ->
-                    accountSummary = flockAndSummary.accountsSummary
+    if (contentType == ContentType.LIST_ONLY) {
+        MainHomeScreen(
+            modifier = modifier,
+            navigateToAddFlock = navigateToAddFlock,
+            navigateToFlockDetails = navigateToFlockDetails,
+            onClickSettings = onClickSettings,
+            flocks = homeUiState.flockList,
+            resetFlock = {
+                flockEntryViewModel.resetAll()
+            },
+            deleteFlock = { index ->
+                coroutineScope.launch {
+                    val uniqueId = homeUiState.flockList[index].uniqueId
+                    flockEntryViewModel.deleteFlock(uniqueId)
+                    vaccinationViewModel.deleteVaccination(uniqueId)
+                    vaccinationViewModel.deleteFeed(uniqueId)
+                    vaccinationViewModel.deleteWeight(uniqueId)
+                    flockEntryViewModel.deleteFlockHealth(uniqueId)
                 }
-            coroutineScope.launch {
-                if (flock.active) {
-                    flockEntryViewModel.updateItem(
-                        flockUiState = flock.toFlockUiState().copy(active = false)
-                    )
-                    accountSummary?.let {
-                        AccountsSummary(
-                            id = it.id,
-                            totalIncome = it.totalIncome,
-                            flockUniqueID = it.flockUniqueID,
-                            totalExpenses = it.totalExpenses,
-                            variance = it.variance,
-                            batchName = it.batchName,
-                            flockActive = false
+            },
+            onClose = { flock ->
+
+                accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
+                    .observe(lifecycleOwner) { flockAndSummary ->
+                        accountSummary = flockAndSummary.accountsSummary
+                    }
+                coroutineScope.launch {
+                    if (flock.active) {
+                        flockEntryViewModel.updateItem(
+                            flockUiState = flock.toFlockUiState().copy(active = false)
                         )
-                    }?.let { accountsViewModel.updateAccountsSummary(it) }
-                } else {
-                    flockEntryViewModel.updateItem(
-                        flockUiState = flock.toFlockUiState().copy(active = true)
-                    )
-                    accountSummary?.let {
-                        AccountsSummary(
-                            id = it.id,
-                            totalIncome = it.totalIncome,
-                            flockUniqueID = it.flockUniqueID,
-                            totalExpenses = it.totalExpenses,
-                            variance = it.variance,
-                            batchName = it.batchName,
-                            flockActive = true
+                        accountSummary?.let {
+                            AccountsSummary(
+                                id = it.id,
+                                totalIncome = it.totalIncome,
+                                flockUniqueID = it.flockUniqueID,
+                                totalExpenses = it.totalExpenses,
+                                variance = it.variance,
+                                batchName = it.batchName,
+                                flockActive = false
+                            )
+                        }?.let { accountsViewModel.updateAccountsSummary(it) }
+                    } else {
+                        flockEntryViewModel.updateItem(
+                            flockUiState = flock.toFlockUiState().copy(active = true)
                         )
-                    }?.let { accountsViewModel.updateAccountsSummary(it) }
+                        accountSummary?.let {
+                            AccountsSummary(
+                                id = it.id,
+                                totalIncome = it.totalIncome,
+                                flockUniqueID = it.flockUniqueID,
+                                totalExpenses = it.totalExpenses,
+                                variance = it.variance,
+                                batchName = it.batchName,
+                                flockActive = true
+                            )
+                        }?.let { accountsViewModel.updateAccountsSummary(it) }
+                    }
                 }
             }
-        }
-    )
+        )
+    } else {
+        HomeScreenListAndDetails(
+            modifier = modifier,
+            navigateToAddFlock = navigateToAddFlock,
+            navigateToFlockDetails = {
+                detailsViewModel.setFlockID(it)
 
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(NavigationBarScreens.Home.resourceId),
-//                canNavigateBack = false,
-//                onClickSettings = onClickSettings,
-//                isFilterButtonEnabled = homeUiState.flockList.isNotEmpty(),
-//                onClickFilter = {
-//                    isFilterMenuShowing = !isFilterMenuShowing
-//                }
-//            )
-//        },
-//        floatingActionButton = {
-//            AnimatedVisibility(visible = listState.isScrollingUp(),
-//                enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
-//                    initialOffset = {
-//                        IntOffset(180, 90)
-//                    }),
-//                exit = slideOut(tween(200, easing = FastOutSlowInEasing)) {
-//                    IntOffset(180, 90)
-//                }
-//            ) {
-//                FloatingActionButton(
-//                    modifier = Modifier
-//                        .semantics { contentDescription = "FlockAddition" }
-//                        .navigationBarsPadding(),
-//                    onClick = navigateToAddFlock,
-//                    shape = ShapeDefaults.Small,
-//                    containerColor = MaterialTheme.colorScheme.secondary,
-//                    elevation = FloatingActionButtonDefaults.elevation()
-//                ) {
-//                    Icon(
-//                        imageVector = Icons.Default.Add,
-//                        contentDescription = "Add flock",
-//                        tint = MaterialTheme.colorScheme.onPrimary
-//                    )
-//                }
-//            }
-//
-//        },
-//    ) { innerPadding ->
-//        Column(
-//            modifier = Modifier.padding(innerPadding)
-//        ) {
-//            ShowFilterOverflowMenu(
-//                modifier = Modifier.align(Alignment.End),
-//                isOverflowMenuExpanded = isFilterMenuShowing,
-//                onDismiss = { isFilterMenuShowing = false },
-//                onClickAll = {
-//                    flockList = homeUiState.flockList
-//                    isFilterMenuShowing = false
-//                },
-//                onClickActive = {
-//                    flockList = homeUiState.flockList.filter { it.active }
-//                    isFilterMenuShowing = false
-//                },
-//                onClickInactive = {
-//                    flockList = homeUiState.flockList.filter { !it.active }
-//                    isFilterMenuShowing = false
-//                }
-//            )
-//
-//            FlockBody(
-//                flockList = flockList,
-//                onItemClick = navigateToFlockDetails,
-//                listState = listState,
-//                onDelete = { index ->
-//                    coroutineScope.launch {
-//                        val uniqueId = homeUiState.flockList[index].uniqueId
-//                        flockEntryViewModel.deleteFlock(uniqueId)
-//                        vaccinationViewModel.deleteVaccination(uniqueId)
-//                        vaccinationViewModel.deleteFeed(uniqueId)
-//                        vaccinationViewModel.deleteWeight(uniqueId)
-//                        flockEntryViewModel.deleteFlockHealth(uniqueId)
-//                    }
-//                },
-//                onClose = { flock ->
-//
-//                    accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
-//                        .observe(lifecycleOwner) { flockAndSummary ->
-//                            accountSummary = flockAndSummary.accountsSummary
-//                        }
-//                    coroutineScope.launch {
-//                        if (flock.active) {
-//                            flockEntryViewModel.updateItem(
-//                                flockUiState = flock.toFlockUiState().copy(active = false)
-//                            )
-//                            accountSummary?.let {
-//                                AccountsSummary(
-//                                    id = it.id,
-//                                    totalIncome = it.totalIncome,
-//                                    flockUniqueID = it.flockUniqueID,
-//                                    totalExpenses = it.totalExpenses,
-//                                    variance = it.variance,
-//                                    batchName = it.batchName,
-//                                    flockActive = false
-//                                )
-//                            }?.let { accountsViewModel.updateAccountsSummary(it) }
-//                        } else {
-//                            flockEntryViewModel.updateItem(
-//                                flockUiState = flock.toFlockUiState().copy(active = true)
-//                            )
-//                            accountSummary?.let {
-//                                AccountsSummary(
-//                                    id = it.id,
-//                                    totalIncome = it.totalIncome,
-//                                    flockUniqueID = it.flockUniqueID,
-//                                    totalExpenses = it.totalExpenses,
-//                                    variance = it.variance,
-//                                    batchName = it.batchName,
-//                                    flockActive = true
-//                                )
-//                            }?.let { accountsViewModel.updateAccountsSummary(it) }
-//                        }
-//                    }
-//                }
-//            )
+            },
+            onClickSettings = onClickSettings,
+            flocks = homeUiState.flockList,
+            resetFlock = {
+                flockEntryViewModel.resetAll()
+            },
+            deleteFlock = { index ->
+                coroutineScope.launch {
+                    val uniqueId = homeUiState.flockList[index].uniqueId
+                    flockEntryViewModel.deleteFlock(uniqueId)
+                    vaccinationViewModel.deleteVaccination(uniqueId)
+                    vaccinationViewModel.deleteFeed(uniqueId)
+                    vaccinationViewModel.deleteWeight(uniqueId)
+                    flockEntryViewModel.deleteFlockHealth(uniqueId)
+                }
+            },
+            onClose = { flock ->
+
+                accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
+                    .observe(lifecycleOwner) { flockAndSummary ->
+                        accountSummary = flockAndSummary.accountsSummary
+                    }
+                coroutineScope.launch {
+                    if (flock.active) {
+                        flockEntryViewModel.updateItem(
+                            flockUiState = flock.toFlockUiState().copy(active = false)
+                        )
+                        accountSummary?.let {
+                            AccountsSummary(
+                                id = it.id,
+                                totalIncome = it.totalIncome,
+                                flockUniqueID = it.flockUniqueID,
+                                totalExpenses = it.totalExpenses,
+                                variance = it.variance,
+                                batchName = it.batchName,
+                                flockActive = false
+                            )
+                        }?.let { accountsViewModel.updateAccountsSummary(it) }
+                    } else {
+                        flockEntryViewModel.updateItem(
+                            flockUiState = flock.toFlockUiState().copy(active = true)
+                        )
+                        accountSummary?.let {
+                            AccountsSummary(
+                                id = it.id,
+                                totalIncome = it.totalIncome,
+                                flockUniqueID = it.flockUniqueID,
+                                totalExpenses = it.totalExpenses,
+                                variance = it.variance,
+                                batchName = it.batchName,
+                                flockActive = true
+                            )
+                        }?.let { accountsViewModel.updateAccountsSummary(it) }
+                    }
+                }
+            },
+            canNavigateBack = false,
+            onNavigateUp = {},
+            flockEntryViewModel = flockEntryViewModel,
+            editFlockViewModel = editFlockViewModel,
+            userPrefsViewModel = userPrefsViewModel,
+            vaccinationViewModel = vaccinationViewModel,
+            feedViewModel = feedViewModel,
+            weightViewModel = weightViewModel
+        )
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun HomeScreenListAndDetails(
+    modifier: Modifier = Modifier,
+    navigateToAddFlock: () -> Unit,
+    navigateToFlockDetails: (Int) -> Unit,
+    onClickSettings: () -> Unit = {},
+    flocks: List<Flock>,
+    resetFlock: () -> Unit,
+    deleteFlock: (Int) -> Unit,
+    onClose: (Flock) -> Unit,
+    canNavigateBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+    flockEntryViewModel: FlockEntryViewModel,
+    editFlockViewModel: EditFlockViewModel,
+    userPrefsViewModel: UserPrefsViewModel,
+    vaccinationViewModel: VaccinationViewModel,
+    feedViewModel: FeedViewModel,
+    weightViewModel: WeightViewModel
+) {
+    var showDetailsPane by rememberSaveable { mutableStateOf(false) }
+    var showDetailsScreen by rememberSaveable { mutableStateOf(true) }
+    var showHealthScreen by rememberSaveable { mutableStateOf(false) }
+    var showEditFlockScreen by rememberSaveable { mutableStateOf(false) }
+    var showFeedScreen by rememberSaveable { mutableStateOf(false) }
+    var showWeightScreen by rememberSaveable { mutableStateOf(false) }
+    var showVaccinationScreen by rememberSaveable { mutableStateOf(false) }
+    var currentScreen by rememberSaveable { mutableStateOf(DETAILS_SCREEN) }
+//    LaunchedEffect(detailsViewModel.flockID) {
+//        if (detailsViewModel.flockID.value > 0) {
+//            showDetailsPane = true
 //        }
 //    }
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+            ) {
+                MainHomeScreen(
+                    navigateToAddFlock = navigateToAddFlock,
+                    navigateToFlockDetails = {
+                        showDetailsPane = true
+                        currentScreen = DETAILS_SCREEN
+                        navigateToFlockDetails(it)
+                    },
+                    onClickSettings = onClickSettings,
+                    flocks = flocks,
+                    resetFlock = resetFlock,
+                    deleteFlock = deleteFlock,
+                    onClose = onClose
+                )
+            }
+
+            Spacer(
+                modifier = Modifier
+                    .weight(0.001f)
+                    .fillMaxHeight()
+                    .width(Dp.Hairline)
+                    .padding(top = 16.dp, bottom = 16.dp)
+                    .background(color = MaterialTheme.colorScheme.tertiary),
+
+                )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                if (showDetailsPane) {
+                    when (currentScreen) {
+                        DETAILS_SCREEN -> {
+                            FlockDetailsScreen(
+                                canNavigateBack = canNavigateBack,
+                                onNavigateUp = onNavigateUp,
+                                navigateToFlockHealthScreen = {
+                                    editFlockViewModel.setFlockID(flockID = it)
+                                    currentScreen = FLOCK_HEALTH_SCREEN
+                                },
+                                navigateToVaccinationScreen = {
+                                    vaccinationViewModel.setFlockID(it)
+                                    currentScreen = VACCINATION_SCREEN
+                                },
+                                navigateToFeedScreen = {
+                                    feedViewModel.setFlockID(it)
+                                    currentScreen = FEED_SCREEN
+                                },
+                                navigateToWeightScreen = {
+                                    weightViewModel.setFlockID(it)
+                                    currentScreen = WEIGHT_SCREEN
+                                },
+                                flockEntryViewModel = flockEntryViewModel
+                            )
+                        }
+
+                        FLOCK_HEALTH_SCREEN -> {
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = expandIn(),
+                                exit = scaleOut()
+                            ) {
+                                //editFlockViewModel.setFlockID(flockID)
+                                FlockHealthScreen(
+                                    onNavigateUp = {
+                                        currentScreen = DETAILS_SCREEN
+                                    },
+                                    navigateToFlockEditScreen = { flockId, healthId ->
+                                        Log.i(
+                                            "Flock___ID",
+                                            flockId.toString()
+                                        )
+                                        editFlockViewModel.setFlockID(flockID = flockId)
+                                        editFlockViewModel.setHealthID(healthId = healthId)
+                                        currentScreen = EDIT_FLOCK_SCREEN
+                                    },
+                                    editFlockViewModel = editFlockViewModel
+                                )
+                            }
+
+                        }
+
+                        WEIGHT_SCREEN -> {
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = expandIn(),
+                                exit = scaleOut()
+                            ) {
+                                WeightScreen(
+                                    onNavigateUp = {
+                                        currentScreen = DETAILS_SCREEN
+                                    }
+                                )
+                            }
+                        }
+
+                        FEED_SCREEN -> {
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = expandIn(),
+                                exit = scaleOut()
+                            ) {
+                                FeedScreen(
+                                    onNavigateUp = {
+                                        currentScreen = DETAILS_SCREEN
+                                    },
+                                    flockEntryViewModel = flockEntryViewModel
+                                )
+                            }
+                        }
+
+                        VACCINATION_SCREEN -> {
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = expandIn(),
+                                exit = scaleOut()
+                            ) {
+                                AddVaccinationsScreen(
+                                    onNavigateUp = {
+                                        currentScreen = DETAILS_SCREEN
+                                    },
+                                    navigateBack = {},
+                                    flockEntryViewModel = flockEntryViewModel,
+                                    userPrefsViewModel = userPrefsViewModel
+                                )
+                            }
+                        }
+
+                        EDIT_FLOCK_SCREEN -> {
+                            FlockEditScreen(
+                                flockEntryViewModel = flockEntryViewModel,
+                                onNavigateUp = {
+                                    currentScreen = FLOCK_HEALTH_SCREEN
+                                },
+                                editFlockViewModel = editFlockViewModel
+                            )
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+    }
+
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -319,6 +506,7 @@ fun MainHomeScreen(
             resetFlock()
         }
     }
+
 
     Scaffold(
         modifier = modifier,
@@ -359,11 +547,12 @@ fun MainHomeScreen(
                     )
                 }
             }
-
         },
     ) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .wrapContentSize()
+                .padding(innerPadding)
         ) {
             ShowFilterOverflowMenu(
                 modifier = Modifier.align(Alignment.End),
@@ -383,7 +572,8 @@ fun MainHomeScreen(
                 }
             )
 
-            FlockBody(
+
+            FlockBodyList(
                 modifier = modifier,
                 flockList = flockList,
                 onItemClick = navigateToFlockDetails,
@@ -401,7 +591,7 @@ fun MainHomeScreen(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FlockBody(
+fun FlockBodyList(
     modifier: Modifier = Modifier,
     flockList: List<Flock>,
     onItemClick: (Int) -> Unit,
@@ -411,11 +601,11 @@ fun FlockBody(
 ) {
     if (flockList.isEmpty()) {
         Box(
-            modifier = modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                modifier = modifier.align(Alignment.Center),
+                modifier = Modifier.align(Alignment.Center),
                 text = stringResource(R.string.no_flocks_description),
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -472,7 +662,8 @@ fun FlockList(
         state = listState
     ) {
         itemsIndexed(flockList) { index, flock ->
-            FlockCard(flock = flock,
+            FlockCard(
+                flock = flock,
                 onItemClick = onItemClick,
                 onClose = onClose,
                 onDelete = { onDelete(index) }
@@ -480,6 +671,7 @@ fun FlockList(
         }
     }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

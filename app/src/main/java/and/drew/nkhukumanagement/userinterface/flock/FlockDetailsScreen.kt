@@ -3,6 +3,9 @@ package and.drew.nkhukumanagement.userinterface.flock
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Flock
+import and.drew.nkhukumanagement.data.FlockWithFeed
+import and.drew.nkhukumanagement.data.FlockWithVaccinations
+import and.drew.nkhukumanagement.data.FlockWithWeight
 import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.data.Weight
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
@@ -19,7 +22,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,8 +34,8 @@ import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Vaccines
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -85,16 +87,28 @@ fun FlockDetailsScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    navigateToFlockHealthScreen: (Int) -> Unit = {},
+    navigateToFlockHealthScreen: (Int) -> Unit,
     navigateToVaccinationScreen: (Int) -> Unit,
     navigateToFeedScreen: (Int) -> Unit = {},
     navigateToWeightScreen: (Int) -> Unit = {},
     flockEntryViewModel: FlockEntryViewModel,
     detailsViewModel: FlockDetailsViewModel = hiltViewModel()
 ) {
-    val flockWithVaccinations by detailsViewModel.flockWithVaccinationsStateFlow.collectAsState()
-    val flockWithFeed by detailsViewModel.flockWithFeedStateFlow.collectAsState()
-    val flockWithWeight by detailsViewModel.flockWithWeightStateFlow.collectAsState()
+    val flockWithVaccinations by detailsViewModel
+        .flockWithVaccinationsStateFlow
+        .collectAsState(
+            initial = FlockWithVaccinations(flock = null, vaccinations = listOf())
+        )
+    val flockWithFeed by detailsViewModel
+        .flockWithFeedStateFlow
+        .collectAsState(
+            initial = FlockWithFeed(flock = null, feedList = null)
+        )
+    val flockWithWeight by detailsViewModel
+        .flockWithWeightStateFlow
+        .collectAsState(
+            initial = FlockWithWeight(flock = null, weights = null)
+        )
     val flock by detailsViewModel.flock.collectAsState(
         initial = flockEntryViewModel.flockUiState.copy(
             datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
@@ -119,83 +133,6 @@ fun FlockDetailsScreen(
         weights = flockWithWeight?.weights
     )
 
-//    flock.toFlockUiState(true).let { flockEntryViewModel.updateUiState(it) }
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(FlockDetailsDestination.resourceId),
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        }
-//    ) { innerPadding ->
-//
-//        LazyVerticalStaggeredGrid(
-//            modifier = modifier.padding(innerPadding).fillMaxSize(),
-//            columns = StaggeredGridCells.Fixed(2),
-//            contentPadding = PaddingValues(8.dp),
-//            verticalItemSpacing = 16.dp,
-//            horizontalArrangement = Arrangement.spacedBy(16.dp).also { Arrangement.Center },
-//        ) {
-//            item {
-//                flockWithVaccinations?.flock?.let { flock ->
-//                    HealthCard(
-//                        flock = flock,
-//                        onHealthCardClick = {
-//                            if (flock.active) {
-//                                navigateToFlockHealthScreen(flock.id)
-//                            }
-//                        })
-//                }
-//            }
-//            item {
-//                flockWithVaccinations?.let {
-//                    it.flock?.let { flock ->
-//                        VaccinationList(
-//                            modifier = modifier,
-//                            vaccinationUiStateList = it.vaccinations,
-//                            onVaccinationCardClick = { id ->
-//                                if (flock.active) {
-//                                    navigateToVaccinationScreen(id)
-//                                }
-//                            },
-//                            flock = flock
-//                        )
-//                    }
-//                }
-//            }
-//            item {
-//                flockWithFeed?.feedList?.sumOf { it.consumed }.let { totalQty ->
-//                    if (totalQty != null) {
-//                        FeedCard(
-//                            quantityConsumed = totalQty,
-//                            flockUiState = flock.toFlockUiState(enabled = true),
-//                            onFeedCardClick = { id ->
-//                                if (flock.active) {
-//                                    navigateToFeedScreen(id)
-//                                }
-//                            }
-//                        )
-//                    }
-//                }
-//            }
-//            item {
-//                val weight = flockWithWeight?.weights?.lastOrNull { it.weight > 0.0 }
-//                    ?: flockWithWeight?.weights?.first()
-//                if (weight != null) {
-//                    flock.let { flock ->
-//                        WeightCard(weight = weight,
-//                            flock = flock,
-//                            onWeightCardClick = { id ->
-//                                if (flock.active) {
-//                                    navigateToWeightScreen(id)
-//                                }
-//                            })
-//                    }
-//                }
-//            }
-//        }
-//    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -204,38 +141,39 @@ fun MainFlockDetailsScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean,
     onNavigateUp: () -> Unit,
-    navigateToFlockHealthScreen: (Int) -> Unit = {},
+    navigateToFlockHealthScreen: (Int) -> Unit,
     navigateToVaccinationScreen: (Int) -> Unit,
-    navigateToFeedScreen: (Int) -> Unit = {},
-    navigateToWeightScreen: (Int) -> Unit = {},
-    flock: Flock,
+    navigateToFeedScreen: (Int) -> Unit,
+    navigateToWeightScreen: (Int) -> Unit,
+    flock: Flock?,
     vaccinations: List<Vaccination>?,
     totalFeedQtyConsumed: Double?,
     weights: List<Weight>?,
-    onUpdateUiState: (FlockUiState) -> Unit,
+    onUpdateUiState: (FlockUiState) -> Unit
 ) {
 
-    onUpdateUiState(flock.toFlockUiState().copy(enabled = true))
-    Scaffold(
-        topBar = {
-            FlockManagementTopAppBar(
-                title = stringResource(FlockDetailsDestination.resourceId),
-                canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
-            )
-        }
-    ) { innerPadding ->
+    flock?.toFlockUiState()?.copy(enabled = true)?.let { onUpdateUiState(it) }
+    if (flock != null) {
+        Scaffold(
+            modifier = modifier,
+            topBar = {
+                FlockManagementTopAppBar(
+                    title = stringResource(FlockDetailsDestination.resourceId),
+                    canNavigateBack = canNavigateBack,
+                    navigateUp = onNavigateUp
+                )
+            }
+        ) { innerPadding ->
 
-        LazyVerticalStaggeredGrid(
-            modifier = modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            columns = StaggeredGridCells.Fixed(2),
-            contentPadding = PaddingValues(8.dp),
-            verticalItemSpacing = 16.dp,
-            horizontalArrangement = Arrangement.spacedBy(16.dp).also { Arrangement.Center },
-        ) {
-            item {
+            LazyVerticalStaggeredGrid(
+                modifier = Modifier
+                    .padding(innerPadding),
+                columns = StaggeredGridCells.Fixed(2),
+                contentPadding = PaddingValues(8.dp),
+                verticalItemSpacing = 16.dp,
+                horizontalArrangement = Arrangement.spacedBy(16.dp).also { Arrangement.Center },
+            ) {
+                item {
                     HealthCard(
                         modifier = Modifier.semantics { contentDescription = "Health" },
                         flock = flock,
@@ -244,53 +182,55 @@ fun MainFlockDetailsScreen(
                                 navigateToFlockHealthScreen(it.id)
                             }
                         })
-
-            }
-            item {
-
-                        VaccinationList(
-                            modifier = Modifier.semantics { contentDescription = "Vaccines" },
-                            vaccinationUiStateList = vaccinations,
-                            onVaccinationCardClick = { id ->
-                                if (flock.active) {
-                                    navigateToVaccinationScreen(id)
-                                }
-                            },
-                            flock = flock
-                        )
-
-            }
-            item {
-
-                if (totalFeedQtyConsumed != null) {
-                    FeedCard(
-                        modifier = Modifier.semantics { contentDescription = "Feed" },
-                        quantityConsumed = totalFeedQtyConsumed,
-                        flockUiState = flock.toFlockUiState(enabled = true),
-                        onFeedCardClick = { id ->
-                            if (flock.active) {
-                                navigateToFeedScreen(id)
-                            }
-                        }
-                    )
                 }
+                item {
 
-            }
-            item {
-                val weight = weights?.lastOrNull { it.weight > 0.0 }
-                    ?: weights?.first()
-                if (weight != null) {
-                    flock.let { flock ->
-                        WeightCard(
-                            modifier = Modifier.semantics { contentDescription = "Weight" },
-                            weight = weight,
-                            flock = flock,
-                            onWeightCardClick = { id ->
-                                if (flock.active) {
-                                    navigateToWeightScreen(id)
-                                }
+                    VaccinationList(
+                        modifier = Modifier.semantics { contentDescription = "Vaccines" },
+                        vaccinationUiStateList = vaccinations,
+                        onVaccinationCardClick = { id ->
+                            if (flock.active) {
+                                navigateToVaccinationScreen(id)
                             }
-                        )
+                        },
+                        flock = flock
+                    )
+
+                }
+                item {
+
+                    if (totalFeedQtyConsumed != null) {
+                        flock.toFlockUiState(enabled = true).let {
+                            FeedCard(
+                                modifier = Modifier.semantics { contentDescription = "Feed" },
+                                quantityConsumed = totalFeedQtyConsumed,
+                                flockUiState = it,
+                                onFeedCardClick = { id ->
+                                    if (flock.active) {
+                                        navigateToFeedScreen(id)
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                }
+                item {
+                    val weight = weights?.lastOrNull { it.weight > 0.0 }
+                        ?: weights?.first()
+                    if (weight != null) {
+                        flock.let { flock ->
+                            WeightCard(
+                                modifier = Modifier.semantics { contentDescription = "Weight" },
+                                weight = weight,
+                                flock = flock,
+                                onWeightCardClick = { id ->
+                                    if (flock.active) {
+                                        navigateToWeightScreen(id)
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -300,23 +240,30 @@ fun MainFlockDetailsScreen(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HealthCard(modifier: Modifier = Modifier, flock: Flock, onHealthCardClick: (Flock) -> Unit) {
-    val flockUiState = Flock(
-        id = flock.id,
-        uniqueId = flock.uniqueId,
-        batchName = flock.batchName,
-        breed = flock.breed,
-        datePlaced = flock.datePlaced,
-        mortality = flock.mortality,
-        numberOfChicksPlaced = flock.numberOfChicksPlaced,
-        costPerBird = flock.costPerBird,
-        culls = flock.culls,
-        stock = flock.stock,
-        donorFlock = flock.donorFlock
-    ).toFlockUiState()
+fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: (Flock) -> Unit) {
+    val flockUiState = flock?.let { flock1 ->
+        Flock(
+            id = flock1.id,
+            uniqueId = flock1.uniqueId,
+            batchName = flock1.batchName,
+            breed = flock1.breed,
+            datePlaced = flock1.datePlaced,
+            mortality = flock1.mortality,
+            numberOfChicksPlaced = flock1.numberOfChicksPlaced,
+            costPerBird = flock1.costPerBird,
+            culls = flock1.culls,
+            stock = flock1.stock,
+            donorFlock = flock1.donorFlock
+        ).toFlockUiState()
+    }
+
     ElevatedCard(
         modifier = modifier
-            .clickable { onHealthCardClick(flock) }
+            .clickable {
+                if (flock != null) {
+                    onHealthCardClick(flock)
+                }
+            }
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -335,21 +282,25 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock, onHealthCardClick: (
                 textAlign = TextAlign.Center
             )
 
-            Divider(
+            HorizontalDivider(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
-            BaseSingleRowDetailsItem(
-                label = "Mortality",
-                value = flockUiState.getMortality(),
-                weightA = 2f
-            )
+            flockUiState?.getMortality()?.let {
+                BaseSingleRowDetailsItem(
+                    label = "Mortality",
+                    value = it,
+                    weightA = 2f
+                )
+            }
 
-            BaseSingleRowDetailsItem(
-                label = "Culls",
-                value = flockUiState.getCulls(),
-                weightA = 2f
-            )
+            flockUiState?.getCulls()?.let {
+                BaseSingleRowDetailsItem(
+                    label = "Culls",
+                    value = it,
+                    weightA = 2f
+                )
+            }
 
         }
     }
@@ -383,7 +334,7 @@ fun FeedCard(
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
-            Divider(
+            HorizontalDivider(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
@@ -424,7 +375,7 @@ fun VaccinationList(
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
-            Divider(
+            HorizontalDivider(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
             if (vaccinationUiStateList != null) {
@@ -497,7 +448,7 @@ fun WeightCard(
                 textAlign = TextAlign.Center
             )
 
-            Divider(
+            HorizontalDivider(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 

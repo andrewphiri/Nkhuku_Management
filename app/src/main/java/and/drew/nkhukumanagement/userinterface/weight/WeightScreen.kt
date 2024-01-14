@@ -2,9 +2,11 @@ package and.drew.nkhukumanagement.userinterface.weight
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.data.FlockWithWeight
 import and.drew.nkhukumanagement.data.Weight
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -30,6 +32,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
@@ -89,8 +92,13 @@ fun WeightScreen(
     onNavigateUp: () -> Unit,
     weightViewModel: WeightViewModel = hiltViewModel()
 ) {
-    val scope = rememberCoroutineScope()
-    val flockWithWeights by weightViewModel.flockWithWeight.collectAsState()
+    BackHandler {
+        onNavigateUp()
+    }
+    val coroutineScope = rememberCoroutineScope()
+    val flockWithWeights by weightViewModel.flockWithWeight.collectAsState(
+        initial = FlockWithWeight(flock = null, weights = listOf())
+    )
     val weightList: List<Weight> = flockWithWeights.weights ?: listOf()
     val weightUiStateList: MutableList<WeightUiState> = mutableListOf()
     var isEditable by remember { mutableStateOf(false) }
@@ -107,9 +115,8 @@ fun WeightScreen(
 
     var isUpdateEnabled by remember { mutableStateOf(false) }
 
-
-
     Scaffold(
+        modifier = modifier,
         topBar = {
             FlockManagementTopAppBar(
                 title = title,
@@ -119,7 +126,8 @@ fun WeightScreen(
         },
         snackbarHost = { SnackbarHost(snackBarHostState) },
         floatingActionButton = {
-            AnimatedVisibility(visible = isFABVisible,
+            AnimatedVisibility(
+                visible = isFABVisible,
                 enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
                     initialOffset = {
                         IntOffset(180, 90)
@@ -195,11 +203,11 @@ fun WeightScreen(
                                 weight.forEach {
                                     updatedWeights.add(it.toWeight())
                                 }
-                                scope.launch {
+                                coroutineScope.launch {
                                     weightViewModel.updateWeight(updatedWeights)
                                 }.invokeOnCompletion { onNavigateUp() }
                             } else {
-                                scope.launch {
+                                coroutineScope.launch {
                                     snackBarHostState.showSnackbar("Please enter a valid number.")
                                 }
                             }
@@ -296,7 +304,8 @@ fun MainWeightScreen(
             weightViewModelList.zip(weightUiStateList).all { it.first == it.second }
                 .not()
         Column(
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -372,11 +381,13 @@ fun WeightInputList(
     isEditable: Boolean
 ) {
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
-            modifier = Modifier.height(IntrinsicSize.Min),
+            modifier = Modifier
+                .height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.End
         ) {
             Text(
@@ -389,7 +400,7 @@ fun WeightInputList(
                 textAlign = TextAlign.Center
             )
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.weight(0.01f).fillMaxHeight(),
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )

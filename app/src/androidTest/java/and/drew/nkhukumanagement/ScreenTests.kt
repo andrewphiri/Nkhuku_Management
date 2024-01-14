@@ -2,6 +2,7 @@ package and.drew.nkhukumanagement
 
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Flock
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.accounts.MainAccountsScreen
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
@@ -39,7 +40,7 @@ class ScreenTests {
     val context = ApplicationProvider.getApplicationContext<Context>()
     lateinit var navController: TestNavHostController
     lateinit var viewModel: FlockEntryViewModel
-
+    lateinit var userPrefsViewModel: UserPrefsViewModel
 
     @Before
     fun init() {
@@ -212,8 +213,10 @@ class ScreenTests {
     @Test
     fun detailsScreenTest() {
         composeRule.activity.setContent {
+            userPrefsViewModel = hiltViewModel()
             NkhukuNavHost(
                 navController = navController,
+                userPrefsViewModel = userPrefsViewModel
             )
         }
         composeRule

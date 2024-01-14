@@ -13,12 +13,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
 
 /**
@@ -26,7 +24,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    val savedStateHandle: SavedStateHandle,
     val flockRepository: FlockRepository
 ) : ViewModel() {
 
@@ -44,15 +42,25 @@ class FeedViewModel @Inject constructor(
 
     private val flockId: Int = savedStateHandle[FeedScreenDestination.flockIdArg] ?: 0
 
-    val flockWithFeed: StateFlow<FlockWithFeed> =
-        flockRepository.getAllFlocksWithFeed(flockId)
-            .map { it }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = FlockWithFeed(flock = null, feedList = listOf())
-            )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val flockWithFeed: Flow<FlockWithFeed> =
+        savedStateHandle.getStateFlow(key = FeedScreenDestination.flockIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getAllFlocksWithFeed(it)
+            }
 
+//        flockRepository.getAllFlocksWithFeed(flockId)
+//            .map { it }
+//            .stateIn(
+//                scope = viewModelScope,
+//                started = SharingStarted.WhileSubscribed(MILLIS),
+//                initialValue = FlockWithFeed(flock = null, feedList = listOf())
+//            )
+
+
+    fun setFlockID(id: Int) {
+        savedStateHandle[FeedScreenDestination.flockIdArg] = id
+    }
 
     fun setFeedState(feedState: FeedUiState) {
         feedUiState = feedState

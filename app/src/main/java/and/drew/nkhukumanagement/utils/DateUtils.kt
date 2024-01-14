@@ -156,7 +156,7 @@ class DateUtils {
      */
     @RequiresApi(Build.VERSION_CODES.O)
     fun calculateAge(birthDate: LocalDate): Long {
-        return ChronoUnit.DAYS.between(birthDate, LocalDate.now())
+        return ChronoUnit.DAYS.between(birthDate.minusDays(1), LocalDate.now())
     }
 
     /**

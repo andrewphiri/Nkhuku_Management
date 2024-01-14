@@ -60,7 +60,7 @@ interface FlockRepository {
     /**
      * Retrieve flock health from data source
      */
-    fun getFlockHealthItem(id: Int): Flow<FlockHealth?>
+    fun getFlockHealthItem(id: Int): Flow<FlockHealth>
 
     /**
      * Retrieve vaccination item from data source

@@ -9,8 +9,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
-import androidx.compose.material.*
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -32,17 +33,25 @@ class MainActivity : ComponentActivity() {
             oneTapClient = Identity.getSignInClient(applicationContext)
         )
     }
+    private val userPrefsViewModel by lazy {
+        ViewModelProvider(this)[UserPrefsViewModel::class.java]
+    }
 
+
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         setContent {
+            val windowSize = calculateWindowSizeClass(this)
+
             NkhukuManagementTheme {
                 NkhukuApp(
+                    windowSize = windowSize.widthSizeClass,
                     googleAuthUiClient = googleAuthUiClient,
                     authUiClient = authUiClient,
-                    userPrefsViewModel = ViewModelProvider(this)[UserPrefsViewModel::class.java]
+                    userPrefsViewModel = userPrefsViewModel
                 )
             }
         }

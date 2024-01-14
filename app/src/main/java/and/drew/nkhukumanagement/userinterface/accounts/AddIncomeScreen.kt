@@ -52,6 +52,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -557,7 +559,9 @@ fun AddIncomeCard(
             }
 
             Button(
-                modifier = Modifier.weight(1f, true),
+                modifier = Modifier
+                    .semantics { contentDescription = "save button" }
+                    .weight(1f, true),
                 onClick = onSaveIncome,
                 enabled = isUpdateButtonEnabled
             ) {

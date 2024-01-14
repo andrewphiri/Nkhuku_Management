@@ -8,13 +8,11 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
 
 /**
@@ -26,30 +24,41 @@ class EditFlockViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val flockRepository: FlockRepository
 ) : ViewModel() {
-    companion object {
-        private const val MILLIS = 5_000L
-    }
 
     //Retrieve flock ID
-    val flockId: Int = checkNotNull(savedStateHandle[EditFlockDestination.flockIdArg])
+    val flockId: StateFlow<Int> =
+        savedStateHandle.getStateFlow(key = EditFlockDestination.flockIdArg, initialValue = 0)
 
-    val healthId = savedStateHandle[EditFlockDestination.healthIdArg] ?: 0
+    val healthId: StateFlow<Int> =
+        savedStateHandle.getStateFlow(key = EditFlockDestination.healthIdArg, initialValue = 0)
 
-    //Get flock using the retrieved ID
-    val flock: Flow<Flock> =
-        flockRepository.getFlock(flockId)
+//    //Get flock using the retrieved ID
+//    val flock: Flow<Flock?> =
+//        flockRepository.getFlock(flockId)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val flock: Flow<Flock?> =
+        savedStateHandle.getStateFlow(key = EditFlockDestination.flockIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getFlock(it)
+            }
+
+
+    //    val flockHealth: Flow<FlockHealth?> =
+//        flockRepository.getFlockHealthItem(healthId)
+    @OptIn(ExperimentalCoroutinesApi::class)
     val flockHealth: Flow<FlockHealth?> =
-        flockRepository.getFlockHealthItem(healthId)
+        savedStateHandle.getStateFlow(key = EditFlockDestination.healthIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getFlockHealthItem(it)
+            }
 
-    val flockWithHealth: StateFlow<FlockWithHealth> =
-        flockRepository.getFlocksWithHealth(flockId)
-            .map { it }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = FlockWithHealth(flock = null, health = listOf())
-            )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val flockWithHealth: Flow<FlockWithHealth?> =
+        savedStateHandle.getStateFlow(key = EditFlockDestination.flockIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getFlocksWithHealth(it)
+            }
 
 
     /**
@@ -64,6 +73,18 @@ class EditFlockViewModel @Inject constructor(
      */
     suspend fun updateHealth(flockHealth: FlockHealth) {
         flockRepository.updateFlockHealth(flockHealth)
+    }
+
+    fun setFlockID(flockID: Int?) {
+        savedStateHandle[EditFlockDestination.flockIdArg] = flockID
+    }
+
+    fun setHealthID(healthId: Int?) {
+        savedStateHandle[EditFlockDestination.healthIdArg] = healthId
+    }
+
+    fun setFlockIDForHealthScreen(flockID: Int?) {
+        savedStateHandle[FlockHealthScreenDestination.flockIdArg] = flockID
     }
 
 }

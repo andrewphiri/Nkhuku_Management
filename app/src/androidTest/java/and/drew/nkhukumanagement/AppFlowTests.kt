@@ -4,10 +4,12 @@ import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Expense
 import and.drew.nkhukumanagement.data.FlockDao
 import and.drew.nkhukumanagement.data.FlockDatabase
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.accounts.TransactionsScreenDestination
 import and.drew.nkhukumanagement.userinterface.feed.FeedScreenDestination
 import and.drew.nkhukumanagement.userinterface.feed.FeedUiState
 import and.drew.nkhukumanagement.userinterface.feed.toFeed
+import and.drew.nkhukumanagement.userinterface.flock.EditFlockDestination
 import and.drew.nkhukumanagement.userinterface.flock.FlockHealthScreenDestination
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.flock.toFlock
@@ -28,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -36,6 +39,7 @@ import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.testing.TestNavHostController
@@ -62,6 +66,7 @@ class AppFlowTests {
     val composeRule = createAndroidComposeRule<MainActivity>()
     val context = ApplicationProvider.getApplicationContext<Context>()
     lateinit var navController: TestNavHostController
+    lateinit var userPrefsViewModel: UserPrefsViewModel
 
     @Inject
     lateinit var database: FlockDatabase
@@ -84,6 +89,7 @@ class AppFlowTests {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination?.route
             val navigationBarShowing = screens.any { it.route == currentDestination }
+            userPrefsViewModel = hiltViewModel()
             Scaffold(
                 bottomBar = {
                     BottomNavigationForApp(
@@ -98,6 +104,7 @@ class AppFlowTests {
                 NkhukuNavHost(
                     navController = navController,
                     modifier = Modifier.padding(innerPadding),
+                    userPrefsViewModel = userPrefsViewModel
                 )
             }
         }
@@ -561,7 +568,7 @@ class AppFlowTests {
             .performTextInput("Paid by cash")
 
         composeRule
-            .onNodeWithText("Save", useUnmergedTree = true)
+            .onNodeWithContentDescription("save button", useUnmergedTree = true)
             .assertIsEnabled()
 
 //        val route2 = navController.currentBackStackEntry?.destination?.route
@@ -612,7 +619,7 @@ class AppFlowTests {
             .performTextInput("Feed for batch 2")
 
         composeRule
-            .onNodeWithText("Save", useUnmergedTree = true)
+            .onNodeWithContentDescription("save button", useUnmergedTree = true)
             .assertIsEnabled()
 
 //        val route = navController.currentBackStackEntry?.destination?.route
@@ -620,6 +627,104 @@ class AppFlowTests {
 //            route,
 //            "${AddExpenseScreenDestination.route}/{${AddExpenseScreenDestination.expenseIdArg}}/{${AddExpenseScreenDestination.accountIdArg}}"
 //        )
+
+    }
+
+    @Test
+    fun detailsScreenFlowTest_toFlockHealthScreen_toEditFlockScreen() {
+        composeRule
+            .onNodeWithText("Skip")
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("flockList")
+            .performScrollToIndex(4)
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("Health")
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("Edit flock fab")
+            .performClick()
+
+        val route = navController.currentBackStackEntry?.destination?.route
+        TestCase.assertEquals(
+            route,
+            "${EditFlockDestination.route}/{${EditFlockDestination.flockIdArg}}/{${EditFlockDestination.healthIdArg}}"
+        )
+
+    }
+
+    @Test
+    fun detailsScreenFlowTest_toFlockHealthScreen_toEditFlockScreen_and_back_after_update() {
+        composeRule
+            .onNodeWithText("Skip")
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("flockList")
+            .performScrollToIndex(2)
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("Health")
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("Edit flock fab")
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("Increase mortality", useUnmergedTree = true)
+            .performClick()
+        composeRule
+            .onNodeWithContentDescription("Update Button")
+            .assertIsEnabled()
+        composeRule
+            .onNodeWithContentDescription("Decrease mortality")
+            .performClick()
+        composeRule
+            .onNodeWithContentDescription("Update Button", useUnmergedTree = true)
+            .assertIsNotEnabled()
+//        composeRule
+//            .onNodeWithContentDescription("Decrease culls", useUnmergedTree = true)
+//            .performClick()
+//        composeRule
+//            .onNodeWithContentDescription("Decrease mortality", useUnmergedTree = true )
+//            .performClick()
+//        composeRule
+//            .onNodeWithContentDescription("Update Button", useUnmergedTree = true)
+//            .assertIsNotEnabled()
+
+//        composeRule
+//            .onNodeWithContentDescription("Increase mortality")
+//            .performClick()
+//
+//        composeRule
+//            .onNodeWithContentDescription("Update Button", useUnmergedTree = true)
+//            .assertIsEnabled()
+//
+//        composeRule
+//            .onNodeWithContentDescription("Decrease mortality", useUnmergedTree = true )
+//            .performClick()
+//        composeRule
+//            .onNodeWithContentDescription("Update Button", useUnmergedTree = true)
+//            .assertIsNotEnabled()
+
+
+//        composeRule
+//            .onNodeWithContentDescription("Increase Culls")
+//            .performClick()
+//
+//        composeRule
+//            .onNodeWithText("Update", useUnmergedTree = true)
+//            .assertIsEnabled()
+
+//        composeRule
+//            .onNodeWithText("Update", useUnmergedTree = true)
+//            .assertIsNotEnabled()
 
     }
 }

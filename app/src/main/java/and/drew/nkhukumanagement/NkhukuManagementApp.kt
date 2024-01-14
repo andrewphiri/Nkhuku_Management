@@ -5,6 +5,8 @@ import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuNavHost
+import and.drew.nkhukumanagement.utils.ContentType
+import and.drew.nkhukumanagement.utils.NavigationType
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
@@ -25,12 +27,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -49,10 +53,43 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun NkhukuApp(
     navHostController: NavHostController = rememberNavController(),
+    windowSize: WindowWidthSizeClass,
     googleAuthUiClient: GoogleAuthUiClient,
     authUiClient: AuthUiClient,
     userPrefsViewModel: UserPrefsViewModel
 ) {
+    val navigationType: NavigationType
+    val contentType: ContentType
+    val winSize = LocalConfiguration.current
+    when {
+        winSize.screenWidthDp >= 0 -> {
+            when (windowSize) {
+                WindowWidthSizeClass.Compact -> {
+                    navigationType = NavigationType.BOTTOM_NAVIGATION
+                    contentType = ContentType.LIST_ONLY
+                }
+
+                WindowWidthSizeClass.Medium -> {
+                    navigationType = NavigationType.NAVIGATION_RAIL
+                    contentType = ContentType.LIST_ONLY
+                }
+
+                WindowWidthSizeClass.Expanded -> {
+                    navigationType = NavigationType.PERMANENT_NAVIGATION_DRAWER
+                    contentType = ContentType.LIST_AND_DETAIL
+                }
+
+                else -> {
+                    navigationType = NavigationType.BOTTOM_NAVIGATION
+                    contentType = ContentType.LIST_ONLY
+                }
+            }
+        }
+
+        else -> {
+            throw IllegalArgumentException("Dp must be greater than zero")
+        }
+    }
 
     val screens = listOf(
         NavigationBarScreens.Home,
@@ -80,6 +117,8 @@ fun NkhukuApp(
         NkhukuNavHost(
             navController = navHostController,
             modifier = Modifier.padding(innerPadding),
+            contentType = contentType,
+            userPrefsViewModel = userPrefsViewModel
         )
     }
 }

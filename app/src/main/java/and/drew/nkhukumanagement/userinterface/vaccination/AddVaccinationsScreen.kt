@@ -117,8 +117,14 @@ fun AddVaccinationsScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-    val flockWithVaccinations by detailsViewModel.flockWithVaccinationsStateFlow.collectAsState()
-    val withVaccinationsToEdit by vaccinationViewModel.flockWithVaccinationsStateFlow.collectAsState()
+    val flockWithVaccinations by detailsViewModel
+        .flockWithVaccinationsStateFlow
+        .collectAsState(
+            initial = FlockWithVaccinations(flock = null, vaccinations = listOf())
+        )
+    val withVaccinationsToEdit by vaccinationViewModel.flockWithVaccinationsStateFlow.collectAsState(
+        initial = FlockWithVaccinations(flock = null, vaccinations = listOf())
+    )
     var vaccinesList: List<Vaccination> = listOf()
     val vaccinesStateList: MutableList<VaccinationUiState> = mutableListOf()
     val flockList by detailsViewModel.allFlocks.collectAsState()
@@ -264,7 +270,6 @@ fun AddVaccinationsScreen(
 
                             }
                         }.invokeOnCompletion {
-
                             navigateBack()
                         }
                     } else {

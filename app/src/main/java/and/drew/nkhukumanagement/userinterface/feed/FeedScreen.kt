@@ -3,12 +3,14 @@ package and.drew.nkhukumanagement.userinterface.feed
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Feed
+import and.drew.nkhukumanagement.data.FlockWithFeed
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -101,7 +103,9 @@ fun FeedScreen(
     flockEntryViewModel: FlockEntryViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val flockWithFeed by feedViewModel.flockWithFeed.collectAsState()
+    val flockWithFeed by feedViewModel.flockWithFeed.collectAsState(
+        initial = FlockWithFeed(flock = null, feedList = listOf())
+    )
     val feedList: List<Feed> = flockWithFeed.feedList ?: listOf()
     val feedUiStateList: MutableList<FeedUiState> = mutableListOf()
     var showDialog by remember { mutableStateOf(false) }
@@ -135,49 +139,6 @@ fun FeedScreen(
             feedViewModel.setFeedState(it)
         }
     )
-
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(FeedScreenDestination.resourceId),
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        },
-//        snackbarHost = { SnackbarHost(snackBarHostState) }
-//    ) { innerPadding ->
-//        Column(modifier = modifier.padding(innerPadding)) {
-//            FeedConsumptionList(
-//                feedViewModel = feedViewModel,
-//                onItemChange = feedViewModel::updateFeedState,
-//                onItemClick = {
-//                    showDialog = true
-//                },
-//                showDialog = showDialog,
-//                expanded = expanded,
-//                onExpand = { expanded = !expanded },
-//                onDismiss = {
-//                    showDialog = false
-//                    expanded = false
-//                },
-//                onTypeDialogShowing = { isAddTypeDialogShowing = true },
-//                onInnerDialogDismiss = { isAddTypeDialogShowing = false },
-//                isAddFeedTypeDialogShowing = isAddTypeDialogShowing,
-//                flockUiState = flockEntryViewModel.flockUiState,
-//                onUpdateFeed = { feedUiState ->
-//                    if (checkNumberExceptions(feedUiState)) {
-//                        coroutineScope.launch {
-//                            feedViewModel.updateFeed(feedUiState)
-//                        }.invokeOnCompletion {
-//                            showDialog = false
-//                        }
-//                    } else {
-//                        coroutineScope.launch { snackBarHostState.showSnackbar(message = "Please enter a valid number.") }
-//                    }
-//                }
-//            )
-//        }
-//    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -195,6 +156,9 @@ fun MainFeedScreen(
     feedStateList: List<FeedUiState>,
     setFeedState: (FeedUiState) -> Unit,
 ) {
+    BackHandler {
+        onNavigateUp()
+    }
     val coroutineScope = rememberCoroutineScope()
 
 //    val feedList: List<Feed> = flockWithFeed.feedList ?: listOf()

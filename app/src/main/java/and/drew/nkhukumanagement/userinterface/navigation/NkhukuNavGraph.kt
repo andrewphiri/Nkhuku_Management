@@ -21,6 +21,7 @@ import and.drew.nkhukumanagement.userinterface.feed.FeedScreenDestination
 import and.drew.nkhukumanagement.userinterface.flock.AddFlockDestination
 import and.drew.nkhukumanagement.userinterface.flock.AddFlockScreen
 import and.drew.nkhukumanagement.userinterface.flock.EditFlockDestination
+import and.drew.nkhukumanagement.userinterface.flock.EditFlockViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsScreen
 import and.drew.nkhukumanagement.userinterface.flock.FlockEditScreen
@@ -55,6 +56,7 @@ import and.drew.nkhukumanagement.userinterface.vaccination.AddVaccinationsScreen
 import and.drew.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
 import and.drew.nkhukumanagement.userinterface.weight.WeightScreen
 import and.drew.nkhukumanagement.userinterface.weight.WeightScreenDestination
+import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -80,8 +82,9 @@ import com.google.android.gms.auth.api.identity.Identity
 fun NkhukuNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-
-    ) {
+    userPrefsViewModel: UserPrefsViewModel,
+    contentType: ContentType = ContentType.LIST_ONLY
+) {
     val appContext = LocalContext.current
     val googleAuthUiClient by lazy {
         GoogleAuthUiClient(
@@ -97,15 +100,15 @@ fun NkhukuNavHost(
     }
     val vaccinationViewModel: VaccinationViewModel = hiltViewModel()
     val flockEntryViewModel: FlockEntryViewModel = hiltViewModel()
-    val plannerViewModel: PlannerViewModel = viewModel()
+    val plannerViewModel: PlannerViewModel = hiltViewModel()
     val signInViewModel = viewModel<SignInViewModel>()
-    val userPrefsViewModel: UserPrefsViewModel = hiltViewModel()
+//    val userPrefsViewModel: UserPrefsViewModel = hiltViewModel(),
+    val editFlockViewModel: EditFlockViewModel = hiltViewModel()
     val emailVerified by signInViewModel.emailVerified.collectAsState()
     val userSignedIn by signInViewModel.userLoggedIn.collectAsState(initial = false)
     val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
-
 
     LaunchedEffect(
         key1 = signInViewModel.userLoggedIn,
@@ -150,11 +153,12 @@ fun NkhukuNavHost(
                 onClickSettings = {
                     navController.navigate(SettingsDestination.route)
                 },
-                googleAuthUiClient = googleAuthUiClient
+                googleAuthUiClient = googleAuthUiClient,
+                contentType = contentType,
             )
             detailsGraph(
                 navController = navController,
-                flockEntryViewModel = flockEntryViewModel,
+                flockEntryViewModel = flockEntryViewModel
             )
             accountDetailsGraph(
                 navController = navController,
@@ -199,11 +203,12 @@ fun NkhukuNavHost(
                 onClickSettings = {
                     navController.navigate(SettingsDestination.route)
                 },
-                googleAuthUiClient = googleAuthUiClient
+                googleAuthUiClient = googleAuthUiClient,
+                contentType = contentType,
             )
             detailsGraph(
                 navController = navController,
-                flockEntryViewModel = flockEntryViewModel,
+                flockEntryViewModel = flockEntryViewModel
             )
             accountDetailsGraph(
                 navController = navController,
@@ -251,7 +256,8 @@ fun NkhukuNavHost(
                 onClickSettings = {
                     navController.navigate(SettingsDestination.route)
                 },
-                googleAuthUiClient = googleAuthUiClient
+                googleAuthUiClient = googleAuthUiClient,
+                contentType = contentType,
             )
             detailsGraph(
                 navController = navController,
@@ -380,7 +386,8 @@ fun NavGraphBuilder.homeGraph(
     plannerViewModel: PlannerViewModel,
     userPrefsViewModel: UserPrefsViewModel,
     onClickSettings: () -> Unit,
-    googleAuthUiClient: GoogleAuthUiClient
+    googleAuthUiClient: GoogleAuthUiClient,
+    contentType: ContentType,
 ) {
     navigation(
         route = GraphRoutes.HOME,
@@ -395,9 +402,9 @@ fun NavGraphBuilder.homeGraph(
                     navController.navigate("${FlockDetailsDestination.route}/$id")
                 },
                 flockEntryViewModel = flockEntryViewModel,
-                vaccinationViewModel = vaccinationViewModel,
-                onClickSettings = onClickSettings
-
+                onClickSettings = onClickSettings,
+                contentType = contentType,
+                userPrefsViewModel = userPrefsViewModel,
             )
         }
 
@@ -596,10 +603,10 @@ fun NavGraphBuilder.detailsGraph(
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
                 navigateToFlockHealthScreen = { id ->
-                    navController.navigate("${FlockHealthScreenDestination.route}/$id")
+                    navController.navigate(route = "${FlockHealthScreenDestination.route}/$id")
                 },
                 navigateToVaccinationScreen = { id ->
-                    navController.navigate("${AddVaccinationsDestination.route}/$id")
+                    navController.navigate(route = "${AddVaccinationsDestination.route}/$id")
                 },
                 navigateToWeightScreen = { id ->
                     navController.navigate(route = "${WeightScreenDestination.route}/$id")
@@ -629,7 +636,7 @@ fun NavGraphBuilder.detailsGraph(
                 onNavigateUp = { navController.navigateUp() },
                 navigateToFlockEditScreen = { flockId, healthId ->
                     navController.navigate("${EditFlockDestination.route}/$flockId/$healthId")
-                }
+                },
             )
         }
         composable(
@@ -650,7 +657,7 @@ fun NavGraphBuilder.detailsGraph(
         ) {
             FlockEditScreen(
                 onNavigateUp = { navController.navigateUp() },
-                flockEntryViewModel = flockEntryViewModel
+                flockEntryViewModel = flockEntryViewModel,
             )
         }
         composable(

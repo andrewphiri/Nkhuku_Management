@@ -26,12 +26,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
 
 /**
@@ -40,7 +38,7 @@ import javax.inject.Inject
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class VaccinationViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    val savedStateHandle: SavedStateHandle,
     private val application: BaseFlockApplication,
     private val flockRepository: FlockRepository
 ) : ViewModel(), AlarmScheduler {
@@ -67,14 +65,24 @@ class VaccinationViewModel @Inject constructor(
     /**
      * Get all flock with vaccinations items.
      */
-    val flockWithVaccinationsStateFlow: StateFlow<FlockWithVaccinations?> =
-        flockRepository.getAllFlocksWithVaccinations(flockID)
-            .map { it }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = FlockWithVaccinations(flock = null, vaccinations = listOf())
-            )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val flockWithVaccinationsStateFlow: Flow<FlockWithVaccinations?> =
+        savedStateHandle.getStateFlow(key = AddVaccinationsDestination.flockIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getAllFlocksWithVaccinations(it)
+            }
+//        flockRepository.getAllFlocksWithVaccinations(flockID)
+//            .map { it }
+//            .stateIn(
+//                scope = viewModelScope,
+//                started = SharingStarted.WhileSubscribed(MILLIS),
+//                initialValue = FlockWithVaccinations(flock = null, vaccinations = listOf())
+//            )
+
+
+    fun setFlockID(id: Int) {
+        savedStateHandle[AddVaccinationsDestination.flockIdArg] = id
+    }
 
     /**
      * Update the VaccinationUiState List at the specified index

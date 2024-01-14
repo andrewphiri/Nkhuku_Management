@@ -14,12 +14,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
 
 /**
@@ -45,14 +43,23 @@ class WeightViewModel @Inject constructor(
 
     private val flockID: Int = savedStateHandle[WeightScreenDestination.flockIdArg] ?: 0
 
-    val flockWithWeight: StateFlow<FlockWithWeight> =
-        flockRepository.getAllFlocksWithWeight(flockID)
-            .map { it }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = FlockWithWeight(flock = null, weights = listOf())
-            )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val flockWithWeight: Flow<FlockWithWeight> =
+        savedStateHandle.getStateFlow(key = WeightScreenDestination.flockIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getAllFlocksWithWeight(it)
+            }
+//        flockRepository.getAllFlocksWithWeight(flockID)
+//            .map { it }
+//            .stateIn(
+//                scope = viewModelScope,
+//                started = SharingStarted.WhileSubscribed(MILLIS),
+//                initialValue = FlockWithWeight(flock = null, weights = listOf())
+//            )
+
+    fun setFlockID(id: Int) {
+        savedStateHandle[WeightScreenDestination.flockIdArg] = id
+    }
 
     /**
      * Insert a weight item into the database

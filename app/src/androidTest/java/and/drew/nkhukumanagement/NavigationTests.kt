@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement
 
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuNavHost
 import and.drew.nkhukumanagement.utils.Constants
@@ -12,6 +13,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.testing.TestNavHostController
@@ -35,6 +37,7 @@ class NavigationTests {
 
     lateinit var navController: TestNavHostController
     var context = ApplicationProvider.getApplicationContext<Context>()
+    lateinit var userPrefsViewModel: UserPrefsViewModel
 
     @Before
     fun setupNavHost() {
@@ -53,6 +56,7 @@ class NavigationTests {
             val navBackStackEntry = navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry.value?.destination?.route
             val navigationBarShowing = screens.any { it.route == currentDestination }
+            userPrefsViewModel = hiltViewModel()
 
             androidx.compose.material3.Scaffold(
                 bottomBar = {
@@ -67,7 +71,8 @@ class NavigationTests {
             ) { pad ->
                 NkhukuNavHost(
                     modifier = Modifier.padding(pad),
-                    navController = navController
+                    navController = navController,
+                    userPrefsViewModel = userPrefsViewModel
                 )
             }
         }
