@@ -3,6 +3,7 @@ package and.drew.nkhukumanagement.userinterface.accounts
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.data.AccountsWithExpense
 import and.drew.nkhukumanagement.data.Expense
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -95,7 +96,17 @@ fun ExpenseScreen(
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
-    val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState()
+    val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState(
+        AccountsWithExpense(
+            accountsSummary = AccountsSummary(
+                flockUniqueID = "",
+                batchName = "",
+                totalIncome = 0.0,
+                totalExpenses = 0.0,
+                variance = 0.0
+            )
+        )
+    )
 
     MainExpenseScreen(
         navigateToAddExpenseScreen = navigateToAddExpenseScreen,
@@ -106,7 +117,7 @@ fun ExpenseScreen(
         },
         accountsSummary = accountsWithExpense.accountsSummary,
         expenseList = accountsWithExpense.expenseList,
-        accountsIdArg = accountsViewModel.id,
+        accountsIdArg = accountsViewModel.accountsID.value,
         updateAccountWhenDeletingExpense = { accountsSummary, expense ->
             coroutineScope.launch {
                 accountsViewModel.updateAccountWhenDeletingExpense(

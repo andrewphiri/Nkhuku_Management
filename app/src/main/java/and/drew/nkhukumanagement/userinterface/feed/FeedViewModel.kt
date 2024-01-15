@@ -57,7 +57,6 @@ class FeedViewModel @Inject constructor(
 //                initialValue = FlockWithFeed(flock = null, feedList = listOf())
 //            )
 
-
     fun setFlockID(id: Int) {
         savedStateHandle[FeedScreenDestination.flockIdArg] = id
     }

@@ -3,6 +3,7 @@ package and.drew.nkhukumanagement.userinterface.accounts
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.data.AccountsWithIncome
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.GreenColor
@@ -98,7 +99,17 @@ fun IncomeScreen(
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
-    val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState()
+    val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState(
+        AccountsWithIncome(
+            accountsSummary = AccountsSummary(
+                flockUniqueID = "",
+                batchName = "",
+                totalIncome = 0.0,
+                totalExpenses = 0.0,
+                variance = 0.0
+            )
+        )
+    )
 
     MainIncomeScreen(
         navigateToAddIncomeScreen = navigateToAddIncomeScreen,
@@ -109,7 +120,7 @@ fun IncomeScreen(
         },
         accountsSummary = accountsWithIncome.accountsSummary,
         incomeList = accountsWithIncome.incomeList,
-        accountsIdArg = accountsViewModel.id,
+        accountsIdArg = accountsViewModel.accountsID.value,
         updateAccountWhenDeletingIncome = { accountsSummary, income ->
             coroutineScope.launch {
                 accountsViewModel.updateAccountWhenDeletingIncome(

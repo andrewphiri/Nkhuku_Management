@@ -4,20 +4,21 @@ import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.AccountsWithExpense
 import and.drew.nkhukumanagement.data.AccountsWithIncome
 import and.drew.nkhukumanagement.data.Expense
-import and.drew.nkhukumanagement.data.FlockAndAccountSummary
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -34,45 +35,58 @@ class AccountsViewModel @Inject constructor(
         private const val MILLIS = 5_000L
     }
 
-    val id = savedStateHandle[TransactionsScreenDestination.accountIdArg] ?: 0
-    var flockId: Int = 1
+    val accountsID: StateFlow<Int> = savedStateHandle
+        .getStateFlow(key = TransactionsScreenDestination.accountIdArg, initialValue = 0)
 
-    val flockAndAccountSummary: LiveData<FlockAndAccountSummary> =
-        flockRepository.getFlockAndAccountSummary(flockId)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val accountsWithExpense: Flow<AccountsWithExpense> =
+        savedStateHandle
+            .getStateFlow(key = TransactionsScreenDestination.accountIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getAccountsWithExpense(it)
+            }
 
-    val accountsWithExpense: StateFlow<AccountsWithExpense> =
-        flockRepository.getAccountsWithExpense(id)
-            .map { it }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = AccountsWithExpense(
-                    accountsSummary = AccountsSummary(
-                        flockUniqueID = "",
-                        batchName = "",
-                        totalIncome = 0.0,
-                        totalExpenses = 0.0,
-                        variance = 0.0
-                    )
-                )
-            )
+//        flockRepository.getAccountsWithExpense(id)
+//            .map { it }
+//            .stateIn(
+//                scope = viewModelScope,
+//                started = SharingStarted.WhileSubscribed(MILLIS),
+//                initialValue = AccountsWithExpense(
+//                    accountsSummary = AccountsSummary(
+//                        flockUniqueID = "",
+//                        batchName = "",
+//                        totalIncome = 0.0,
+//                        totalExpenses = 0.0,
+//                        variance = 0.0
+//                    )
+//                )
+//            )
 
-    val accountsWithIncome: StateFlow<AccountsWithIncome> =
-        flockRepository.getAccountsWithIncome(id)
-            .map { it }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = AccountsWithIncome(
-                    accountsSummary = AccountsSummary(
-                        flockUniqueID = "",
-                        batchName = "",
-                        totalIncome = 0.0,
-                        totalExpenses = 0.0,
-                        variance = 0.0
-                    )
-                )
-            )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val accountsWithIncome: Flow<AccountsWithIncome> =
+        savedStateHandle.getStateFlow(
+            key = TransactionsScreenDestination.accountIdArg,
+            initialValue = 0
+        )
+            .flatMapLatest {
+                flockRepository.getAccountsWithIncome(it)
+            }
+
+    //        flockRepository.getAccountsWithIncome(id)
+//            .map { it }
+//            .stateIn(
+//                scope = viewModelScope,
+//                started = SharingStarted.WhileSubscribed(MILLIS),
+//                initialValue = AccountsWithIncome(
+//                    accountsSummary = AccountsSummary(
+//                        flockUniqueID = "",
+//                        batchName = "",
+//                        totalIncome = 0.0,
+//                        totalExpenses = 0.0,
+//                        variance = 0.0
+//                    )
+//                )
+//            )
     val accountsList: StateFlow<AccountsUiState> =
         flockRepository.getAllAccountsItems()
             .map { AccountsUiState(it) }
@@ -82,8 +96,8 @@ class AccountsViewModel @Inject constructor(
                 initialValue = AccountsUiState()
             )
 
-    fun setFlockID(id: Int) {
-        flockId = id
+    fun setAccountsID(id: Int) {
+        savedStateHandle[TransactionsScreenDestination.accountIdArg] = id
     }
 
     /**

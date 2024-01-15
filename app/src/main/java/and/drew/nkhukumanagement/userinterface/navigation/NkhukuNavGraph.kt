@@ -414,7 +414,8 @@ fun NavGraphBuilder.homeGraph(
                     navController.navigate(route = "${TransactionsScreenDestination.route}/$id")
                 },
                 onClickSettings = onClickSettings,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
 
@@ -432,7 +433,19 @@ fun NavGraphBuilder.homeGraph(
                     navController.navigate("${TipsArticlesListDestination.route}/$title/$id")
                 },
                 onClickSettings = onClickSettings,
-                googleAuthUiClient = googleAuthUiClient
+                googleAuthUiClient = googleAuthUiClient,
+                contentType = contentType,
+                navigateToLoginScreen = {
+                    navController.navigate(route = AccountSetupDestination.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = false
+                        }
+                        navController.popBackStack(
+                            AccountSetupDestination.route,
+                            inclusive = true
+                        )
+                    }
+                }
             )
         }
         composable(
@@ -465,7 +478,9 @@ fun NavGraphBuilder.homeGraph(
                 navigateToFlockOverviewScreen = {
                     navController.navigate(FlockOverviewDestination.route)
                 },
-                onClickSettings = onClickSettings
+                onClickSettings = onClickSettings,
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
         composable(AddFlockDestination.route) {

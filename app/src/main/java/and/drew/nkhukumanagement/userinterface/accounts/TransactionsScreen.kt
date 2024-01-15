@@ -53,16 +53,20 @@ fun TransactionScreen(
     onNavigateUp: () -> Unit,
     navigateToAddIncomeScreen: (Int, Int) -> Unit,
     navigateToAddExpenseScreen: (Int, Int) -> Unit,
-    userPrefsViewModel: UserPrefsViewModel
+    userPrefsViewModel: UserPrefsViewModel,
+    initialPage: Int = 0,
+    onPageChanged: (Int) -> Unit = {}
 ) {
     val tabItems = listOf(TabScreens.Income, TabScreens.Expense)
     val pagerState = rememberPagerState(
-        initialPage = 0,
+        initialPage = initialPage,
         initialPageOffsetFraction = 0f
     ) {
         // provide pageCount
         2
     }
+    onPageChanged(pagerState.currentPage)
+
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -108,7 +112,7 @@ fun TabScreenContent(
     HorizontalPager(
         modifier = Modifier.semantics { contentDescription = "horizontal pager" },
         state = pagerState,
-        pageSpacing = 0.dp,
+        pageSpacing = 8.dp,
         userScrollEnabled = true,
         reverseLayout = false,
         beyondBoundsPageCount = 0,

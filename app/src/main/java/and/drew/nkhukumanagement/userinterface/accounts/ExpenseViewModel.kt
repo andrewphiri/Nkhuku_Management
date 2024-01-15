@@ -12,7 +12,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
 
 
@@ -32,12 +34,22 @@ class ExpenseViewModel @Inject constructor(
         private set
     private var expenseListState: SnapshotStateList<ExpensesUiState> = mutableStateListOf()
 
-    val expenseID = savedStateHandle[AddExpenseScreenDestination.expenseIdArg] ?: 0
+    val expenseID = savedStateHandle
+        .getStateFlow(key = AddExpenseScreenDestination.expenseIdArg, initialValue = 0)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @RequiresApi(Build.VERSION_CODES.O)
     val getExpense: Flow<Expense> =
-        flockRepository
-            .getExpenseItem(expenseID)
+        savedStateHandle.getStateFlow(
+            key = AddExpenseScreenDestination.expenseIdArg,
+            initialValue = 0
+        )
+            .flatMapLatest {
+                flockRepository
+                    .getExpenseItem(it)
+            }
+//        flockRepository
+//            .getExpenseItem(expenseID)
 
 
     /**
@@ -70,5 +82,9 @@ class ExpenseViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun deleteExpense(expense: Expense) {
         flockRepository.deleteExpense(expense)
+    }
+
+    fun setExpenseID(id: Int) {
+        savedStateHandle[AddExpenseScreenDestination.expenseIdArg] = id
     }
 }

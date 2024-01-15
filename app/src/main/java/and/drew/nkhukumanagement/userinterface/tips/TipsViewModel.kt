@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TipsViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    val savedStateHandle: SavedStateHandle,
     val firestoreDatabase: FirebaseFirestore
 ) : ViewModel() {
 
@@ -26,10 +26,12 @@ class TipsViewModel @Inject constructor(
     val articlesList = _articlesList.asStateFlow()
 
     //Category ID of the category chosen
-    val articleIdCategory = savedStateHandle[TipsArticlesListDestination.articleCategoryIdArg] ?: 0
+    val articleIdCategory = savedStateHandle
+        .getStateFlow(TipsArticlesListDestination.articleCategoryIdArg, initialValue = 0)
 
     //Name of category. Used as title of the app bar
-    val title = savedStateHandle[TipsArticlesListDestination.categoryId] ?: "Tips"
+    val title = savedStateHandle
+        .getStateFlow(key = TipsArticlesListDestination.categoryId, initialValue = "Tips")
 
 
     fun setArticlesList(article: SnapshotStateList<Article>) {
@@ -128,6 +130,14 @@ class TipsViewModel @Inject constructor(
                 Log.d("ERROR_RETRIEVING", "Error getting documents: ", exception)
             }
             .await()
+    }
+
+    fun setCategoryID(id: Int) {
+        savedStateHandle[TipsArticlesListDestination.articleCategoryIdArg] = id
+    }
+
+    fun setTitle(title: String) {
+        savedStateHandle[TipsArticlesListDestination.categoryId] = title
     }
 
 }

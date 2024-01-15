@@ -4,6 +4,7 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.data.AccountsWithIncome
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -11,6 +12,7 @@ import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import and.drew.nkhukumanagement.utils.currencySymbol
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -96,7 +98,17 @@ fun AddIncomeScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit
 ) {
-    val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState()
+    val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState(
+        AccountsWithIncome(
+            accountsSummary = AccountsSummary(
+                flockUniqueID = "",
+                batchName = "",
+                totalIncome = 0.0,
+                totalExpenses = 0.0,
+                variance = 0.0
+            )
+        )
+    )
     val income by incomeViewModel.getIncome.collectAsState(
         initial = incomeViewModel.incomeUiState.copy(
             date = DateUtils().dateToStringShortFormat(
@@ -138,7 +150,7 @@ fun AddIncomeScreen(
      * This should only be called again when income changes(KEY)
      */
     LaunchedEffect(income) {
-        if (incomeViewModel.incomeID > 0) {
+        if (incomeViewModel.incomeID.value > 0) {
             incomeViewModel.updateState(income.toIncomeUiState(enabled = true))
         }
     }
@@ -167,7 +179,7 @@ fun AddIncomeScreen(
                 )
             }
         },
-        incomeIDArg = incomeViewModel.incomeID,
+        incomeIDArg = incomeViewModel.incomeID.value,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
         currencySymbol = currency.symbol
@@ -288,7 +300,9 @@ fun MainAddIncomeScreen(
     onNavigateUp: () -> Unit,
     currencySymbol: String,
 ) {
-
+    BackHandler {
+        onNavigateUp()
+    }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()

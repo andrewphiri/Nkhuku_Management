@@ -8,19 +8,25 @@ import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
+import and.drew.nkhukumanagement.utils.AccountDetailsCurrentScreen
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
 import and.drew.nkhukumanagement.utils.currencyFormatter
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Divider
@@ -33,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +54,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AccountsScreen(
     modifier: Modifier = Modifier,
@@ -54,68 +62,134 @@ fun AccountsScreen(
     accountsViewModel: AccountsViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel,
     navigateToTransactionsScreen: (Int) -> Unit,
+    contentType: ContentType,
     onClickSettings: () -> Unit
 ) {
     val accountsSummaryList by accountsViewModel.accountsList.collectAsState()
-    var accountsList = accountsSummaryList.accountsSummary.filter { it.flockActive }
-    var isFilterMenuShowing by remember { mutableStateOf(false) }
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
 
-    MainAccountsScreen(
-        modifier = modifier,
-        canNavigateBack = canNavigateBack,
-        accountsSummaryList = accountsSummaryList.accountsSummary,
-        navigateToTransactionsScreen = navigateToTransactionsScreen,
-        onClickSettings = onClickSettings,
-        currencyLocale = currency.currencyLocale
-    )
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(NavigationBarScreens.Accounts.resourceId),
-//                isFilterButtonEnabled = accountsSummaryList.accountsSummary.isNotEmpty(),
-//                canNavigateBack = canNavigateBack,
-//                onClickFilter = {
-//                    isFilterMenuShowing = !isFilterMenuShowing
-//                },
-//                onClickSettings = onClickSettings
-//            )
-//        }
-//    ) { innerPadding ->
-//        Column(modifier = Modifier.padding(innerPadding)) {
-//            ShowFilterOverflowMenu(
-//                modifier = Modifier.align(Alignment.End),
-//                isOverflowMenuExpanded = isFilterMenuShowing,
-//                onDismiss = { isFilterMenuShowing = false },
-//                onClickAll = {
-//                    accountsList = accountsSummaryList.accountsSummary
-//                    isFilterMenuShowing = false
-//                },
-//                onClickActive = {
-//                    accountsList = accountsSummaryList.accountsSummary.filter { it.flockActive }
-//                    isFilterMenuShowing = false
-//                },
-//                onClickInactive = {
-//                    accountsList = accountsSummaryList.accountsSummary.filter { !it.flockActive }
-//                    isFilterMenuShowing = false
-//                }
-//            )
-//
-//            AccountsList(
-//                accountsList = accountsList,
-//                onItemClick = { accountSummary ->
-//                    if (accountSummary.flockActive) {
-//                        navigateToTransactionsScreen(accountSummary.id)
-//                    }
-//                },
-//                currencyLocale = currency.currencyLocale
-//            )
-//        }
-//    }
+    if (contentType == ContentType.LIST_ONLY) {
+        MainAccountsScreen(
+            modifier = modifier,
+            canNavigateBack = canNavigateBack,
+            accountsSummaryList = accountsSummaryList.accountsSummary,
+            navigateToTransactionsScreen = navigateToTransactionsScreen,
+            onClickSettings = onClickSettings,
+            currencyLocale = currency.currencyLocale
+        )
+    } else {
+        AccountsAndDetailsScreen(
+            accountsViewModel = accountsViewModel,
+            userPrefsViewModel = userPrefsViewModel,
+            onClickSettings = {}
+        )
+    }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun AccountsAndDetailsScreen(
+    modifier: Modifier = Modifier,
+    canNavigateBack: Boolean = false,
+    accountsViewModel: AccountsViewModel,
+    expenseViewModel: ExpenseViewModel = hiltViewModel(),
+    incomeViewModel: IncomeViewModel = hiltViewModel(),
+    userPrefsViewModel: UserPrefsViewModel,
+    onClickSettings: () -> Unit
+) {
+    val accountsSummaryList by accountsViewModel.accountsList.collectAsState()
+    val currency by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
+    var showDetailsPane by rememberSaveable { mutableStateOf(false) }
+    var currentScreen by rememberSaveable { mutableStateOf(AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN) }
+    var currentPageTransactionScreen by rememberSaveable { mutableStateOf(0) }
+
+    Column(modifier = modifier) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                MainAccountsScreen(
+                    modifier = modifier,
+                    canNavigateBack = canNavigateBack,
+                    accountsSummaryList = accountsSummaryList.accountsSummary,
+                    navigateToTransactionsScreen = {
+                        showDetailsPane = true
+                        accountsViewModel.setAccountsID(it)
+                    },
+                    onClickSettings = onClickSettings,
+                    currencyLocale = currency.currencyLocale
+                )
+            }
+
+            Spacer(
+                modifier = Modifier
+                    .weight(0.001f)
+                    .fillMaxHeight()
+                    .width(Dp.Hairline)
+                    .padding(top = 16.dp, bottom = 16.dp)
+                    .background(color = MaterialTheme.colorScheme.tertiary),
+
+                )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                if (showDetailsPane) {
+                    when (currentScreen) {
+                        AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN -> {
+                            TransactionScreen(
+                                canNavigateBack = false,
+                                navigateToAddExpenseScreen = { expenseID, accountID ->
+                                    expenseViewModel.setExpenseID(expenseID)
+                                    currentScreen = AccountDetailsCurrentScreen.ADD_EXPENSE_SCREEN
+                                },
+                                navigateToAddIncomeScreen = { incomeID, accountID ->
+                                    incomeViewModel.setIncomeID(incomeID)
+                                    currentScreen = AccountDetailsCurrentScreen.ADD_INCOME_SCREEN
+                                },
+                                userPrefsViewModel = userPrefsViewModel,
+                                onNavigateUp = {
+                                    currentScreen = AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN
+                                },
+                                initialPage = currentPageTransactionScreen,
+                                onPageChanged = {
+                                    currentPageTransactionScreen = it
+                                }
+                            )
+                        }
+
+                        AccountDetailsCurrentScreen.ADD_EXPENSE_SCREEN -> {
+                            AddExpenseScreen(
+                                onNavigateUp = {
+                                    currentScreen = AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN
+                                },
+                                userPrefsViewModel = userPrefsViewModel
+                            )
+                        }
+
+                        AccountDetailsCurrentScreen.ADD_INCOME_SCREEN -> {
+                            AddIncomeScreen(
+                                onNavigateUp = {
+                                    currentScreen = AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN
+                                },
+                                userPrefsViewModel = userPrefsViewModel
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+
+}
 @Composable
 fun MainAccountsScreen(
     modifier: Modifier = Modifier,

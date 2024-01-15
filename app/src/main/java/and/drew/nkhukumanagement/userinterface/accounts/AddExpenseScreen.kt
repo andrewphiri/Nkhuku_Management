@@ -4,6 +4,7 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.data.AccountsWithExpense
 import and.drew.nkhukumanagement.data.Expense
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -11,6 +12,7 @@ import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import and.drew.nkhukumanagement.utils.currencySymbol
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -101,7 +103,18 @@ fun AddExpenseScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
-    val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState()
+    val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState(
+        AccountsWithExpense(
+            accountsSummary = AccountsSummary(
+                flockUniqueID = "",
+                batchName = "",
+                totalIncome = 0.0,
+                totalExpenses = 0.0,
+                variance = 0.0
+            )
+        )
+
+    )
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
@@ -138,7 +151,7 @@ fun AddExpenseScreen(
      * This should only be called again when expense changes(KEY)
      */
     LaunchedEffect(expense) {
-        if (expenseViewModel.expenseID > 0) {
+        if (expenseViewModel.expenseID.value > 0) {
             expenseViewModel.updateState(expense.toExpenseUiState(enabled = true))
         }
     }
@@ -167,7 +180,7 @@ fun AddExpenseScreen(
                 )
             }
         },
-        expenseIDArg = expenseViewModel.expenseID,
+        expenseIDArg = expenseViewModel.expenseID.value,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
         currencySymbol = currency.symbol
@@ -290,6 +303,9 @@ fun MainAddExpenseScreen(
     onNavigateUp: () -> Unit,
     currencySymbol: String,
 ) {
+    BackHandler {
+        onNavigateUp()
+    }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()

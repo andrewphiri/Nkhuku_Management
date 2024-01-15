@@ -13,6 +13,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
 
 /**
@@ -32,9 +33,15 @@ class IncomeViewModel @Inject constructor(
         private set
     private var incomeListState: SnapshotStateList<IncomeUiState> = mutableStateListOf()
 
-    val incomeID = savedStateHandle[AddIncomeScreenDestination.incomeIdArg] ?: 0
+    val incomeID = savedStateHandle
+        .getStateFlow(AddIncomeScreenDestination.incomeIdArg, initialValue = 0)
 
-    val getIncome: Flow<Income> = flockRepository.getIncomeItem(incomeID)
+
+    val getIncome: Flow<Income> = savedStateHandle
+        .getStateFlow(AddIncomeScreenDestination.incomeIdArg, initialValue = 0)
+        .flatMapLatest {
+            flockRepository.getIncomeItem(it)
+        }
 
 
     /**
@@ -67,5 +74,9 @@ class IncomeViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun deleteIncome(income: Income) {
         flockRepository.deleteIncome(income)
+    }
+
+    fun setIncomeID(id: Int) {
+        savedStateHandle[AddIncomeScreenDestination.incomeIdArg] = id
     }
 }

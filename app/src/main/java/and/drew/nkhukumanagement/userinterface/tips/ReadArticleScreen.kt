@@ -4,6 +4,7 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -78,24 +79,9 @@ fun ReadArticleScreen(
                 )
             }
         },
-        categoryId = articleViewModel.categoryId,
-        articleId = articleViewModel.articleId
+        categoryId = articleViewModel.categoryId.value,
+        articleId = articleViewModel.articleId.value
     )
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = article.title,
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        }
-//    ) { innerPadding ->
-//        Column(modifier = modifier.padding(innerPadding)) {
-//            ReadArticleCard(
-//                article = article
-//            )
-//        }
-//    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -109,9 +95,10 @@ fun MainReadArticleScreen(
     categoryId: Int,
     articleId: String
 ) {
-//    val article by articleViewModel.article.collectAsState(
-//        initial = Article()
-//    )
+
+    BackHandler {
+        onNavigateUp()
+    }
     LaunchedEffect(article) {
         generateSingleArticle(
             categoryId,

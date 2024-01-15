@@ -24,13 +24,13 @@ import and.drew.nkhukumanagement.userinterface.weight.WeightScreen
 import and.drew.nkhukumanagement.userinterface.weight.WeightViewModel
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
 import and.drew.nkhukumanagement.utils.ContentType
-import and.drew.nkhukumanagement.utils.CurrentScreen.DETAILS_SCREEN
-import and.drew.nkhukumanagement.utils.CurrentScreen.EDIT_FLOCK_SCREEN
-import and.drew.nkhukumanagement.utils.CurrentScreen.FEED_SCREEN
-import and.drew.nkhukumanagement.utils.CurrentScreen.FLOCK_HEALTH_SCREEN
-import and.drew.nkhukumanagement.utils.CurrentScreen.VACCINATION_SCREEN
-import and.drew.nkhukumanagement.utils.CurrentScreen.WEIGHT_SCREEN
 import and.drew.nkhukumanagement.utils.DateUtils
+import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.DETAILS_SCREEN
+import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.EDIT_FLOCK_SCREEN
+import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.FEED_SCREEN
+import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.FLOCK_HEALTH_SCREEN
+import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.VACCINATION_SCREEN
+import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.WEIGHT_SCREEN
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
 import android.os.Build
@@ -152,7 +152,6 @@ fun HomeScreen(
         )
 
     val coroutineScope = rememberCoroutineScope()
-
 
     DisposableEffect(Unit) {
         onDispose {
@@ -507,7 +506,6 @@ fun MainHomeScreen(
         }
     }
 
-
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -571,7 +569,6 @@ fun MainHomeScreen(
                     isFilterMenuShowing = false
                 }
             )
-
 
             FlockBodyList(
                 modifier = modifier,
@@ -671,7 +668,6 @@ fun FlockList(
         }
     }
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -844,7 +840,6 @@ fun ShowOverflowMenu(
     title: String,
     message: String
 ) {
-
     ShowAlertDialog(
         onDismissAlertDialog = onDismissAlertDialog,
         onConfirm = onDelete,
@@ -881,12 +876,10 @@ fun ShowOverflowMenu(
     }
 }
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun ShowPreview() {
     NkhukuManagementTheme {
-
     }
 }

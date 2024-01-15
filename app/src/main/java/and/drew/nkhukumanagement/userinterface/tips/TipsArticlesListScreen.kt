@@ -7,8 +7,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -77,7 +79,7 @@ fun TipsArticlesListScreen(
         initial = mutableListOf()
     )
     LaunchedEffect(tipsViewModel.articlesList) {
-        tipsViewModel.generateArticles(tipsViewModel.articleIdCategory)
+        tipsViewModel.generateArticles(tipsViewModel.articleIdCategory.value)
     }
 
     MainTipsArticlesListScreen(
@@ -91,26 +93,9 @@ fun TipsArticlesListScreen(
                 tipsViewModel.generateArticles(it)
             }
         },
-        articleIdCategory = tipsViewModel.articleIdCategory,
-        title = tipsViewModel.title
+        articleIdCategory = tipsViewModel.articleIdCategory.value,
+        title = tipsViewModel.title.value
     )
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = tipsViewModel.title,
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        }
-//    ) { innerPadding ->
-//        Column(modifier = modifier.padding(innerPadding)) {
-//            ArticlesList(
-//                articles = articlesList,
-//                onArticleClick = navigateToReadArticle,
-//                categoryId = tipsViewModel.articleIdCategory
-//            )
-//        }
-//    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -126,9 +111,6 @@ fun MainTipsArticlesListScreen(
     title: String
 ) {
 
-//    val articlesList by tipsViewModel.articlesList.collectAsState(
-//        initial = mutableListOf()
-//    )
     LaunchedEffect(articles) {
         generateArticles(articleIdCategory)
     }
@@ -157,16 +139,27 @@ fun ArticlesList(
     onArticleClick: (Int, String) -> Unit,
     categoryId: Int
 ) {
-    LazyColumn(
-        modifier = modifier.padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        items(articles) { article ->
-            ArticleCard(
-                article = article,
-                onArticleClick = { onArticleClick(categoryId, article.id) }
+    if (articles.isNullOrEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "No articles available."
             )
+        }
+    } else {
+        LazyColumn(
+            modifier = modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            items(articles) { article ->
+                ArticleCard(
+                    article = article,
+                    onArticleClick = { onArticleClick(categoryId, article.id) }
+                )
+            }
         }
     }
 }

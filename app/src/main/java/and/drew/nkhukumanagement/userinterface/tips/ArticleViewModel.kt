@@ -18,20 +18,30 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ArticleViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    val savedStateHandle: SavedStateHandle,
     val firestoreDatabase: FirebaseFirestore
 ) : ViewModel() {
     // Mutable and immutable article
     private val _article = MutableStateFlow(Article())
     val article = _article.asStateFlow()
 
-    val categoryId = savedStateHandle[ReadArticleDestination.categoryIdArg] ?: 0
-    val articleId = savedStateHandle[ReadArticleDestination.articleIdArg] ?: ""
+    val categoryId = savedStateHandle
+        .getStateFlow(key = ReadArticleDestination.categoryIdArg, initialValue = 0)
+    val articleId = savedStateHandle
+        .getStateFlow(key = ReadArticleDestination.articleIdArg, initialValue = "")
 
     fun setArticle(article: Article) {
         _article.update {
             article
         }
+    }
+
+    fun setCategoryID(id: Int) {
+        savedStateHandle[ReadArticleDestination.categoryIdArg] = id
+    }
+
+    fun setArticleID(articleID: String) {
+        savedStateHandle[ReadArticleDestination.articleIdArg] = articleID
     }
 
     /**
