@@ -5,6 +5,7 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.FlockWithWeight
 import and.drew.nkhukumanagement.data.Weight
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -29,7 +30,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -59,6 +59,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -90,7 +92,8 @@ fun WeightScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    weightViewModel: WeightViewModel = hiltViewModel()
+    weightViewModel: WeightViewModel = hiltViewModel(),
+    contentType: ContentType
 ) {
     BackHandler {
         onNavigateUp()
@@ -122,6 +125,7 @@ fun WeightScreen(
                 title = title,
                 canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp,
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackBarHostState) },
@@ -236,13 +240,10 @@ fun MainWeightScreen(
     weightViewModelList: MutableList<WeightUiState>,
     setWeightList: () -> Unit,
     updateWeight: (MutableList<Weight>) -> Unit,
-    updateWeightState: (Int, WeightUiState) -> Unit
-
+    updateWeightState: (Int, WeightUiState) -> Unit,
+    contentType: ContentType
 ) {
     val scope = rememberCoroutineScope()
-    //val flockWithWeights by weightViewModel.flockWithWeight.collectAsState()
-    //val weightList: List<Weight> = weightList ?: listOf()
-    //val weightUiStateList: MutableList<WeightUiState> = mutableListOf()
     var isEditable by remember { mutableStateOf(false) }
     var isFABVisible by remember { mutableStateOf(true) }
     var title by remember { mutableStateOf("") }
@@ -250,17 +251,11 @@ fun MainWeightScreen(
     val context = LocalContext.current
     val snackBarHostState = remember { SnackbarHostState() }
 
-//    for (item in weightList) {
-//        weightUiStateList.add(item.toWeightUiState())
-//    }
     LaunchedEffect(weightUiStateList) {
         setWeightList()
     }
 
-    //val weightViewModelList by remember(weightViewModel.getWeightList()) { derivedStateOf { weightViewModel.getWeightList().toMutableList() } }
     var isUpdateEnabled by remember { mutableStateOf(false) }
-
-    //isUpdateEnabled = weightViewModelList != weightUiStateList
 
     Scaffold(
         modifier = modifier,
@@ -269,6 +264,7 @@ fun MainWeightScreen(
                 title = title,
                 canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp,
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackBarHostState) },
@@ -419,7 +415,8 @@ fun WeightInputList(
                         onItemChange(index, weight)
                         //isUpdateButtonEnabled(weightViewModel.isUpdateButtonEnabled(weightUiState))
                     },
-                    isEditable = isEditable
+                    isEditable = isEditable,
+                    description = "Weight $index"
                 )
             }
         }
@@ -432,7 +429,8 @@ fun WeightCard(
     modifier: Modifier = Modifier,
     weightUiState: WeightUiState,
     onValueChanged: (WeightUiState) -> Unit,
-    isEditable: Boolean
+    isEditable: Boolean,
+    description: String
 ) {
     Row(
         modifier = modifier.height(IntrinsicSize.Min),
@@ -445,7 +443,9 @@ fun WeightCard(
         )
 
         TextField(
-            modifier = Modifier.weight(1.5f),
+            modifier = Modifier
+                .weight(1.5f)
+                .semantics { contentDescription = description },
             value = if (weightUiState.actualWeight == "0.0") "" else weightUiState.actualWeight,
             onValueChange = {
                 onValueChanged(weightUiState.copy(actualWeight = if (it == "") "0.0" else it))
@@ -459,7 +459,7 @@ fun WeightCard(
             textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
         )
 
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.weight(0.01f).fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )

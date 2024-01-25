@@ -1,12 +1,12 @@
 package and.drew.nkhukumanagement
 
+import and.drew.nkhukumanagement.auth.SignInViewModel
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Expense
 import and.drew.nkhukumanagement.data.FlockDao
 import and.drew.nkhukumanagement.data.FlockDatabase
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.accounts.TransactionsScreenDestination
-import and.drew.nkhukumanagement.userinterface.feed.FeedScreenDestination
 import and.drew.nkhukumanagement.userinterface.feed.FeedUiState
 import and.drew.nkhukumanagement.userinterface.feed.toFeed
 import and.drew.nkhukumanagement.userinterface.flock.EditFlockDestination
@@ -15,10 +15,13 @@ import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.flock.toFlock
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuNavHost
+import and.drew.nkhukumanagement.userinterface.overview.AccountOverviewDestination
+import and.drew.nkhukumanagement.userinterface.overview.FlockOverviewDestination
+import and.drew.nkhukumanagement.userinterface.planner.PlannerResultsDestination
+import and.drew.nkhukumanagement.userinterface.tips.TipsArticlesListDestination
 import and.drew.nkhukumanagement.userinterface.vaccination.AddVaccinationsDestination
 import and.drew.nkhukumanagement.userinterface.vaccination.VaccinationUiState
 import and.drew.nkhukumanagement.userinterface.vaccination.toVaccination
-import and.drew.nkhukumanagement.userinterface.weight.WeightScreenDestination
 import and.drew.nkhukumanagement.userinterface.weight.WeightUiState
 import and.drew.nkhukumanagement.userinterface.weight.toWeight
 import and.drew.nkhukumanagement.utils.DateUtils
@@ -27,10 +30,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -71,6 +72,7 @@ class AppFlowTests {
     @Inject
     lateinit var database: FlockDatabase
     lateinit var dao: FlockDao
+    val signInViewModel = SignInViewModel()
 
     @Before
     fun init() {
@@ -96,15 +98,16 @@ class AppFlowTests {
                         navController = navController,
                         screens = screens,
                         isNavigationBarShowing = navigationBarShowing,
-                        isIconSelected = false,
-                        onChangeIconSelected = {}
                     )
                 }
             ) { innerPadding ->
                 NkhukuNavHost(
                     navController = navController,
                     modifier = Modifier.padding(innerPadding),
-                    userPrefsViewModel = userPrefsViewModel
+                    userPrefsViewModel = userPrefsViewModel,
+                    isAccountSetupSkipped = false,
+                    isEmailVerified = false,
+                    isUserSignedIn = false
                 )
             }
         }
@@ -173,14 +176,14 @@ class AppFlowTests {
             )
         )
 
-        var vaccinationUiState = VaccinationUiState(
+        val vaccinationUiState = VaccinationUiState(
             id = 0, flockUniqueId = "",
             vaccinationNumber = 1,
             name = "",
             date = "",
             notes = ""
         )
-        val vaccinationList = mutableStateListOf(
+        val vaccinationList = listOf(
             VaccinationUiState(
                 vaccinationNumber = 1, name = "Gumburro",
                 date = DateUtils().vaccinationDate(
@@ -199,7 +202,7 @@ class AppFlowTests {
         val dateReceived = DateUtils().dateToStringLongFormat(
             LocalDate.now()
         )
-        val weightlist = mutableStateListOf(
+        val weightList = listOf(
             WeightUiState(
                 week = "Initial",
                 flockUniqueID = "",
@@ -242,7 +245,7 @@ class AppFlowTests {
             )
         )
 
-        val feedList = mutableStateListOf(
+        val feedList = listOf(
             FeedUiState(
                 flockUniqueID = "", week = "Week 1",
                 standardConsumption =
@@ -376,7 +379,7 @@ class AppFlowTests {
                             .toVaccination()
                     )
                 }
-                weightlist.forEach { weightUiState ->
+                weightList.forEach { weightUiState ->
                     dao.insertWeight(
                         weightUiState.copy(flockUniqueID = flockUiState.getUniqueId()).toWeight()
                     )
@@ -500,11 +503,27 @@ class AppFlowTests {
         composeRule
             .onNodeWithContentDescription("Feed")
             .performClick()
-        val route = navController.currentBackStackEntry?.destination?.route
-        TestCase.assertEquals(
-            route,
-            "${FeedScreenDestination.route}/{${FeedScreenDestination.flockIdArg}}"
-        )
+
+        composeRule
+            .onNodeWithContentDescription("Feed list")
+            .performScrollToIndex(1)
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("feed type")
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("Starter", useUnmergedTree = true)
+            .performClick()
+
+        composeRule
+            .onNodeWithText("Quantity")
+            .performTextInput("150")
+        composeRule
+            .onNodeWithText("Save", useUnmergedTree = true)
+            .assertIsEnabled()
+
     }
 
     @Test
@@ -521,11 +540,17 @@ class AppFlowTests {
         composeRule
             .onNodeWithContentDescription("Weight")
             .performClick()
-        val route = navController.currentBackStackEntry?.destination?.route
-        TestCase.assertEquals(
-            route,
-            "${WeightScreenDestination.route}/{${WeightScreenDestination.flockIdArg}}"
-        )
+
+        composeRule
+            .onNodeWithContentDescription("Edit weights")
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("Weight 0")
+            .performTextInput("160")
+        composeRule
+            .onNodeWithText("Update", useUnmergedTree = true)
+            .assertIsEnabled()
     }
 
     @Test
@@ -570,12 +595,6 @@ class AppFlowTests {
         composeRule
             .onNodeWithContentDescription("save button", useUnmergedTree = true)
             .assertIsEnabled()
-
-//        val route2 = navController.currentBackStackEntry?.destination?.route
-//        TestCase.assertEquals(
-//            route2,
-//            "${AddIncomeScreenDestination.route}/{${AddIncomeScreenDestination.incomeIdArg}}/{${AddIncomeScreenDestination.accountIdArg}}"
-//        )
     }
 
     @Test
@@ -621,13 +640,6 @@ class AppFlowTests {
         composeRule
             .onNodeWithContentDescription("save button", useUnmergedTree = true)
             .assertIsEnabled()
-
-//        val route = navController.currentBackStackEntry?.destination?.route
-//        TestCase.assertEquals(
-//            route,
-//            "${AddExpenseScreenDestination.route}/{${AddExpenseScreenDestination.expenseIdArg}}/{${AddExpenseScreenDestination.accountIdArg}}"
-//        )
-
     }
 
     @Test
@@ -658,73 +670,106 @@ class AppFlowTests {
     }
 
     @Test
-    fun detailsScreenFlowTest_toFlockHealthScreen_toEditFlockScreen_and_back_after_update() {
+    fun planner_screen_flow_test() {
         composeRule
             .onNodeWithText("Skip")
             .performClick()
-
         composeRule
-            .onNodeWithContentDescription("flockList")
-            .performScrollToIndex(2)
-            .performClick()
-
-        composeRule
-            .onNodeWithContentDescription("Health")
-            .performClick()
-
-        composeRule
-            .onNodeWithContentDescription("Edit flock fab")
-            .performClick()
-
-        composeRule
-            .onNodeWithContentDescription("Increase mortality", useUnmergedTree = true)
+            .onNodeWithContentDescription("Planner")
             .performClick()
         composeRule
-            .onNodeWithContentDescription("Update Button")
-            .assertIsEnabled()
+            .onNodeWithText("How many chicks would you like to order?")
+            .performTextInput("1452")
+
         composeRule
-            .onNodeWithContentDescription("Decrease mortality")
+            .onNodeWithText("Calculate", useUnmergedTree = true)
             .performClick()
-        composeRule
-            .onNodeWithContentDescription("Update Button", useUnmergedTree = true)
-            .assertIsNotEnabled()
-//        composeRule
-//            .onNodeWithContentDescription("Decrease culls", useUnmergedTree = true)
-//            .performClick()
-//        composeRule
-//            .onNodeWithContentDescription("Decrease mortality", useUnmergedTree = true )
-//            .performClick()
-//        composeRule
-//            .onNodeWithContentDescription("Update Button", useUnmergedTree = true)
-//            .assertIsNotEnabled()
 
-//        composeRule
-//            .onNodeWithContentDescription("Increase mortality")
-//            .performClick()
-//
-//        composeRule
-//            .onNodeWithContentDescription("Update Button", useUnmergedTree = true)
-//            .assertIsEnabled()
-//
-//        composeRule
-//            .onNodeWithContentDescription("Decrease mortality", useUnmergedTree = true )
-//            .performClick()
-//        composeRule
-//            .onNodeWithContentDescription("Update Button", useUnmergedTree = true)
-//            .assertIsNotEnabled()
-
-
-//        composeRule
-//            .onNodeWithContentDescription("Increase Culls")
-//            .performClick()
-//
-//        composeRule
-//            .onNodeWithText("Update", useUnmergedTree = true)
-//            .assertIsEnabled()
-
-//        composeRule
-//            .onNodeWithText("Update", useUnmergedTree = true)
-//            .assertIsNotEnabled()
-
+        val route = navController.currentBackStackEntry?.destination?.route
+        TestCase.assertEquals(
+            route,
+            PlannerResultsDestination.route
+        )
     }
+
+    @Test
+    fun overview_to_accountOverview_flowTest() {
+        composeRule
+            .onNodeWithText("Skip")
+            .performClick()
+        composeRule
+            .onNodeWithContentDescription("Overview")
+            .performClick()
+        composeRule
+            .onNodeWithContentDescription("Account Overview")
+            .performClick()
+
+        val route = navController.currentBackStackEntry?.destination?.route
+        TestCase.assertEquals(
+            route,
+            AccountOverviewDestination.route
+        )
+    }
+
+    @Test
+    fun overview_to_flockOverview_flowTest() {
+        composeRule
+            .onNodeWithText("Skip")
+            .performClick()
+        composeRule
+            .onNodeWithContentDescription("Overview")
+            .performClick()
+        composeRule
+            .onNodeWithContentDescription("Flock Overview")
+            .performClick()
+
+        val route = navController.currentBackStackEntry?.destination?.route
+        TestCase.assertEquals(
+            route,
+            FlockOverviewDestination.route
+        )
+    }
+
+    /**
+     * Should fail when userSignedIn is false
+     */
+    @Test
+    fun tips_to_articlesList_flowTest() {
+
+        composeRule
+            .onNodeWithContentDescription("Tips")
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("broodingBrooding")
+            .performClick()
+
+        val route = navController.currentBackStackEntry?.destination?.route
+        TestCase.assertEquals(
+            route,
+            TipsArticlesListDestination.routeWithArgs
+        )
+    }
+
+    /**
+     * Should pass when userSignedIn  is true and email verified is true
+     * skipAccount = true
+     */
+    @Test
+    fun tips_to_articlesList_flowTest_2() {
+        composeRule
+            .onNodeWithContentDescription("Tips")
+            .performClick()
+
+        composeRule
+            .onNodeWithContentDescription("brooding")
+            .performClick()
+
+        val route = navController.currentBackStackEntry?.destination?.route
+        TestCase.assertEquals(
+            route,
+            TipsArticlesListDestination.route
+        )
+    }
+
 }

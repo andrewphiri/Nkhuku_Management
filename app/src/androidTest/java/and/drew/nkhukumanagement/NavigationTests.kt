@@ -63,16 +63,17 @@ class NavigationTests {
                     BottomNavigationForApp(
                         navController = navController,
                         screens = screens,
-                        isNavigationBarShowing = navigationBarShowing,
-                        onChangeIconSelected = {},
-                        isIconSelected = false
+                        isNavigationBarShowing = navigationBarShowing
                     )
                 }
             ) { pad ->
                 NkhukuNavHost(
                     modifier = Modifier.padding(pad),
                     navController = navController,
-                    userPrefsViewModel = userPrefsViewModel
+                    userPrefsViewModel = userPrefsViewModel,
+                    isAccountSetupSkipped = false,
+                    isEmailVerified = false,
+                    isUserSignedIn = false
                 )
             }
         }

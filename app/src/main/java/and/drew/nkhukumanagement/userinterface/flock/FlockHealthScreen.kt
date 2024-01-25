@@ -5,9 +5,9 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.FlockHealth
 import and.drew.nkhukumanagement.data.FlockWithHealth
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -35,7 +35,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -89,7 +88,8 @@ fun FlockHealthScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     navigateToFlockEditScreen: (Int, Int) -> Unit,
-    editFlockViewModel: EditFlockViewModel = hiltViewModel()
+    editFlockViewModel: EditFlockViewModel = hiltViewModel(),
+    contentType: ContentType
 ) {
     val flockWithHealth by editFlockViewModel.flockWithHealth.collectAsState(
         initial = FlockWithHealth(
@@ -101,29 +101,20 @@ fun FlockHealthScreen(
             ).toFlock(), health = listOf()
         )
     )
-    val flock by editFlockViewModel.flock.collectAsState(
-        FlockUiState(
-            datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
-            quantity = "0",
-            donorFlock = "0",
-            cost = "0"
-        ).toFlock()
-    )
-
-
-    var flockID = editFlockViewModel.flockId.value
-
+    val flockID = editFlockViewModel.flockId.value
+    val title = flockWithHealth?.flock?.batchName
 
     MainFlockHealthScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
         navigateToFlockEditScreen = { flockId, healthID ->
-            Log.i("ID_FLOCK__Id", flockId.toString())
             navigateToFlockEditScreen(flockID, healthID)
         },
         flockHealthList = flockWithHealth?.health,
-        flockId = flockWithHealth?.flock?.id
+        flockId = flockWithHealth?.flock?.id,
+        contentType = contentType,
+        title = title ?: stringResource(FlockHealthScreenDestination.resourceId)
     )
 }
 
@@ -136,6 +127,8 @@ fun MainFlockHealthScreen(
     navigateToFlockEditScreen: (Int?, Int) -> Unit,
     flockHealthList: List<FlockHealth>?,
     flockId: Int?,
+    contentType: ContentType,
+    title: String
 ) {
     BackHandler {
         onNavigateUp()
@@ -144,9 +137,10 @@ fun MainFlockHealthScreen(
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
-                title = stringResource(FlockHealthScreenDestination.resourceId),
+                title = title,
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         },
         floatingActionButton = {
@@ -298,7 +292,7 @@ fun FlockHealthCard(
                 textAlign = TextAlign.Center
             )
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.weight(0.01f).fillMaxHeight(),
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )

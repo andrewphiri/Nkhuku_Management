@@ -7,6 +7,7 @@ import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.userinterface.home.HomeViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PieChart
 import android.os.Build
@@ -70,14 +71,14 @@ fun FlockOverviewScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     overviewViewModel: OverviewViewModel = hiltViewModel(),
-    homeViewModel: HomeViewModel = hiltViewModel()
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    contentType: ContentType
 ) {
     val homeUiState by homeViewModel.homeUiState.collectAsState()
     val flockOptions: MutableMap<String, String> = mutableMapOf("All" to "All flock")
     var playAnimation by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
-    var isExpanded by remember { mutableStateOf(false) }
-    var defaultDropDownMenuValue by remember { mutableStateOf(flockOptions["All"] ?: "") }
+
+    val defaultDropDownMenuValue by remember { mutableStateOf(flockOptions["All"] ?: "") }
 
     homeUiState.flockList.forEach {
         flockOptions[it.uniqueId] = it.batchName
@@ -105,51 +106,9 @@ fun FlockOverviewScreen(
         flocks = homeUiState.flockList,
         setFlockTotals = {
             overviewViewModel.flockTotalsList(it)
-        }
+        },
+        contentType = contentType
     )
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(FlockOverviewDestination.resourceId),
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        },
-//    ) { innerPadding ->
-//        if (homeUiState.flockList.isEmpty()) {
-//            Box(
-//                modifier = modifier.fillMaxSize(),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Text(
-//                    modifier = Modifier.align(Alignment.Center),
-//                    text = stringResource(R.string.no_records),
-//                    style = MaterialTheme.typography.bodyMedium
-//                )
-//            }
-//        } else {
-//            Column(
-//                modifier = Modifier.padding(innerPadding)
-//                    .verticalScroll(state = scrollState, enabled = true),
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//                OverviewFlockCard(
-//                    totalFlockList = flockList,
-//                    playAnimation = playAnimation,
-//                    value = defaultDropDownMenuValue,
-//                    isExpanded = isExpanded,
-//                    onExpanded = { isExpanded = !isExpanded },
-//                    onDismissed = { isExpanded = false },
-//                    onValueChanged = {
-//                        defaultDropDownMenuValue = it
-//                    },
-//                    flockOptions = flockOptions.values.toList()
-//                )
-//            }
-//        }
-//
-//
-//    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -160,6 +119,7 @@ fun MainFlockOverviewScreen(
     onNavigateUp: () -> Unit,
     flocks: List<Flock>,
     setFlockTotals: (List<Flock>) -> List<Account>,
+    contentType: ContentType
 ) {
     //val homeUiState by homeViewModel.homeUiState.collectAsState()
     val flockOptions: MutableMap<String, String> = mutableMapOf("All" to "All flock")
@@ -192,7 +152,8 @@ fun MainFlockOverviewScreen(
             FlockManagementTopAppBar(
                 title = stringResource(FlockOverviewDestination.resourceId),
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         },
     ) { innerPadding ->

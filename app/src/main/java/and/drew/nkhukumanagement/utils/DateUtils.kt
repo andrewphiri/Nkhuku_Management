@@ -5,7 +5,6 @@ import and.drew.nkhukumanagement.userinterface.feed.FeedUiState
 import and.drew.nkhukumanagement.userinterface.vaccination.VaccinationUiState
 import and.drew.nkhukumanagement.userinterface.weight.WeightUiState
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import java.time.Instant
 import java.time.LocalDate
@@ -13,8 +12,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 class DateUtils {
 
@@ -27,16 +24,6 @@ class DateUtils {
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
 
         val dateSelectedInMillis = convertLocalDate(date, dateFormatter)
-
-//        //Convert the passed in date to a Long in millis
-//        val timeInMillis = LocalDate.parse(date.format(dateFormatter), dateFormatter)
-//            .atStartOfDay(ZoneId.systemDefault())
-//            .toInstant()
-//            .toEpochMilli()
-//
-//        //Then convert the timeInMillis to a LocalDate object
-//        val dateSelectedInMillis = Instant.ofEpochMilli(timeInMillis)
-//            .atZone(ZoneId.systemDefault()).toLocalDate()
 
         //Format dateSelectedInMillis to a string and Return
         return dateFormatter.format(
@@ -124,8 +111,6 @@ class DateUtils {
         val calculateDate = calculateDate(date = date, day = day)
         val dateToString = dateToStringLongFormat(calculateDate)
         vaccinationUiState.setDate(dateToString)
-        Log.i("CALCULATED DATE", dateToString)
-        Log.i("DATE SET", vaccinationUiState.getDate())
         return vaccinationUiState.getDate()
     }
 
@@ -169,13 +154,5 @@ class DateUtils {
             .toEpochSecond() * 1000
 //        LocalDateTime.now().plusMinutes(1).toEpochSecond(ZoneOffset.UTC)
 
-    }
-
-    /**
-     * Alarm should be triggered within the specified window interval
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun calculateAlarmWindowLength(lengthWindowInMinutes: Long): Long {
-        return lengthWindowInMinutes.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
     }
 }

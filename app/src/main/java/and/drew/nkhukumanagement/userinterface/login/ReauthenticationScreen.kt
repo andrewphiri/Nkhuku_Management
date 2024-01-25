@@ -12,6 +12,7 @@ import and.drew.nkhukumanagement.auth.isValid
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.BaseSignInPassword
 import and.drew.nkhukumanagement.utils.BaseSignInRow
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
 import and.drew.nkhukumanagement.utils.SignInGoogleButton
@@ -79,6 +80,7 @@ fun AuthenticateScreen(
     googleAuthUiClient: GoogleAuthUiClient,
     authUiClient: AuthUiClient,
     signInViewModel: SignInViewModel,
+    contentType: ContentType
 ) {
     val state by signInViewModel.state.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -141,88 +143,9 @@ fun AuthenticateScreen(
             signInViewModel.resetState()
             signInViewModel.setUserLoggedIn(it)
             signInViewModel.updateUiStateSignIn(UserUiState(email = "", password = ""))
-        }
+        },
+        contentType = contentType
     )
-//    Scaffold(
-//        modifier = modifier,
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(ReauthenticationScreenDestination.resourceId),
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        }
-//    ) { innerPadding ->
-//        Column(
-//            modifier = Modifier
-//                .padding(innerPadding)
-//                .padding(16.dp)
-//        ) {
-//            AuthenticateCard(
-//                onClickSignInWithGoogle = {
-//                    isLoadingGoogleButton = true
-//                    coroutineScope.launch {
-//                        val signInIntentSender = googleAuthUiClient.signIn()
-//                        launcher.launch(
-//                            IntentSenderRequest.Builder(
-//                                signInIntentSender ?: return@launch
-//                            ).build()
-//                        )
-//                    }
-//                },
-//                onClickSignInWithEmailAndPassword = {
-//                    isLoadingEmailAndPasswordButtonSignIn = true
-//                    coroutineScope.launch {
-//                        delay(2000)
-//                        val signInResult = authUiClient.signInUserWithEmailAndPassWord(
-//                            signInViewModel.userUiStateSignIn.email,
-//                            signInViewModel.userUiStateSignIn.password
-//                        )
-//                        signInViewModel.onSignInResult(signInResult)
-//                    }
-//                },
-//                isLoadingGoogleButton = isLoadingGoogleButton,
-//                isLoadingSignInButton = isLoadingEmailAndPasswordButtonSignIn,
-//                userUiState = signInViewModel.userUiStateSignIn.copy(email = emailSignedIn),
-//                onValueChanged = signInViewModel::updateUiStateSignIn,
-//                onConfirmDelete = {
-//                    coroutineScope.launch {
-//                        isDeleteAlertDialogPromptShowing = false
-//                        isCircularBarShowing = true
-//                        isLoadingGoogleButton = false
-//                        isLoadingEmailAndPasswordButtonSignIn = false
-//                        val deleteAccount = authUiClient.deleteAccount(
-//                            email = emailSignedIn,
-//                            password = signInViewModel.userUiStateSignIn.password,
-//                            googleAuthUiClient = googleAuthUiClient,
-//                            intent = signInIntent,
-//                        )
-//                        delay(2000)
-//                        //Log.i("Email", signInViewModel.userUiStateSignIn.email)
-//                        if (deleteAccount) {
-//                            isAccountDeletedDialogSuccessShowing = true
-//                        } else {
-//                            snackbarHostState.showSnackbar(
-//                                message = "Action failed. Please try again.",
-//                                duration = SnackbarDuration.Long
-//                            )
-//                        }
-//                        isCircularBarShowing = false
-//                    }
-//                },
-//                onDismiss = { isDeleteAlertDialogPromptShowing = false },
-//                isAlertDialogShowing = isDeleteAlertDialogPromptShowing,
-//                isCircularIndicatorShowing = isCircularBarShowing,
-//                isSuccessAlertDialogShowing = isAccountDeletedDialogSuccessShowing,
-//                onDismissSuccessAlertDialog = {
-//                    signInViewModel.resetState()
-//                    signInViewModel.setUserLoggedIn(false)
-//                    signInViewModel.updateUiStateSignIn(UserUiState(email = "", password = ""))
-//                    isAccountDeletedDialogSuccessShowing = false
-//                }
-//            )
-//        }
-//    }
 }
 
 @Composable
@@ -236,7 +159,8 @@ fun MainAuthenticateScreen(
     onSignInResult: (SignInResult) -> Unit,
     userSignInState: UserUiState,
     updateUserUiState: (UserUiState) -> Unit,
-    resetUser: (Boolean) -> Unit
+    resetUser: (Boolean) -> Unit,
+    contentType: ContentType
 ) {
 //    val state by signInViewModel.state.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -289,7 +213,8 @@ fun MainAuthenticateScreen(
             FlockManagementTopAppBar(
                 title = stringResource(ReauthenticationScreenDestination.resourceId),
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         }
     ) { innerPadding ->

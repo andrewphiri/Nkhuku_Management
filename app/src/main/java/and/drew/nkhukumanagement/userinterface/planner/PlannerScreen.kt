@@ -3,6 +3,7 @@ package and.drew.nkhukumanagement.userinterface.planner
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
+import and.drew.nkhukumanagement.utils.ContentType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -42,11 +45,9 @@ fun PlannerScreen(
     canNavigateBack: Boolean = false,
     plannerViewModel: PlannerViewModel,
     navigateToResultsScreen: () -> Unit = {},
-    onClickSettings: () -> Unit
+    onClickSettings: () -> Unit,
+    contentType: ContentType
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-    var isCalculateButtonEnabled by remember { mutableStateOf(false) }
 
     MainPlannerScreen(
         modifier = modifier,
@@ -54,36 +55,9 @@ fun PlannerScreen(
         plannerUiState = plannerViewModel.plannerUiState,
         onClickSettings = onClickSettings,
         onValueChanged = plannerViewModel::updateUiState,
-        navigateToResultsScreen = navigateToResultsScreen
+        navigateToResultsScreen = navigateToResultsScreen,
+        contentType = contentType
     )
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(NavigationBarScreens.Planner.resourceId),
-//                canNavigateBack = canNavigateBack,
-//                onClickSettings = onClickSettings
-//            )
-//        },
-//        snackbarHost = { SnackbarHost(snackbarHostState) }
-//    ) { innerPadding ->
-//        isCalculateButtonEnabled = plannerViewModel.plannerUiState.isValid()
-//        PlannerCardEntry(
-//            modifier = modifier.padding(innerPadding),
-//            isCalculateButtonEnabled = plannerViewModel.plannerUiState.isValid(),
-//            onCalculate = {
-//                if (checkNumberExceptions(plannerViewModel.plannerUiState)) {
-//                    navigateToResultsScreen()
-//                } else {
-//                    coroutineScope.launch {
-//                        snackbarHostState.showSnackbar(message = "Please enter a valid number.")
-//                    }
-//                }
-//            },
-//            plannerUiState = plannerViewModel.plannerUiState,
-//            onValueChanged = plannerViewModel::updateUiState
-//        )
-//    }
-
 }
 
 @Composable
@@ -93,7 +67,8 @@ fun MainPlannerScreen(
     plannerUiState: PlannerUiState,
     onValueChanged: (PlannerUiState) -> Unit,
     navigateToResultsScreen: () -> Unit = {},
-    onClickSettings: () -> Unit
+    onClickSettings: () -> Unit,
+    contentType: ContentType
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -103,7 +78,8 @@ fun MainPlannerScreen(
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Planner.resourceId),
                 canNavigateBack = canNavigateBack,
-                onClickSettings = onClickSettings
+                onClickSettings = onClickSettings,
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -177,6 +153,7 @@ fun PlannerCardEntry(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 TriStateCheckbox(
+                    modifier = Modifier.semantics { contentDescription = "Tick all" },
                     state = parentState,
                     onClick = onParentClick
                 )
@@ -194,7 +171,8 @@ fun PlannerCardEntry(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Checkbox(checked = checkboxState,
+                    Checkbox(
+                        checked = checkboxState,
                         onCheckedChange = {
                             onStateChange(it)
                             onValueChanged(plannerUiState.copy(areFeedersAvailable = it))

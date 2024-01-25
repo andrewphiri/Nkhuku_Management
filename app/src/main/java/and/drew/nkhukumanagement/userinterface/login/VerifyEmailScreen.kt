@@ -5,6 +5,7 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.SignInViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,7 +57,8 @@ fun VerifyEmailScreen(
     canNavigateBack: Boolean = false,
     navigateToHome: () -> Unit,
     onClickSettings: () -> Unit,
-    signInViewModel: SignInViewModel
+    signInViewModel: SignInViewModel,
+    contentType: ContentType
 ) {
     val coroutineScope = rememberCoroutineScope()
     val emailVerified by signInViewModel.emailVerified.collectAsState()
@@ -79,88 +81,9 @@ fun VerifyEmailScreen(
         emailVerified = emailVerified,
         setEmailVerification = {
             signInViewModel.setEmailVerification(it)
-        }
+        },
+        contentType = contentType
     )
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(VerifyEmailDestination.resourceId),
-//                canNavigateBack = canNavigateBack,
-//                onClickSettings = onClickSettings
-//            )
-//        },
-//        snackbarHost = { SnackbarHost(snackbarHostState) }
-//    ) { innerPadding ->
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(innerPadding)
-//                .padding(16.dp)
-//                .alpha(if (isCircularIndicatorShowing) 0.5f else 1f)
-//        ) {
-//            if (isCircularIndicatorShowing) {
-//                CircularProgressIndicator(
-//                    modifier = Modifier.align(Alignment.Center),
-//                    strokeWidth = 2.dp,
-//                    color = MaterialTheme.colorScheme.primary
-//                )
-//            }
-//            Column(
-//                modifier = Modifier.align(Alignment.Center),
-//                verticalArrangement = Arrangement.spacedBy(16.dp),
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//                Text(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    text = "An email was sent to your email address. Please check your inbox, " +
-//                            "spam or junk folder to verify your email, then press proceed. ",
-//                    textAlign = TextAlign.Center
-//                )
-//                Button(
-//                    enabled = !isCircularIndicatorShowing,
-//                    onClick = {
-//                        coroutineScope.launch {
-//                            authUiClient.verifyEmail()
-//                        }
-//
-//                    },
-//                ) {
-//                    Text(
-//                        text = "Resend Verification Email"
-//                    )
-//                }
-//            }
-//
-//            FilledTonalButton(
-//                modifier = Modifier.align(Alignment.BottomEnd),
-//                onClick = {
-//                    coroutineScope.launch {
-//                        signInViewModel.setEmailVerification(
-//                            emailVerified = authUiClient.isEmailVerified()
-//                        )
-//                        isCircularIndicatorShowing = true
-//                        delay(2000)
-//                        if (emailVerified) {
-//                            navigateToHome()
-//                        } else {
-//                            isCircularIndicatorShowing = false
-//                            snackbarHostState.showSnackbar(
-//                                message = "Your email has not yet been verified. Verify your email, then proceed",
-//                                duration = SnackbarDuration.Long
-//                            )
-//                        }
-//                        Log.i("Email_Verified1", authUiClient.isEmailVerified().toString())
-//                        isCircularIndicatorShowing = false
-//                    }
-//
-//                }
-//            ) {
-//                Text(
-//                    text = "Proceed"
-//                )
-//            }
-//        }
-//    }
 }
 
 @Composable
@@ -171,7 +94,8 @@ fun MainVerifyEmailScreen(
     navigateToHome: () -> Unit,
     onClickSettings: () -> Unit,
     emailVerified: Boolean,
-    setEmailVerification: (Boolean) -> Unit
+    setEmailVerification: (Boolean) -> Unit,
+    contentType: ContentType
 ) {
     val coroutineScope = rememberCoroutineScope()
     //val emailVerified by signInViewModel.emailVerified.collectAsState()
@@ -190,7 +114,8 @@ fun MainVerifyEmailScreen(
             FlockManagementTopAppBar(
                 title = stringResource(VerifyEmailDestination.resourceId),
                 canNavigateBack = canNavigateBack,
-                onClickSettings = onClickSettings
+                onClickSettings = onClickSettings,
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

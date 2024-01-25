@@ -7,6 +7,7 @@ import and.drew.nkhukumanagement.backup.BackupAndRestoreViewModel
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
 import and.drew.nkhukumanagement.utils.getAllCurrenciesInUse
@@ -89,7 +90,8 @@ fun SettingsScreen(
     onNavigateUp: () -> Unit,
     userPrefsViewModel: UserPrefsViewModel,
     backupAndRestore: BackupAndRestoreViewModel = hiltViewModel(),
-    navigateToAccountInfoScreen: () -> Unit
+    navigateToAccountInfoScreen: () -> Unit,
+    contentType: ContentType
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -154,7 +156,8 @@ fun SettingsScreen(
             FlockManagementTopAppBar(
                 title = stringResource(SettingsDestination.resourceId),
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

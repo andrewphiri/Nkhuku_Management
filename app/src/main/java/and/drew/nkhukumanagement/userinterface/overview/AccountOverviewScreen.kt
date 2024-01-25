@@ -10,6 +10,7 @@ import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.home.HomeViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PieChart
 import and.drew.nkhukumanagement.utils.currencyFormatter
@@ -75,7 +76,8 @@ fun AccountOverviewScreen(
     onNavigateUp: () -> Unit,
     overviewViewModel: OverviewViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel(),
-    userPrefsViewModel: UserPrefsViewModel
+    userPrefsViewModel: UserPrefsViewModel,
+    contentType: ContentType
 ) {
     val overviewUiState by overviewViewModel.accountsList.collectAsState()
     val flockList by homeViewModel.homeUiState.collectAsState()
@@ -85,8 +87,6 @@ fun AccountOverviewScreen(
     )
 
     var playAnimation by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
-    var isExpanded by remember { mutableStateOf(false) }
     var defaultDropDownMenuValue by remember { mutableStateOf(flockOptions["All"] ?: "") }
 
     flockList.flockList.forEach {
@@ -115,50 +115,9 @@ fun AccountOverviewScreen(
             overviewViewModel.accountsTotalsList(it)
         },
         flockList = flockList.flockList,
-        currencyLocale = currency.currencyLocale
+        currencyLocale = currency.currencyLocale,
+        contentType = contentType
     )
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(AccountOverviewDestination.resourceId),
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        },
-//    ) { innerPadding ->
-//        if (overviewUiState.accountsList.isEmpty()) {
-//            Box(
-//                modifier = modifier.fillMaxSize(),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Text(
-//                    modifier = Modifier.align(Alignment.Center),
-//                    text = stringResource(R.string.no_records),
-//                    style = MaterialTheme.typography.bodyMedium
-//                )
-//            }
-//        } else {
-//            Column(
-//                modifier = Modifier.padding(innerPadding)
-//                    .verticalScroll(state = scrollState, enabled = true),
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//                OverviewAccountsCard(
-//                    totalAccountsList = accountList,
-//                    playAnimation = playAnimation,
-//                    value = defaultDropDownMenuValue,
-//                    isExpanded = isExpanded,
-//                    onExpanded = { isExpanded = !isExpanded },
-//                    onDismissed = { isExpanded = false },
-//                    onValueChanged = {
-//                        defaultDropDownMenuValue = it
-//                    },
-//                    flockOptions = flockOptions.values.toList(),
-//                    currencyLocale = currency.currencyLocale
-//                )
-//            }
-//        }
-//    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -170,7 +129,8 @@ fun MainAccountOverviewScreen(
     accountsTotalsList: List<AccountsSummary>,
     setAccountsList: (List<AccountsSummary>) -> List<Account>,
     flockList: List<Flock>,
-    currencyLocale: String
+    currencyLocale: String,
+    contentType: ContentType
 ) {
     // val overviewUiState by overviewViewModel.accountsList.collectAsState()
     // val flockList by homeViewModel.homeUiState.collectAsState()
@@ -203,7 +163,8 @@ fun MainAccountOverviewScreen(
             FlockManagementTopAppBar(
                 title = stringResource(AccountOverviewDestination.resourceId),
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         },
     ) { innerPadding ->

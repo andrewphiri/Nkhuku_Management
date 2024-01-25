@@ -5,6 +5,7 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.userinterface.navigation.TabScreens
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.Tabs
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -55,7 +56,8 @@ fun TransactionScreen(
     navigateToAddExpenseScreen: (Int, Int) -> Unit,
     userPrefsViewModel: UserPrefsViewModel,
     initialPage: Int = 0,
-    onPageChanged: (Int) -> Unit = {}
+    onPageChanged: (Int) -> Unit = {},
+    contentType: ContentType
 ) {
     val tabItems = listOf(TabScreens.Income, TabScreens.Expense)
     val pagerState = rememberPagerState(
@@ -72,7 +74,8 @@ fun TransactionScreen(
             FlockManagementTopAppBar(
                 canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp,
-                title = stringResource(TransactionsScreenDestination.resourceId)
+                title = stringResource(TransactionsScreenDestination.resourceId),
+                contentType = contentType
             )
         }
     ) { innerPadding ->

@@ -27,11 +27,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -83,7 +85,8 @@ fun AccountsScreen(
         AccountsAndDetailsScreen(
             accountsViewModel = accountsViewModel,
             userPrefsViewModel = userPrefsViewModel,
-            onClickSettings = {}
+            onClickSettings = {},
+            contentType = contentType
         )
     }
 }
@@ -97,7 +100,8 @@ fun AccountsAndDetailsScreen(
     expenseViewModel: ExpenseViewModel = hiltViewModel(),
     incomeViewModel: IncomeViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel,
-    onClickSettings: () -> Unit
+    onClickSettings: () -> Unit,
+    contentType: ContentType
 ) {
     val accountsSummaryList by accountsViewModel.accountsList.collectAsState()
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
@@ -111,7 +115,7 @@ fun AccountsAndDetailsScreen(
         Row(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(0.75f)
             ) {
                 MainAccountsScreen(
                     modifier = modifier,
@@ -122,7 +126,8 @@ fun AccountsAndDetailsScreen(
                         accountsViewModel.setAccountsID(it)
                     },
                     onClickSettings = onClickSettings,
-                    currencyLocale = currency.currencyLocale
+                    currencyLocale = currency.currencyLocale,
+                    contentType = contentType
                 )
             }
 
@@ -160,7 +165,8 @@ fun AccountsAndDetailsScreen(
                                 initialPage = currentPageTransactionScreen,
                                 onPageChanged = {
                                     currentPageTransactionScreen = it
-                                }
+                                },
+                                contentType = contentType
                             )
                         }
 
@@ -169,7 +175,8 @@ fun AccountsAndDetailsScreen(
                                 onNavigateUp = {
                                     currentScreen = AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN
                                 },
-                                userPrefsViewModel = userPrefsViewModel
+                                userPrefsViewModel = userPrefsViewModel,
+                                contentType = contentType
                             )
                         }
 
@@ -178,7 +185,8 @@ fun AccountsAndDetailsScreen(
                                 onNavigateUp = {
                                     currentScreen = AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN
                                 },
-                                userPrefsViewModel = userPrefsViewModel
+                                userPrefsViewModel = userPrefsViewModel,
+                                contentType = contentType
                             )
                         }
                     }
@@ -197,7 +205,8 @@ fun MainAccountsScreen(
     accountsSummaryList: List<AccountsSummary>,
     navigateToTransactionsScreen: (Int) -> Unit,
     onClickSettings: () -> Unit,
-    currencyLocale: String
+    currencyLocale: String,
+    contentType: ContentType = ContentType.LIST_ONLY,
 ) {
     var accountsList = accountsSummaryList.filter { it.flockActive }
     var isFilterMenuShowing by remember { mutableStateOf(false) }
@@ -211,11 +220,16 @@ fun MainAccountsScreen(
                 onClickFilter = {
                     isFilterMenuShowing = !isFilterMenuShowing
                 },
-                onClickSettings = onClickSettings
+                onClickSettings = onClickSettings,
+                contentType = contentType
             )
         }
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
+        Column(
+            modifier = Modifier
+                .wrapContentSize()
+                .padding(innerPadding)
+        ) {
             ShowFilterOverflowMenu(
                 modifier = Modifier.align(Alignment.End),
                 isOverflowMenuExpanded = isFilterMenuShowing,
@@ -242,7 +256,8 @@ fun MainAccountsScreen(
                         navigateToTransactionsScreen(accountSummary.id)
                     }
                 },
-                currencyLocale = currencyLocale
+                currencyLocale = currencyLocale,
+                contentType = contentType
             )
         }
     }
@@ -253,8 +268,10 @@ fun AccountsList(
     modifier: Modifier = Modifier,
     accountsList: List<AccountsSummary>,
     onItemClick: (AccountsSummary) -> Unit,
-    currencyLocale: String
+    currencyLocale: String,
+    contentType: ContentType
 ) {
+    var selectedItem by rememberSaveable { mutableStateOf(0) }
     if (accountsList.isEmpty()) {
         Box(
             modifier = modifier.fillMaxSize(),
@@ -268,14 +285,18 @@ fun AccountsList(
         }
     } else {
         LazyColumn(
-            modifier = modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = modifier,
         ) {
             itemsIndexed(accountsList) { index, accountsSummary ->
                 SummaryAccountsCard(
                     accountsSummary = accountsSummary,
-                    onAccountsClick = { onItemClick(accountsSummary) },
-                    currencyLocale = currencyLocale
+                    onAccountsClick = {
+                        selectedItem = it.id
+                        onItemClick(accountsSummary)
+                    },
+                    currencyLocale = currencyLocale,
+                    selectedID = selectedItem,
+                    contentType = contentType
                 )
             }
         }
@@ -287,10 +308,20 @@ fun AccountsList(
 fun SummaryAccountsCard(
     modifier: Modifier = Modifier,
     accountsSummary: AccountsSummary,
-    onAccountsClick: () -> Unit = {},
-    currencyLocale: String
+    onAccountsClick: (AccountsSummary) -> Unit = {},
+    currencyLocale: String,
+    selectedID: Int,
+    contentType: ContentType
 ) {
-    ElevatedCard(modifier = modifier.clickable(onClick = onAccountsClick)) {
+    val color = if (selectedID == accountsSummary.id && contentType == ContentType.LIST_AND_DETAIL)
+        CardDefaults.outlinedCardColors(containerColor = Color.LightGray) else
+        CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
+    OutlinedCard(
+        modifier = modifier
+            .padding(8.dp)
+            .clickable(onClick = { onAccountsClick(accountsSummary) }),
+        colors = color
+    ) {
 
         Box {
             if (!accountsSummary.flockActive) {
@@ -309,7 +340,7 @@ fun SummaryAccountsCard(
             }
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
@@ -318,7 +349,7 @@ fun SummaryAccountsCard(
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(),
                     thickness = Dp.Hairline,
                     color = MaterialTheme.colorScheme.tertiary
@@ -361,7 +392,7 @@ fun SummaryAccountsCard(
 //                    )
 //                }
 
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.fillMaxWidth(),
                         thickness = Dp.Hairline,
                         color = MaterialTheme.colorScheme.tertiary

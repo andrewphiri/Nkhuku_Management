@@ -30,6 +30,20 @@ class UserPreferencesRepository @Inject constructor(
             }
         }
 
+    val userSkipAccount: Flow<Boolean> = userPrefsDataStore.data
+        .map {
+            it.skipAccountSetup
+        }
+        .catch { exception ->
+            //dataStore throws an IOExeption when an error is encountered when reading data
+            if (exception is IOException) {
+                Log.i(TAG, "Error reading preferences", exception)
+                emit(UserPreferences.getDefaultInstance().skipAccountSetup)
+            } else {
+                throw exception
+            }
+        }
+
     /**
      * Enable/disable notifications
      */

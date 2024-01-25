@@ -1,7 +1,5 @@
 package and.drew.nkhukumanagement
 
-import and.drew.nkhukumanagement.auth.AuthUiClient
-import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuNavHost
@@ -9,6 +7,11 @@ import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.NavigationType
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,25 +26,21 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -52,44 +51,15 @@ import androidx.navigation.compose.rememberNavController
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NkhukuApp(
+    modifier: Modifier = Modifier,
     navHostController: NavHostController = rememberNavController(),
-    windowSize: WindowWidthSizeClass,
-    googleAuthUiClient: GoogleAuthUiClient,
-    authUiClient: AuthUiClient,
-    userPrefsViewModel: UserPrefsViewModel
+    navigationType: NavigationType,
+    contentType: ContentType,
+    userPrefsViewModel: UserPrefsViewModel,
+    isEmailVerified: Boolean,
+    isUserSignedIn: Boolean,
+    isAccountSetupSkipped: Boolean,
 ) {
-    val navigationType: NavigationType
-    val contentType: ContentType
-    val winSize = LocalConfiguration.current
-    when {
-        winSize.screenWidthDp >= 0 -> {
-            when (windowSize) {
-                WindowWidthSizeClass.Compact -> {
-                    navigationType = NavigationType.BOTTOM_NAVIGATION
-                    contentType = ContentType.LIST_ONLY
-                }
-
-                WindowWidthSizeClass.Medium -> {
-                    navigationType = NavigationType.NAVIGATION_RAIL
-                    contentType = ContentType.LIST_ONLY
-                }
-
-                WindowWidthSizeClass.Expanded -> {
-                    navigationType = NavigationType.PERMANENT_NAVIGATION_DRAWER
-                    contentType = ContentType.LIST_AND_DETAIL
-                }
-
-                else -> {
-                    navigationType = NavigationType.BOTTOM_NAVIGATION
-                    contentType = ContentType.LIST_ONLY
-                }
-            }
-        }
-
-        else -> {
-            throw IllegalArgumentException("Dp must be greater than zero")
-        }
-    }
 
     val screens = listOf(
         NavigationBarScreens.Home,
@@ -101,25 +71,44 @@ fun NkhukuApp(
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val navigationBarShowing = screens.any { it.route == currentDestination?.route }
-    var isIconSelected by remember { mutableStateOf(false) }
-    Scaffold(
-        bottomBar = {
-            BottomNavigationForApp(
-                navController = navHostController,
-                screens = screens,
-                isNavigationBarShowing = navigationBarShowing,
-                onChangeIconSelected = {
-                    isIconSelected = it
+
+    Box(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            AnimatedVisibility(
+                visible = navigationType == NavigationType.NAVIGATION_RAIL
+            ) {
+                NavigationRailForApp(
+                    navController = navHostController,
+                    screens = screens,
+                    isNavigationBarShowing = navigationBarShowing,
+                )
+            }
+            Scaffold(
+                bottomBar = {
+                    AnimatedVisibility(
+                        visible = navigationType == NavigationType.BOTTOM_NAVIGATION
+                    ) {
+                        BottomNavigationForApp(
+                            navController = navHostController,
+                            screens = screens,
+                            isNavigationBarShowing = navigationBarShowing
+                        )
+                    }
                 }
-            )
+            ) { innerPadding ->
+                NkhukuNavHost(
+                    navController = navHostController,
+                    modifier = Modifier.padding(innerPadding),
+                    contentType = contentType,
+                    userPrefsViewModel = userPrefsViewModel,
+                    isEmailVerified = isEmailVerified,
+                    isUserSignedIn = isUserSignedIn,
+                    isAccountSetupSkipped = isAccountSetupSkipped
+                )
+            }
         }
-    ) { innerPadding ->
-        NkhukuNavHost(
-            navController = navHostController,
-            modifier = Modifier.padding(innerPadding),
-            contentType = contentType,
-            userPrefsViewModel = userPrefsViewModel
-        )
     }
 }
 
@@ -130,29 +119,15 @@ fun NkhukuApp(
 fun BottomNavigationForApp(
     navController: NavController,
     isNavigationBarShowing: Boolean = true,
-    screens: List<NavigationBarScreens> = listOf(),
-    currentDestination: NavDestination? = navController.currentDestination,
-    isIconSelected: Boolean = false,
-    onChangeIconSelected: (Boolean) -> Unit
+    screens: List<NavigationBarScreens> = listOf()
 ) {
-
-    //var isIconSelected by remember { mutableStateOf(false) }
-
     if (isNavigationBarShowing) {
-        NavigationBar(
-        ) {
+        NavigationBar {
             screens.forEach { screen ->
-                screen.isIconSelected = isIconSelected
                 NavigationBarItem(
                     modifier = Modifier.semantics { contentDescription = screen.route },
                     icon = {
-                        onChangeIconSelected(currentDestination?.route == screen.route)
-                        // isIconSelected = currentDestination?.route == screen.route
-                        if (isIconSelected) {
-                            Icon(screen.iconSelected, contentDescription = "${screen.route} screen")
-                        } else {
-                            Icon(screen.icon, contentDescription = "${screen.route} screen")
-                        }
+                        Icon(screen.icon, contentDescription = "${screen.route} screen")
                     },
                     label = {
                         Text(
@@ -160,7 +135,7 @@ fun BottomNavigationForApp(
                             style = MaterialTheme.typography.labelSmall
                         )
                     },
-                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                    selected = navController.currentDestination?.route == screen.route,
                     onClick = {
                         navController.navigate(screen.route) {
                             // Pop up to the start destination of the graph to
@@ -178,6 +153,91 @@ fun BottomNavigationForApp(
                     }
                 )
             }
+        }
+    }
+}
+
+/**
+ * Navigation rail with 5 screens for the app
+ */
+@Composable
+fun NavigationRailForApp(
+    navController: NavController,
+    isNavigationBarShowing: Boolean = true,
+    screens: List<NavigationBarScreens> = listOf()
+) {
+    if (isNavigationBarShowing) {
+        NavigationRail {
+            Spacer(modifier = Modifier.weight(1f))
+            screens.forEach { screen ->
+                NavigationRailItem(
+                    modifier = Modifier.semantics { contentDescription = screen.route },
+                    alwaysShowLabel = false,
+                    icon = {
+                        Icon(screen.icon, contentDescription = "${screen.route} screen")
+                    },
+                    selected = navController.currentDestination?.route == screen.route,
+                    onClick = {
+                        navController.navigate(screen.route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            popUpTo(NavigationBarScreens.Home.route) {
+                                saveState = true
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+/**
+ * Bottom navigation with 5 screens for the app
+ */
+@Composable
+fun NavigationDrawerContent(
+    navController: NavController,
+    isNavigationBarShowing: Boolean = true,
+    screens: List<NavigationBarScreens> = listOf()
+) {
+    if (isNavigationBarShowing) {
+        screens.forEach { screen ->
+            NavigationDrawerItem(
+                modifier = Modifier.semantics { contentDescription = screen.route },
+                icon = {
+                    Icon(screen.icon, contentDescription = "${screen.route} screen")
+                },
+                label = {
+                    Text(
+                        stringResource(screen.resourceId),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                },
+                selected = navController.currentDestination?.route == screen.route,
+                onClick = {
+                    navController.navigate(screen.route) {
+                        // Pop up to the start destination of the graph to
+                        // avoid building up a large stack of destinations
+                        // on the back stack as users select items
+                        popUpTo(NavigationBarScreens.Home.route) {
+                            saveState = true
+                        }
+                        // Avoid multiple copies of the same destination when
+                        // reselecting the same item
+                        launchSingleTop = true
+                        // Restore state when reselecting a previously selected item
+                        restoreState = true
+                    }
+                }
+            )
         }
     }
 }
@@ -201,7 +261,8 @@ fun FlockManagementTopAppBar(
     isFilterButtonEnabled: Boolean = true,
     onSaveToDatabase: () -> Unit = {},
     onClickSettings: () -> Unit = {},
-    onClickFilter: () -> Unit = {}
+    onClickFilter: () -> Unit = {},
+    contentType: ContentType,
 ) {
     if (canNavigateBack) {
         TopAppBar(
@@ -272,17 +333,27 @@ fun FlockManagementTopAppBar(
                         )
                     }
                 }
-
-                IconButton(
-                    onClick = onClickSettings
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings"
-                    )
+                if (title == "Home" || title == "Accounts" || title == "Planner" || title == "Overview" || title == "Tips") {
+                    IconButton(
+                        onClick = onClickSettings
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
+                    }
+                } else {
+                    if (contentType != ContentType.LIST_AND_DETAIL) {
+                        IconButton(
+                            onClick = onClickSettings
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Settings"
+                            )
+                        }
+                    }
                 }
-
-
             }
         )
     }

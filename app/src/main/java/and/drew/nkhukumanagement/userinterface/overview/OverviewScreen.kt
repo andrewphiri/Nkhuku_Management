@@ -51,13 +51,15 @@ fun OverviewScreen(
             canNavigateBack = canNavigateBack,
             navigateToAccountOverviewScreen = navigateToAccountOverviewScreen,
             navigateToFlockOverviewScreen = navigateToFlockOverviewScreen,
-            onClickSettings = onClickSettings
+            onClickSettings = onClickSettings,
+            contentType = contentType
         )
     } else {
         OverviewAndDetailsScreen(
             modifier = modifier,
-            onClickSettings = {},
-            userPrefsViewModel = userPrefsViewModel
+            onClickSettings = onClickSettings,
+            userPrefsViewModel = userPrefsViewModel,
+            contentType = contentType
         )
     }
 
@@ -70,6 +72,7 @@ fun OverviewAndDetailsScreen(
     canNavigateBack: Boolean = false,
     onClickSettings: () -> Unit,
     userPrefsViewModel: UserPrefsViewModel,
+    contentType: ContentType
 ) {
     var showDetailsPane by rememberSaveable { mutableStateOf(false) }
     var currentScreen by rememberSaveable { mutableStateOf(OverViewDetailsCurrentScreen.ACCOUNTS_OVERVIEW_SCREEN) }
@@ -86,10 +89,10 @@ fun OverviewAndDetailsScreen(
                         showDetailsPane = true
                         currentScreen = OverViewDetailsCurrentScreen.FLOCK_OVERVIEW_SCREEN
                     },
-                    onClickSettings = onClickSettings
+                    onClickSettings = onClickSettings,
+                    contentType = contentType
                 )
             }
-
             Spacer(
                 modifier = Modifier
                     .weight(0.001f)
@@ -106,14 +109,16 @@ fun OverviewAndDetailsScreen(
                             AccountOverviewScreen(
                                 canNavigateBack = false,
                                 onNavigateUp = {},
-                                userPrefsViewModel = userPrefsViewModel
+                                userPrefsViewModel = userPrefsViewModel,
+                                contentType = contentType
                             )
                         }
 
                         OverViewDetailsCurrentScreen.FLOCK_OVERVIEW_SCREEN -> {
                             FlockOverviewScreen(
                                 canNavigateBack = false,
-                                onNavigateUp = {}
+                                onNavigateUp = {},
+                                contentType = contentType
                             )
                         }
                     }
@@ -131,14 +136,16 @@ fun MainOverViewScreen(
     canNavigateBack: Boolean = false,
     navigateToAccountOverviewScreen: () -> Unit,
     navigateToFlockOverviewScreen: () -> Unit,
-    onClickSettings: () -> Unit
+    onClickSettings: () -> Unit,
+    contentType: ContentType
 ) {
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Overview.resourceId),
                 canNavigateBack = canNavigateBack,
-                onClickSettings = onClickSettings
+                onClickSettings = onClickSettings,
+                contentType = contentType
             )
         }
     ) { innerPadding ->
@@ -168,7 +175,7 @@ fun OverviewScreenCardList(
         item {
             BaseCard(
                 onCardClick = onAccountOverviewCardClick,
-                contentDescription = "Account Overview",
+                description = "Account Overview",
                 label = "Accounts",
                 imageVector = Icons.Default.AttachMoney,
             )
@@ -176,7 +183,7 @@ fun OverviewScreenCardList(
         item {
             BaseCard(
                 onCardClick = onFlockOverviewCardClick,
-                contentDescription = "Flock Overview",
+                description = "Flock Overview",
                 label = "Flock",
                 imageVector = Icons.Default.Inventory,
             )

@@ -9,6 +9,7 @@ import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.MainAddFlockScreen
 import and.drew.nkhukumanagement.userinterface.home.MainHomeScreen
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuNavHost
+import and.drew.nkhukumanagement.utils.ContentType
 import android.content.Context
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.assertIsDisplayed
@@ -153,7 +154,8 @@ class ScreenTests {
                 deleteFlock = {},
                 resetFlock = {},
                 onClose = {},
-                flocks = dummyFlockList
+                flocks = dummyFlockList,
+                contentType = ContentType.LIST_ONLY
             )
 
         }
@@ -177,7 +179,8 @@ class ScreenTests {
                 onItemValueChange = viewModel::updateUiState,
                 flockUiState = viewModel.flockUiState,
                 canNavigateBack = true,
-                currencySymbol = "ZMW"
+                currencySymbol = "ZMW",
+                contentType = ContentType.LIST_ONLY
             )
         }
 
@@ -208,15 +211,16 @@ class ScreenTests {
             .performClick()
             .assertExists()
     }
-
-
     @Test
     fun detailsScreenTest() {
         composeRule.activity.setContent {
             userPrefsViewModel = hiltViewModel()
             NkhukuNavHost(
                 navController = navController,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                isAccountSetupSkipped = false,
+                isEmailVerified = false,
+                isUserSignedIn = false
             )
         }
         composeRule

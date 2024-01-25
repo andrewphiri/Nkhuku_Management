@@ -27,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,14 +54,15 @@ fun TipsScreen(
     tipsViewModel: TipsViewModel = hiltViewModel(),
     articleViewModel: ArticleViewModel = hiltViewModel(),
     googleAuthUiClient: GoogleAuthUiClient,
-    contentType: ContentType
+    contentType: ContentType,
+    isUserSignedIn: Boolean
 ) {
-    val userSignedIn by signInViewModel.userLoggedIn.collectAsState(initial = false)
-    LaunchedEffect(
-        key1 = signInViewModel.userLoggedIn
-    ) {
-        signInViewModel.setUserLoggedIn(loggedIn = googleAuthUiClient.getSignedInUser() != null)
-    }
+//    val userSignedIn by signInViewModel.userLoggedIn.collectAsState(initial = false)
+//    LaunchedEffect(
+//        key1 = signInViewModel.userLoggedIn
+//    ) {
+//        signInViewModel.setUserLoggedIn(loggedIn = googleAuthUiClient.getSignedInUser() != null)
+//    }
 
     if (contentType == ContentType.LIST_ONLY) {
         MainTipsScreen(
@@ -70,18 +70,20 @@ fun TipsScreen(
             canNavigateBack = canNavigateBack,
             navigateToArticlesListScreen = navigateToArticlesListScreen,
             onClickSettings = onClickSettings,
-            isUserSignedIn = userSignedIn,
-            navigateToLoginScreen = navigateToLoginScreen
+            isUserSignedIn = isUserSignedIn,
+            navigateToLoginScreen = navigateToLoginScreen,
+            contentType = contentType
         )
     } else {
         TipsAndDetailsScreen(
             modifier = modifier,
             canNavigateBack = canNavigateBack,
             onClickSettings = onClickSettings,
-            isUserSignedIn = userSignedIn,
+            isUserSignedIn = isUserSignedIn,
             articleViewModel = articleViewModel,
             tipsViewModel = tipsViewModel,
-            navigateToLoginScreen = navigateToLoginScreen
+            navigateToLoginScreen = navigateToLoginScreen,
+            contentType = contentType
         )
     }
 
@@ -96,7 +98,8 @@ fun TipsAndDetailsScreen(
     articleViewModel: ArticleViewModel,
     onClickSettings: () -> Unit,
     isUserSignedIn: Boolean,
-    navigateToLoginScreen: () -> Unit
+    navigateToLoginScreen: () -> Unit,
+    contentType: ContentType,
 ) {
     var currentScreen by rememberSaveable { mutableStateOf(TipsAndDetailsCurrentScreen.ARTICLES_LIST_SCREEN) }
     var showDetailsPane by rememberSaveable { mutableStateOf(false) }
@@ -119,7 +122,8 @@ fun TipsAndDetailsScreen(
                     },
                     onClickSettings = onClickSettings,
                     isUserSignedIn = isUserSignedIn,
-                    navigateToLoginScreen = navigateToLoginScreen
+                    navigateToLoginScreen = navigateToLoginScreen,
+                    contentType = contentType
                 )
             }
 
@@ -145,7 +149,8 @@ fun TipsAndDetailsScreen(
                                         TipsAndDetailsCurrentScreen.SINGLE_ARTICLE_SCREEN
                                     articleViewModel.setCategoryID(categoryId)
                                     articleViewModel.setArticleID(articleId)
-                                }
+                                },
+                                contentType = contentType
                             )
                         }
 
@@ -154,7 +159,8 @@ fun TipsAndDetailsScreen(
                                 canNavigateBack = true,
                                 onNavigateUp = {
                                     currentScreen = TipsAndDetailsCurrentScreen.ARTICLES_LIST_SCREEN
-                                }
+                                },
+                                contentType = contentType
                             )
                         }
                     }
@@ -173,7 +179,8 @@ fun MainTipsScreen(
     navigateToArticlesListScreen: (String, Int) -> Unit,
     navigateToLoginScreen: () -> Unit,
     onClickSettings: () -> Unit,
-    isUserSignedIn: Boolean
+    isUserSignedIn: Boolean,
+    contentType: ContentType,
 ) {
     Scaffold(
         modifier = modifier,
@@ -181,7 +188,8 @@ fun MainTipsScreen(
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Tips.resourceId),
                 canNavigateBack = canNavigateBack,
-                onClickSettings = onClickSettings
+                onClickSettings = onClickSettings,
+                contentType = contentType
             )
         }
     ) { innerPadding ->
@@ -250,7 +258,7 @@ fun CategoriesList(
                         tipCategory.id
                     )
                 },
-                contentDescription = tipCategory.contentDescription,
+                description = tipCategory.contentDescription,
                 imageVector = tipCategory.icon,
                 label = stringResource(tipCategory.resourceId)
             )

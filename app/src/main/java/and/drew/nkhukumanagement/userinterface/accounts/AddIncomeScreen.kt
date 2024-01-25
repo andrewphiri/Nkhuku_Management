@@ -8,6 +8,7 @@ import and.drew.nkhukumanagement.data.AccountsWithIncome
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import and.drew.nkhukumanagement.utils.currencySymbol
@@ -96,7 +97,8 @@ fun AddIncomeScreen(
     accountsViewModel: AccountsViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel,
     canNavigateBack: Boolean = true,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    contentType: ContentType
 ) {
     val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState(
         AccountsWithIncome(
@@ -118,30 +120,12 @@ fun AddIncomeScreen(
         ).toIncome()
     )
     val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scrollState = rememberScrollState()
 
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
 
-    //if id is 0, set initial date to today's date else get date from income
-    val dateState = if (incomeViewModel.incomeUiState.id == 0) rememberDatePickerState(
-        initialDisplayMode = DisplayMode.Picker,
-        initialSelectedDateMillis = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
-            .toEpochMilli()
-    )
-    else rememberDatePickerState(
-        initialDisplayMode = DisplayMode.Picker,
-        initialSelectedDateMillis = income.date
-            .atStartOfDay()
-            .atZone(ZoneId.of("UTC")).toInstant().toEpochMilli())
-
-
-    var isUpdateButtonEnabled by remember { mutableStateOf(false) }
-    var showDialog by remember { mutableStateOf(false) }
     var title by remember { mutableStateOf("") }
-    val context = LocalContext.current
     title = stringResource(AddIncomeScreenDestination.resourceId)
 
     /**
@@ -182,105 +166,9 @@ fun AddIncomeScreen(
         incomeIDArg = incomeViewModel.incomeID.value,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
-        currencySymbol = currency.symbol
+        currencySymbol = currency.symbol,
+        contentType = contentType
     )
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = if (incomeViewModel.incomeUiState.id > 0) context.resources.getString(R.string.edit_income)
-//                else title,
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        },
-//        snackbarHost = { SnackbarHost(snackbarHostState) }
-//    ) { innerPadding ->
-////        Log.i("INCOME", income.toIncomeUiState(true).toString())
-////        Log.i("INCOMEUISTATE", incomeViewModel.incomeUiState.toString())
-//        isUpdateButtonEnabled = if (incomeViewModel.incomeID > 0) incomeViewModel.incomeUiState !=
-//                income.toIncomeUiState(enabled = true) else incomeViewModel.incomeUiState.enabled
-//
-//        Column(
-//            modifier = modifier.verticalScroll(
-//                state = scrollState
-//            ).padding(innerPadding)
-//        ) {
-//            AddIncomeCard(
-//                incomeUiState = incomeViewModel.incomeUiState,
-//                onValueChanged = incomeViewModel::updateState,
-//                onNavigateUp = onNavigateUp,
-//                isUpdateButtonEnabled = isUpdateButtonEnabled,
-//                onSaveIncome = {
-//                    if (incomeViewModel.incomeID > 0) {
-//                        if (handleNumberExceptions(incomeViewModel.incomeUiState)) {
-//                            coroutineScope.launch {
-//                                incomeViewModel.updateIncome(
-//                                    incomeViewModel.incomeUiState.copy(
-//                                        cumulativeTotalIncome = calculateCumulativeIncomeUpdate(
-//                                            incomeViewModel.incomeUiState.cumulativeTotalIncome,
-//                                            totalIncome = incomeViewModel.incomeUiState.totalIncome,
-//                                            initialItemIncome = incomeViewModel.incomeUiState.initialItemIncome
-//                                        ).toString()
-//                                    )
-//                                )
-//                                accountsViewModel.updateAccount(
-//                                accountsSummary = accountsWithIncome.accountsSummary,
-//                                    incomeUiState = incomeViewModel.incomeUiState
-//                                )
-//                            }.invokeOnCompletion { onNavigateUp() }
-//                        } else {
-//                            coroutineScope.launch {
-//                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
-//                            }
-//                        }
-//                    } else {
-//                        if (handleNumberExceptions(incomeViewModel.incomeUiState)) {
-//                            coroutineScope.launch {
-//                                incomeViewModel.insertIncome(
-//                                    incomeViewModel.incomeUiState.copy(
-//                                        flockUniqueID = accountsWithIncome.accountsSummary.flockUniqueID,
-//                                        cumulativeTotalIncome = calculateCumulativeIncome(
-//                                            initialIncome = accountsWithIncome.accountsSummary.totalIncome.toString(),
-//                                            totalIncome = incomeViewModel.incomeUiState.totalIncome
-//                                        ).toString()
-//                                    )
-//                                )
-//                                accountsViewModel.updateAccount(
-//                                        accountsSummary = accountsWithIncome.accountsSummary,
-//                                        incomeUiState = incomeViewModel.incomeUiState
-//                                )
-//                            }.invokeOnCompletion { onNavigateUp() }
-//                        } else {
-//                            coroutineScope.launch {
-//                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
-//                            }
-//                        }
-//                    }
-//                },
-//                showDialog = showDialog,
-//                onDismissed = { showDialog = false },
-//                updateShowDialogOnClick = { showDialog = true },
-//                label = "Date",
-//                state = dateState,
-//                saveDateSelected = { dateState ->
-//                    val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
-//                        DateUtils().convertMillisToLocalDate(
-//                            millis
-//                        )
-//                    }
-//                    val localDateToString = millisToLocalDate?.let { date ->
-//                        DateUtils().dateToStringShortFormat(
-//                            date
-//                        )
-//                    }
-//                    localDateToString
-//                },
-//                currencySymbol = currency.symbol
-//            )
-//        }
-//
-//    }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -299,6 +187,7 @@ fun MainAddIncomeScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     currencySymbol: String,
+    contentType: ContentType
 ) {
     BackHandler {
         onNavigateUp()
@@ -344,7 +233,8 @@ fun MainAddIncomeScreen(
                 title = if (incomeUiState.id > 0) context.resources.getString(R.string.edit_income)
                 else title,
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

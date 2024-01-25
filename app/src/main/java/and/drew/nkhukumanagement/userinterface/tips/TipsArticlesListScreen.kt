@@ -3,6 +3,7 @@ package and.drew.nkhukumanagement.userinterface.tips
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.ui.theme.sapphireBlue
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
@@ -64,7 +65,8 @@ fun TipsArticlesListScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     navigateToReadArticle: (Int, String) -> Unit,
-    tipsViewModel: TipsViewModel = hiltViewModel()
+    tipsViewModel: TipsViewModel = hiltViewModel(),
+    contentType: ContentType
 ) {
     val coroutineScope = rememberCoroutineScope()
     val tipsCategories = listOf(
@@ -94,7 +96,8 @@ fun TipsArticlesListScreen(
             }
         },
         articleIdCategory = tipsViewModel.articleIdCategory.value,
-        title = tipsViewModel.title.value
+        title = tipsViewModel.title.value,
+        contentType = contentType
     )
 }
 
@@ -108,7 +111,8 @@ fun MainTipsArticlesListScreen(
     articles: List<Article>,
     generateArticles: (Int) -> Unit,
     articleIdCategory: Int,
-    title: String
+    title: String,
+    contentType: ContentType
 ) {
 
     LaunchedEffect(articles) {
@@ -119,7 +123,8 @@ fun MainTipsArticlesListScreen(
             FlockManagementTopAppBar(
                 title = title,
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         }
     ) { innerPadding ->

@@ -6,6 +6,7 @@ import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.SignInViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -35,9 +37,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +52,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 object AccountInformationDestination : NkhukuDestinations {
@@ -67,12 +72,14 @@ fun AccountInfoScreen(
     authUiClient: AuthUiClient,
     navigateToSignInScreen: () -> Unit,
     signInViewModel: SignInViewModel,
-    onNavigateToConfirmAccountScreen: () -> Unit
+    onNavigateToConfirmAccountScreen: () -> Unit,
+    contentType: ContentType
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var emailSignedIn by remember { mutableStateOf("") }
     val emailVerified by signInViewModel.emailVerified.collectAsState()
+    var isCircularIndicatorShowing by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(key1 = emailVerified) {
         signInViewModel.setEmailVerification(
             emailVerified = authUiClient.isEmailVerified()
@@ -87,26 +94,51 @@ fun AccountInfoScreen(
             FlockManagementTopAppBar(
                 title = title,
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         }
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
-            AccountInfoCard(
-                email = emailSignedIn,
-                onNavigateUp = onNavigateUp,
-                onSignOut = {
-                    coroutineScope.launch {
-                        authUiClient.signOut()
-                        signInViewModel.resetState()
-                        signInViewModel.setUserLoggedIn(false)
-                    }
-                },
-                onNavigateToConfirmAccountScreen = onNavigateToConfirmAccountScreen,
-                navigateToSignInScreen = navigateToSignInScreen,
-                isEmailVerified = emailVerified
-            )
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isCircularIndicatorShowing) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+            }
+            Column(
+                modifier = Modifier.alpha(if (isCircularIndicatorShowing) 0.5f else 1f)
+            ) {
+                AccountInfoCard(
+                    email = emailSignedIn,
+                    onNavigateUp = onNavigateUp,
+                    onSignOut = {
+                        coroutineScope.launch {
+                            isCircularIndicatorShowing = true
+                            delay(3000)
+                            authUiClient.signOut()
+                            signInViewModel.resetState()
+                            signInViewModel.setUserLoggedIn(false)
+                            isCircularIndicatorShowing = false
+                            navigateToSignInScreen()
+                        }
+                    },
+                    onNavigateToConfirmAccountScreen = onNavigateToConfirmAccountScreen,
+                    navigateToSignInScreen = navigateToSignInScreen,
+                    isEmailVerified = emailVerified,
+                    isButtonEnabled = !isCircularIndicatorShowing
+                )
+            }
         }
+
     }
 }
 
@@ -118,12 +150,13 @@ fun AccountInfoCard(
     onNavigateUp: () -> Unit,
     onSignOut: () -> Unit,
     onNavigateToConfirmAccountScreen: () -> Unit,
-    navigateToSignInScreen: () -> Unit
+    navigateToSignInScreen: () -> Unit,
+    isButtonEnabled: Boolean
 ) {
 
     if (email == "null") {
         Box(
-            modifier = modifier.fillMaxSize().padding(16.dp),
+            modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -152,7 +185,6 @@ fun AccountInfoCard(
     } else {
         Box(
             modifier = modifier
-                .padding(16.dp)
                 .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
@@ -199,6 +231,7 @@ fun AccountInfoCard(
                     OutlinedButton(
                         border = BorderStroke(0.dp, color = Color.Transparent),
                         onClick = onNavigateUp,
+                        enabled = isButtonEnabled
                     ) {
                         Text(
                             text = "Back",
@@ -209,6 +242,7 @@ fun AccountInfoCard(
                     OutlinedButton(
                         border = BorderStroke(0.dp, color = Color.Transparent),
                         onClick = onSignOut,
+                        enabled = isButtonEnabled
                     ) {
                         Text(
                             style = MaterialTheme.typography.bodyLarge,
@@ -221,7 +255,10 @@ fun AccountInfoCard(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(onClick = onNavigateToConfirmAccountScreen)
+                        .clickable(
+                            onClick = onNavigateToConfirmAccountScreen,
+                            enabled = isButtonEnabled
+                        )
                         .padding(vertical = 8.dp),
                     textAlign = TextAlign.Center,
                     text = "Delete",

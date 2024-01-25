@@ -3,6 +3,7 @@ package and.drew.nkhukumanagement.userinterface.tips
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -59,7 +60,8 @@ fun ReadArticleScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    articleViewModel: ArticleViewModel = hiltViewModel()
+    articleViewModel: ArticleViewModel = hiltViewModel(),
+    contentType: ContentType
 ) {
     val coroutineScope = rememberCoroutineScope()
     val article by articleViewModel.article.collectAsState(
@@ -80,7 +82,8 @@ fun ReadArticleScreen(
             }
         },
         categoryId = articleViewModel.categoryId.value,
-        articleId = articleViewModel.articleId.value
+        articleId = articleViewModel.articleId.value,
+        contentType = contentType
     )
 }
 
@@ -93,7 +96,8 @@ fun MainReadArticleScreen(
     article: Article,
     generateSingleArticle: (Int, String) -> Unit,
     categoryId: Int,
-    articleId: String
+    articleId: String,
+    contentType: ContentType
 ) {
 
     BackHandler {
@@ -110,7 +114,8 @@ fun MainReadArticleScreen(
             FlockManagementTopAppBar(
                 title = article.title,
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         }
     ) { innerPadding ->

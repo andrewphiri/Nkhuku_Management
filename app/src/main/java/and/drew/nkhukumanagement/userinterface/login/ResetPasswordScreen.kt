@@ -7,6 +7,7 @@ import and.drew.nkhukumanagement.auth.SignInViewModel
 import and.drew.nkhukumanagement.auth.UserUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.BaseSignInRow
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -63,7 +64,8 @@ fun ResetPasswordScreen(
     onNavigateUp: () -> Unit,
     authUiClient: AuthUiClient,
     signInViewModel: SignInViewModel,
-    navigateToAccountSetupScreen: () -> Unit
+    navigateToAccountSetupScreen: () -> Unit,
+    contentType: ContentType
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isSendingResetLinkButtonLoading by remember { mutableStateOf(false) }
@@ -72,16 +74,6 @@ fun ResetPasswordScreen(
     var isPasswordResetLinkDialogSuccessShowing by remember { mutableStateOf(false) }
     var isResetLinkSuccessfullySent by remember { mutableStateOf(false) }
 
-//    LaunchedEffect(key1 = isResetLinkSuccessfullySent) {
-//        if (isResetLinkSuccessfullySent) {
-//            isPasswordResetLinkDialogSuccessShowing = true
-//        } else {
-//            snackbarHostState.showSnackbar(message = "Invalid email address. Please provide a valid" +
-//                    " email address and try again.",
-//                duration = SnackbarDuration.Long)
-//        }
-//
-//    }
 
     Scaffold(
         modifier = modifier,
@@ -92,7 +84,8 @@ fun ResetPasswordScreen(
                 navigateUp = {
                     signInViewModel.updateUiStateSignIn(UserUiState(email = "", password = ""))
                     onNavigateUp()
-                }
+                },
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

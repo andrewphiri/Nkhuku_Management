@@ -1,6 +1,5 @@
 package and.drew.nkhukumanagement.userinterface.navigation
 
-import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
 import and.drew.nkhukumanagement.auth.SignInViewModel
@@ -21,7 +20,6 @@ import and.drew.nkhukumanagement.userinterface.feed.FeedScreenDestination
 import and.drew.nkhukumanagement.userinterface.flock.AddFlockDestination
 import and.drew.nkhukumanagement.userinterface.flock.AddFlockScreen
 import and.drew.nkhukumanagement.userinterface.flock.EditFlockDestination
-import and.drew.nkhukumanagement.userinterface.flock.EditFlockViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsScreen
 import and.drew.nkhukumanagement.userinterface.flock.FlockEditScreen
@@ -62,7 +60,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -83,7 +80,10 @@ fun NkhukuNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     userPrefsViewModel: UserPrefsViewModel,
-    contentType: ContentType = ContentType.LIST_ONLY
+    contentType: ContentType = ContentType.LIST_ONLY,
+    isEmailVerified: Boolean,
+    isUserSignedIn: Boolean,
+    isAccountSetupSkipped: Boolean,
 ) {
     val appContext = LocalContext.current
     val googleAuthUiClient by lazy {
@@ -102,26 +102,11 @@ fun NkhukuNavHost(
     val flockEntryViewModel: FlockEntryViewModel = hiltViewModel()
     val plannerViewModel: PlannerViewModel = hiltViewModel()
     val signInViewModel = viewModel<SignInViewModel>()
-//    val userPrefsViewModel: UserPrefsViewModel = hiltViewModel(),
-    val editFlockViewModel: EditFlockViewModel = hiltViewModel()
-    val emailVerified by signInViewModel.emailVerified.collectAsState()
-    val userSignedIn by signInViewModel.userLoggedIn.collectAsState(initial = false)
-    val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
-        initial = UserPreferences.getDefaultInstance()
-    )
+//
+//        signInViewModel.setUserLoggedIn(loggedIn = googleAuthUiClient.getSignedInUser() != null)
+//        signInViewModel.setEmailVerification(emailVerified = authUiClient.isEmailVerified())
 
-    LaunchedEffect(
-        key1 = signInViewModel.userLoggedIn,
-        key2 = signInViewModel.emailVerified
-    ) {
-        signInViewModel.setUserLoggedIn(loggedIn = googleAuthUiClient.getSignedInUser() != null)
-        signInViewModel.setEmailVerification(emailVerified = authUiClient.isEmailVerified())
-    }
-//    signInViewModel.setUserLoggedIn(loggedIn = googleAuthUiClient.getSignedInUser() != null)
-//    signInViewModel.setEmailVerification(emailVerified = authUiClient.isEmailVerified())
-
-
-    if ((userSignedIn && emailVerified) || userPreferences.skipAccountSetup) {
+    if ((isUserSignedIn && isEmailVerified) || isAccountSetupSkipped) {
         // User is signed in, show the HomeGraph
         NavHost(
             navController = navController,
@@ -134,14 +119,16 @@ fun NkhukuNavHost(
                 signInViewModel = signInViewModel,
                 googleAuthUiClient = googleAuthUiClient,
                 authUiClient = authUiClient,
-                isEmailVerified = emailVerified,
-                userPrefsViewModel = userPrefsViewModel
+                isEmailVerified = isEmailVerified,
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
 
             loginGraphVerification(
                 navController = navController,
                 signInViewModel = signInViewModel,
-                authUiClient = authUiClient
+                authUiClient = authUiClient,
+                contentType = contentType
             )
 
             homeGraph(
@@ -155,25 +142,29 @@ fun NkhukuNavHost(
                 },
                 googleAuthUiClient = googleAuthUiClient,
                 contentType = contentType,
+                isUserSignedIn = isUserSignedIn
             )
             detailsGraph(
                 navController = navController,
-                flockEntryViewModel = flockEntryViewModel
+                flockEntryViewModel = flockEntryViewModel,
+                contentType = contentType
             )
             accountDetailsGraph(
                 navController = navController,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
             settingsGraph(
                 navController = navController,
                 signInViewModel = signInViewModel,
                 authUiClient = authUiClient,
                 googleAuthUiClient = googleAuthUiClient,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
 
-    } else if (userSignedIn) {
+    } else if (isUserSignedIn) {
         NavHost(
             navController = navController,
             startDestination = GraphRoutes.VERIFICATION,
@@ -183,15 +174,17 @@ fun NkhukuNavHost(
             loginGraphVerification(
                 navController = navController,
                 signInViewModel = signInViewModel,
-                authUiClient = authUiClient
+                authUiClient = authUiClient,
+                contentType = contentType
             )
             loginGraph(
                 navController = navController,
                 signInViewModel = signInViewModel,
                 googleAuthUiClient = googleAuthUiClient,
                 authUiClient = authUiClient,
-                isEmailVerified = emailVerified,
-                userPrefsViewModel = userPrefsViewModel
+                isEmailVerified = isEmailVerified,
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
 
             homeGraph(
@@ -205,21 +198,25 @@ fun NkhukuNavHost(
                 },
                 googleAuthUiClient = googleAuthUiClient,
                 contentType = contentType,
+                isUserSignedIn = isUserSignedIn
             )
             detailsGraph(
                 navController = navController,
-                flockEntryViewModel = flockEntryViewModel
+                flockEntryViewModel = flockEntryViewModel,
+                contentType = contentType
             )
             accountDetailsGraph(
                 navController = navController,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
             settingsGraph(
                 navController = navController,
                 signInViewModel = signInViewModel,
                 authUiClient = authUiClient,
                 googleAuthUiClient = googleAuthUiClient,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
 
@@ -237,14 +234,16 @@ fun NkhukuNavHost(
                 signInViewModel = signInViewModel,
                 googleAuthUiClient = googleAuthUiClient,
                 authUiClient = authUiClient,
-                isEmailVerified = emailVerified,
-                userPrefsViewModel = userPrefsViewModel
+                isEmailVerified = isEmailVerified,
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
 
             loginGraphVerification(
                 navController = navController,
                 signInViewModel = signInViewModel,
-                authUiClient = authUiClient
+                authUiClient = authUiClient,
+                contentType = contentType
             )
 
             homeGraph(
@@ -258,21 +257,25 @@ fun NkhukuNavHost(
                 },
                 googleAuthUiClient = googleAuthUiClient,
                 contentType = contentType,
+                isUserSignedIn = isUserSignedIn
             )
             detailsGraph(
                 navController = navController,
                 flockEntryViewModel = flockEntryViewModel,
+                contentType = contentType
             )
             accountDetailsGraph(
                 navController = navController,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
             settingsGraph(
                 navController = navController,
                 signInViewModel = signInViewModel,
                 authUiClient = authUiClient,
                 googleAuthUiClient = googleAuthUiClient,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
     }
@@ -285,7 +288,8 @@ fun NavGraphBuilder.loginGraph(
     googleAuthUiClient: GoogleAuthUiClient,
     authUiClient: AuthUiClient,
     isEmailVerified: Boolean,
-    userPrefsViewModel: UserPrefsViewModel
+    userPrefsViewModel: UserPrefsViewModel,
+    contentType: ContentType
 ) {
     navigation(
         route = GraphRoutes.AUTH,
@@ -341,7 +345,8 @@ fun NavGraphBuilder.loginGraph(
                     navController.navigate(route = AccountSetupDestination.route)
                 },
                 signInViewModel = signInViewModel,
-                authUiClient = authUiClient
+                authUiClient = authUiClient,
+                contentType = contentType
             )
         }
     }
@@ -352,6 +357,7 @@ fun NavGraphBuilder.loginGraphVerification(
     navController: NavHostController,
     signInViewModel: SignInViewModel,
     authUiClient: AuthUiClient,
+    contentType: ContentType
 ) {
     navigation(
         route = GraphRoutes.VERIFICATION,
@@ -372,7 +378,8 @@ fun NavGraphBuilder.loginGraphVerification(
                 signInViewModel = signInViewModel,
                 onClickSettings = {
                     navController.navigate(SettingsDestination.route)
-                }
+                },
+                contentType = contentType
             )
         }
     }
@@ -388,6 +395,7 @@ fun NavGraphBuilder.homeGraph(
     onClickSettings: () -> Unit,
     googleAuthUiClient: GoogleAuthUiClient,
     contentType: ContentType,
+    isUserSignedIn: Boolean
 ) {
     navigation(
         route = GraphRoutes.HOME,
@@ -423,7 +431,8 @@ fun NavGraphBuilder.homeGraph(
             PlannerScreen(
                 navigateToResultsScreen = { navController.navigate(PlannerResultsDestination.route) },
                 plannerViewModel = plannerViewModel,
-                onClickSettings = onClickSettings
+                onClickSettings = onClickSettings,
+                contentType = contentType
             )
         }
 
@@ -435,6 +444,7 @@ fun NavGraphBuilder.homeGraph(
                 onClickSettings = onClickSettings,
                 googleAuthUiClient = googleAuthUiClient,
                 contentType = contentType,
+                isUserSignedIn = isUserSignedIn,
                 navigateToLoginScreen = {
                     navController.navigate(route = AccountSetupDestination.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -456,7 +466,8 @@ fun NavGraphBuilder.homeGraph(
                 onNavigateUp = { navController.navigateUp() },
                 navigateToReadArticle = { categoryId, articleId ->
                     navController.navigate("${ReadArticleDestination.route}/$categoryId/$articleId")
-                }
+                },
+                contentType = contentType
             )
 
         }
@@ -466,7 +477,8 @@ fun NavGraphBuilder.homeGraph(
             arguments = ReadArticleDestination.arguments
         ) {
             ReadArticleScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                contentType = contentType
             )
         }
 
@@ -492,8 +504,9 @@ fun NavGraphBuilder.homeGraph(
                     val id = it.id
                     navController.navigate(route = "${AddVaccinationsDestination.route}/$id")
                 },
-                viewModel = flockEntryViewModel,
-                userPrefsViewModel = userPrefsViewModel
+                flockEntryViewModel = flockEntryViewModel,
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
         composable(
@@ -514,24 +527,28 @@ fun NavGraphBuilder.homeGraph(
                 },
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
         composable(route = PlannerResultsDestination.route) {
             PlannerResultScreen(
                 onNavigateUp = { navController.navigateUp() },
-                plannerViewModel = plannerViewModel
+                plannerViewModel = plannerViewModel,
+                contentType = contentType
             )
         }
         composable(route = AccountOverviewDestination.route) {
             AccountOverviewScreen(
                 onNavigateUp = { navController.navigateUp() },
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
         composable(route = FlockOverviewDestination.route) {
             FlockOverviewScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                contentType = contentType
             )
         }
 
@@ -543,7 +560,8 @@ fun NavGraphBuilder.settingsGraph(
     signInViewModel: SignInViewModel,
     authUiClient: AuthUiClient,
     googleAuthUiClient: GoogleAuthUiClient,
-    userPrefsViewModel: UserPrefsViewModel
+    userPrefsViewModel: UserPrefsViewModel,
+    contentType: ContentType
 ) {
     navigation(
         route = GraphRoutes.SETTINGS,
@@ -553,7 +571,8 @@ fun NavGraphBuilder.settingsGraph(
             SettingsScreen(
                 onNavigateUp = { navController.navigateUp() },
                 userPrefsViewModel = userPrefsViewModel,
-                navigateToAccountInfoScreen = { navController.navigate(route = AccountInformationDestination.route) }
+                navigateToAccountInfoScreen = { navController.navigate(route = AccountInformationDestination.route) },
+                contentType = contentType
             )
         }
         composable(route = AccountInformationDestination.route) {
@@ -574,7 +593,8 @@ fun NavGraphBuilder.settingsGraph(
                 signInViewModel = signInViewModel,
                 onNavigateToConfirmAccountScreen = {
                     navController.navigate(route = ReauthenticationScreenDestination.route)
-                }
+                },
+                contentType = contentType,
             )
         }
         composable(route = ReauthenticationScreenDestination.route) {
@@ -583,7 +603,7 @@ fun NavGraphBuilder.settingsGraph(
                 onNavigateUp = { navController.navigateUp() },
                 googleAuthUiClient = googleAuthUiClient,
                 signInViewModel = signInViewModel,
-
+                contentType = contentType
                 )
         }
     }
@@ -592,6 +612,7 @@ fun NavGraphBuilder.settingsGraph(
 fun NavGraphBuilder.detailsGraph(
     navController: NavHostController,
     flockEntryViewModel: FlockEntryViewModel,
+    contentType: ContentType
 ) {
     navigation(
         route = GraphRoutes.DETAILS,
@@ -628,7 +649,8 @@ fun NavGraphBuilder.detailsGraph(
                 },
                 navigateToFeedScreen = { id ->
                     navController.navigate(route = "${FeedScreenDestination.route}/$id")
-                }
+                },
+                contentType = contentType
             )
         }
         composable(
@@ -652,6 +674,7 @@ fun NavGraphBuilder.detailsGraph(
                 navigateToFlockEditScreen = { flockId, healthId ->
                     navController.navigate("${EditFlockDestination.route}/$flockId/$healthId")
                 },
+                contentType = contentType
             )
         }
         composable(
@@ -673,6 +696,7 @@ fun NavGraphBuilder.detailsGraph(
             FlockEditScreen(
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
+                contentType = contentType
             )
         }
         composable(
@@ -692,7 +716,8 @@ fun NavGraphBuilder.detailsGraph(
             }
         ) {
             WeightScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                contentType = contentType
             )
         }
         composable(
@@ -713,7 +738,8 @@ fun NavGraphBuilder.detailsGraph(
         ) {
             FeedScreen(
                 onNavigateUp = { navController.navigateUp() },
-                flockEntryViewModel = flockEntryViewModel
+                flockEntryViewModel = flockEntryViewModel,
+                contentType = contentType
             )
         }
     }
@@ -722,7 +748,8 @@ fun NavGraphBuilder.detailsGraph(
 @RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.accountDetailsGraph(
     navController: NavHostController,
-    userPrefsViewModel: UserPrefsViewModel
+    userPrefsViewModel: UserPrefsViewModel,
+    contentType: ContentType
 ) {
     navigation(
         route = GraphRoutes.ACCOUNT_DETAILS,
@@ -742,7 +769,8 @@ fun NavGraphBuilder.accountDetailsGraph(
                         "${AddExpenseScreenDestination.route}/$expenseId/$accountId"
                     )
                 },
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
         composable(
@@ -751,7 +779,8 @@ fun NavGraphBuilder.accountDetailsGraph(
         ) {
             AddIncomeScreen(
                 onNavigateUp = { navController.navigateUp() },
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
         composable(
@@ -760,7 +789,8 @@ fun NavGraphBuilder.accountDetailsGraph(
         ) {
             AddExpenseScreen(
                 onNavigateUp = { navController.navigateUp() },
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                contentType = contentType
             )
         }
     }

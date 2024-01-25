@@ -7,10 +7,12 @@ import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -73,12 +75,15 @@ fun AddFlockScreen(
     onNavigateUp: () -> Unit,
     canNavigateBack: Boolean = true,
     navigateToVaccinationsScreen: (FlockUiState) -> Unit,
-    viewModel: FlockEntryViewModel,
-    userPrefsViewModel: UserPrefsViewModel
+    flockEntryViewModel: FlockEntryViewModel,
+    userPrefsViewModel: UserPrefsViewModel,
+    contentType: ContentType
 ) {
-    val snackBarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-    val scrollState = rememberScrollState()
+
+    BackHandler {
+        onNavigateUp()
+        flockEntryViewModel.resetAll()
+    }
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
@@ -86,41 +91,16 @@ fun AddFlockScreen(
     MainAddFlockScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,
-        onNavigateUp = onNavigateUp,
+        onNavigateUp = {
+            onNavigateUp()
+            flockEntryViewModel.resetAll()
+        },
         navigateToVaccinationsScreen = navigateToVaccinationsScreen,
-        flockUiState = viewModel.flockUiState,
-        onItemValueChange = viewModel::updateUiState,
-        currencySymbol = currency.symbol
+        flockUiState = flockEntryViewModel.flockUiState,
+        onItemValueChange = flockEntryViewModel::updateUiState,
+        currencySymbol = currency.symbol,
+        contentType = contentType
     )
-//    Scaffold(
-//        modifier = Modifier.semantics { contentDescription = "Add flock screen" },
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(AddFlockDestination.resourceId),
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = { onNavigateUp() }
-//            )
-//        },
-//        snackbarHost = { SnackbarHost(snackBarHostState) }
-//    ) { innerPadding ->
-//        Column(modifier = modifier.padding(innerPadding).verticalScroll(scrollState)) {
-//            AddFlockBody(
-//                flockUiState = viewModel.flockUiState,
-//                onItemValueChange = viewModel::updateUiState,
-//                onVaccinationsScreen = {
-//                    if (checkNumberExceptions(viewModel.flockUiState)) {
-//                        viewModel.flockUiState.setStock(it.quantity, it.donorFlock)
-//                        navigateToVaccinationsScreen(viewModel.flockUiState)
-//                    } else {
-//                        coroutineScope.launch {
-//                            snackBarHostState.showSnackbar(message = "Please enter a valid number.")
-//                        }
-//                    }
-//                },
-//                currencySymbol = currency.symbol
-//            )
-//        }
-//    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -132,7 +112,8 @@ fun MainAddFlockScreen(
     navigateToVaccinationsScreen: (FlockUiState) -> Unit,
     flockUiState: FlockUiState,
     onItemValueChange: (FlockUiState) -> Unit,
-    currencySymbol: String
+    currencySymbol: String,
+    contentType: ContentType
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -143,7 +124,8 @@ fun MainAddFlockScreen(
             FlockManagementTopAppBar(
                 title = stringResource(AddFlockDestination.resourceId),
                 canNavigateBack = canNavigateBack,
-                navigateUp = { onNavigateUp() }
+                navigateUp = { onNavigateUp() },
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackBarHostState) }

@@ -6,7 +6,7 @@
     <string name="tips">Tips</string>
     <string name="planner">Planner</string>
     <string name="overview">Overview</string>
-    <string name="no_flocks_description">No flocks in the inventory</string>
+    <string name="no_flocks_description">No flocks in inventory</string>
     <string name="add_flock">Add Flock</string>
     <string name="details">Details</string>
     <string name="weight">Weights</string>

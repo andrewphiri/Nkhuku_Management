@@ -2,22 +2,7 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="accountsFlow_toAddExpense()">
-        <State />
-      </entry>
-      <entry key="accountsFlow_toAddIncome()">
-        <State />
-      </entry>
-      <entry key="addFlockFlow_fromHomeScreen()">
-        <State />
-      </entry>
       <entry key="app">
-        <State />
-      </entry>
-      <entry key="detailsScreenFlowTest_toFlockHealthScreen_toEditFlockScreen()">
-        <State />
-      </entry>
-      <entry key="detailsScreenFlowTest_toFlockHealthScreen_toEditFlockScreen_and_back_after_update()">
         <State />
       </entry>
     </value>

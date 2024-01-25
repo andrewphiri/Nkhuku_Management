@@ -9,6 +9,7 @@ import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
+import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -64,6 +65,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -100,7 +103,8 @@ fun FeedScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     feedViewModel: FeedViewModel = hiltViewModel(),
-    flockEntryViewModel: FlockEntryViewModel
+    flockEntryViewModel: FlockEntryViewModel,
+    contentType: ContentType
 ) {
     val coroutineScope = rememberCoroutineScope()
     val flockWithFeed by feedViewModel.flockWithFeed.collectAsState(
@@ -108,10 +112,6 @@ fun FeedScreen(
     )
     val feedList: List<Feed> = flockWithFeed.feedList ?: listOf()
     val feedUiStateList: MutableList<FeedUiState> = mutableListOf()
-    var showDialog by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
-    var isAddTypeDialogShowing by remember { mutableStateOf(false) }
-    val snackBarHostState = remember { SnackbarHostState() }
 
     for (feedUiState in feedList) {
         feedUiStateList.add(feedUiState.toFeedUiState())
@@ -137,7 +137,8 @@ fun FeedScreen(
         feedStateList = feedUiStateList,
         setFeedState = {
             feedViewModel.setFeedState(it)
-        }
+        },
+        contentType = contentType
     )
 }
 
@@ -155,6 +156,7 @@ fun MainFeedScreen(
     feedUiState: FeedUiState,
     feedStateList: List<FeedUiState>,
     setFeedState: (FeedUiState) -> Unit,
+    contentType: ContentType
 ) {
     BackHandler {
         onNavigateUp()
@@ -180,7 +182,8 @@ fun MainFeedScreen(
             FlockManagementTopAppBar(
                 title = stringResource(FeedScreenDestination.resourceId),
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackBarHostState) }
@@ -199,7 +202,10 @@ fun MainFeedScreen(
                     expanded = false
                 },
                 onTypeDialogShowing = { isAddTypeDialogShowing = true },
-                onInnerDialogDismiss = { isAddTypeDialogShowing = false },
+                onInnerDialogDismiss = {
+                    isAddTypeDialogShowing = false
+                    expanded = false
+                },
                 isAddFeedTypeDialogShowing = isAddTypeDialogShowing,
                 flockUiState = flockUiState,
                 onUpdateFeed = { feedUiState ->
@@ -302,7 +308,10 @@ fun FeedConsumptionList(
             )
         }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(
+            modifier = Modifier.semantics { contentDescription = "Feed list" },
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             itemsIndexed(feedList) { index, feedItem ->
                 FeedCardItem(
                     feedUiState = feedItem,
@@ -514,6 +523,7 @@ fun UpdateFeedDialog(
                             contentAlignment = Alignment.TopCenter
                         ) {
                             ExposedDropdownMenuBox(
+                                modifier = Modifier.semantics { contentDescription = "feed type" },
                                 expanded = expanded,
                                 onExpandedChange = onExpand
                             ) {
@@ -539,6 +549,9 @@ fun UpdateFeedDialog(
                                 ) {
                                     feedUiState.options.forEach { option ->
                                         DropdownMenuItem(
+                                            modifier = Modifier.semantics {
+                                                contentDescription = option
+                                            },
                                             text = { Text(text = option) },
                                             onClick = {
                                                 onChangedValue(feedUiState.copy(type = option))

@@ -4,6 +4,7 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.FlockHealth
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.os.Build
@@ -48,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
@@ -91,12 +91,10 @@ fun FlockEditScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     editFlockViewModel: EditFlockViewModel = hiltViewModel(),
-    flockEntryViewModel: FlockEntryViewModel
+    flockEntryViewModel: FlockEntryViewModel,
+    contentType: ContentType
 ) {
-
     val coroutineScope = rememberCoroutineScope()
-    var date by remember { mutableStateOf(DateUtils().dateToStringLongFormat(LocalDate.now())) }
-//    val flockWithHealth by editFlockViewModel.flockWithHealth.collectAsState()
     val flockHealth by editFlockViewModel.flockHealth.collectAsState(
         initial = FlockHealth(
             flockUniqueId = "",
@@ -105,7 +103,6 @@ fun FlockEditScreen(
             date = LocalDate.now()
         )
     )
-
     val flock by editFlockViewModel.flock.collectAsState(
         FlockUiState(
             datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
@@ -157,8 +154,9 @@ fun FlockEditScreen(
         updateHealth = {
             coroutineScope.launch {
                 editFlockViewModel.updateHealth(it)
-            }.invokeOnCompletion { onNavigateUp() }
-        }
+            }
+        },
+        contentType = contentType
     )
 }
 
@@ -178,6 +176,7 @@ fun MainFlockEditScreen(
     updateFlockUiState: (FlockUiState) -> Unit,
     quantityRemaining: Int,
     onQuantityChanged: (Int) -> Unit,
+    contentType: ContentType
 ) {
     BackHandler {
         onNavigateUp()
@@ -218,18 +217,20 @@ fun MainFlockEditScreen(
     isCullsAddButtonEnabled = culls < quantityRemaining
     isCullsRemoveButtonEnabled = culls > 0
     //isUpdateButtonEnabled = flock != flockUiState.toFlock()
-
+    isUpdateButtonEnabled =
+        (culls > 0 || mortality > 0) && (mortality != flockHealth.mortality || culls != flockHealth.culls)
     Scaffold(
         modifier = modifier,
         topBar = {
             FlockManagementTopAppBar(
-                title = stringResource(EditFlockDestination.resourceId),
+                title = flockUiState.batchName,
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         }
     ) { innerPadding ->
-//        isUpdateButtonEnabled = (culls > 0 || mortality > 0) && (mortality != flockHealth.mortality || culls != flockHealth.culls)
+
         LazyColumn(
             userScrollEnabled = true
         ) {
@@ -373,7 +374,7 @@ fun MainFlockEditScreen(
                             modifier = Modifier
                                 .semantics { contentDescription = "Update Button" }
                                 .weight(1f, true),
-                            enabled = (culls > 0 || mortality > 0) && (mortality != flockHealth.mortality || culls != flockHealth.culls),
+                            enabled = isUpdateButtonEnabled,
                             onClick = {
                                 if (healthId == 0) {
                                     updateFlock(
@@ -425,6 +426,7 @@ fun MainFlockEditScreen(
                                     )
 
                                 }
+                                onNavigateUp()
                             }
                         ) {
                             Text(
@@ -493,7 +495,7 @@ fun EditCard(
 
             FilledIconButton(
                 modifier = Modifier
-                    .semantics { contentDescription = "Increase mortality" }
+                    .semantics { contentDescription = descriptionForIncrease }
                     .weight(0.5f),
                 onClick = onIncrease,
                 enabled = isAddButtonEnabled

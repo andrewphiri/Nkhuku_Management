@@ -5,7 +5,9 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.ui.theme.Shapes
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,7 +38,7 @@ object PlannerResultsDestination : NkhukuDestinations {
     override val icon: ImageVector
         get() = Icons.Default.Calculate
     override val route: String
-        get() = "planner result"
+        get() = "Planner result"
     override val resourceId: Int
         get() = R.string.estimation
 }
@@ -46,48 +48,19 @@ fun PlannerResultScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    plannerViewModel: PlannerViewModel
+    plannerViewModel: PlannerViewModel,
+    contentType: ContentType
 ) {
+    BackHandler {
+        plannerViewModel.resetPlanner()
+    }
     MainPlannerResultScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
-        plannerUiState = plannerViewModel.plannerUiState
+        plannerUiState = plannerViewModel.plannerUiState,
+        contentType = contentType
     )
-//    Scaffold(
-//        modifier = modifier,
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = stringResource(PlannerResultsDestination.resourceId),
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        }
-//    ) { innerPadding ->
-//
-//        LazyVerticalGrid(
-//            modifier = modifier.padding(innerPadding),
-//            verticalArrangement = Arrangement.spacedBy(16.dp),
-//            columns = GridCells.Fixed(1),
-//            contentPadding = PaddingValues(16.dp)
-//        ) {
-//            item {
-//                FeedResultsCard(planner = plannerViewModel.plannerUiState.toPlanner())
-//            }
-//            if (!plannerViewModel.plannerUiState.areFeedersAvailable) {
-//                item {
-//                    FeedersResultsCard(
-//                        planner = plannerViewModel.plannerUiState.toPlanner()
-//                    )
-//                }
-//            }
-//            if (!plannerViewModel.plannerUiState.areDrinkersAvailable) {
-//                item {
-//                    DrinkersResultsCard(planner = plannerViewModel.plannerUiState.toPlanner())
-//                }
-//            }
-//        }
-//    }
 }
 
 @Composable
@@ -95,7 +68,8 @@ fun MainPlannerResultScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    plannerUiState: PlannerUiState
+    plannerUiState: PlannerUiState,
+    contentType: ContentType
 ) {
     Scaffold(
         modifier = modifier,
@@ -103,7 +77,8 @@ fun MainPlannerResultScreen(
             FlockManagementTopAppBar(
                 title = stringResource(PlannerResultsDestination.resourceId),
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         }
     ) { innerPadding ->

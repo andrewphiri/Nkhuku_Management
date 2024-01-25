@@ -34,7 +34,6 @@ import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.WEIGHT_SCREEN
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -162,6 +161,7 @@ fun HomeScreen(
     if (contentType == ContentType.LIST_ONLY) {
         MainHomeScreen(
             modifier = modifier,
+            contentType = contentType,
             navigateToAddFlock = navigateToAddFlock,
             navigateToFlockDetails = navigateToFlockDetails,
             onClickSettings = onClickSettings,
@@ -243,16 +243,16 @@ fun HomeScreen(
                     flockEntryViewModel.deleteFlockHealth(uniqueId)
                 }
             },
-            onClose = { flock ->
+            onClose = { flock1 ->
 
-                accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
+                accountsViewModel.flockRepository.getFlockAndAccountSummary(flock1.id)
                     .observe(lifecycleOwner) { flockAndSummary ->
                         accountSummary = flockAndSummary.accountsSummary
                     }
                 coroutineScope.launch {
-                    if (flock.active) {
+                    if (flock1.active) {
                         flockEntryViewModel.updateItem(
-                            flockUiState = flock.toFlockUiState().copy(active = false)
+                            flockUiState = flock1.toFlockUiState().copy(active = false)
                         )
                         accountSummary?.let {
                             AccountsSummary(
@@ -267,7 +267,7 @@ fun HomeScreen(
                         }?.let { accountsViewModel.updateAccountsSummary(it) }
                     } else {
                         flockEntryViewModel.updateItem(
-                            flockUiState = flock.toFlockUiState().copy(active = true)
+                            flockUiState = flock1.toFlockUiState().copy(active = true)
                         )
                         accountSummary?.let {
                             AccountsSummary(
@@ -290,7 +290,8 @@ fun HomeScreen(
             userPrefsViewModel = userPrefsViewModel,
             vaccinationViewModel = vaccinationViewModel,
             feedViewModel = feedViewModel,
-            weightViewModel = weightViewModel
+            weightViewModel = weightViewModel,
+            contentType = contentType
         )
     }
 }
@@ -313,7 +314,8 @@ fun HomeScreenListAndDetails(
     userPrefsViewModel: UserPrefsViewModel,
     vaccinationViewModel: VaccinationViewModel,
     feedViewModel: FeedViewModel,
-    weightViewModel: WeightViewModel
+    weightViewModel: WeightViewModel,
+    contentType: ContentType
 ) {
     var showDetailsPane by rememberSaveable { mutableStateOf(false) }
     var showDetailsScreen by rememberSaveable { mutableStateOf(true) }
@@ -323,11 +325,7 @@ fun HomeScreenListAndDetails(
     var showWeightScreen by rememberSaveable { mutableStateOf(false) }
     var showVaccinationScreen by rememberSaveable { mutableStateOf(false) }
     var currentScreen by rememberSaveable { mutableStateOf(DETAILS_SCREEN) }
-//    LaunchedEffect(detailsViewModel.flockID) {
-//        if (detailsViewModel.flockID.value > 0) {
-//            showDetailsPane = true
-//        }
-//    }
+
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxSize()
@@ -347,7 +345,8 @@ fun HomeScreenListAndDetails(
                     flocks = flocks,
                     resetFlock = resetFlock,
                     deleteFlock = deleteFlock,
-                    onClose = onClose
+                    onClose = onClose,
+                    contentType = contentType
                 )
             }
 
@@ -387,7 +386,8 @@ fun HomeScreenListAndDetails(
                                     weightViewModel.setFlockID(it)
                                     currentScreen = WEIGHT_SCREEN
                                 },
-                                flockEntryViewModel = flockEntryViewModel
+                                flockEntryViewModel = flockEntryViewModel,
+                                contentType = contentType
                             )
                         }
 
@@ -403,15 +403,12 @@ fun HomeScreenListAndDetails(
                                         currentScreen = DETAILS_SCREEN
                                     },
                                     navigateToFlockEditScreen = { flockId, healthId ->
-                                        Log.i(
-                                            "Flock___ID",
-                                            flockId.toString()
-                                        )
                                         editFlockViewModel.setFlockID(flockID = flockId)
                                         editFlockViewModel.setHealthID(healthId = healthId)
                                         currentScreen = EDIT_FLOCK_SCREEN
                                     },
-                                    editFlockViewModel = editFlockViewModel
+                                    editFlockViewModel = editFlockViewModel,
+                                    contentType = contentType
                                 )
                             }
 
@@ -426,7 +423,8 @@ fun HomeScreenListAndDetails(
                                 WeightScreen(
                                     onNavigateUp = {
                                         currentScreen = DETAILS_SCREEN
-                                    }
+                                    },
+                                    contentType = contentType
                                 )
                             }
                         }
@@ -441,7 +439,8 @@ fun HomeScreenListAndDetails(
                                     onNavigateUp = {
                                         currentScreen = DETAILS_SCREEN
                                     },
-                                    flockEntryViewModel = flockEntryViewModel
+                                    flockEntryViewModel = flockEntryViewModel,
+                                    contentType = contentType
                                 )
                             }
                         }
@@ -458,7 +457,8 @@ fun HomeScreenListAndDetails(
                                     },
                                     navigateBack = {},
                                     flockEntryViewModel = flockEntryViewModel,
-                                    userPrefsViewModel = userPrefsViewModel
+                                    userPrefsViewModel = userPrefsViewModel,
+                                    contentType = contentType
                                 )
                             }
                         }
@@ -469,7 +469,8 @@ fun HomeScreenListAndDetails(
                                 onNavigateUp = {
                                     currentScreen = FLOCK_HEALTH_SCREEN
                                 },
-                                editFlockViewModel = editFlockViewModel
+                                editFlockViewModel = editFlockViewModel,
+                                contentType = contentType
                             )
                         }
                     }
@@ -494,17 +495,17 @@ fun MainHomeScreen(
     resetFlock: () -> Unit,
     deleteFlock: (Int) -> Unit,
     onClose: (Flock) -> Unit,
+    contentType: ContentType
 ) {
     var flockList = flocks.filter { it.active }
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
     var isFilterMenuShowing by remember { mutableStateOf(false) }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            resetFlock()
-        }
-    }
+//    DisposableEffect(Unit) {
+//        onDispose {
+//            resetFlock()
+//        }
+//    }
 
     Scaffold(
         modifier = modifier,
@@ -516,7 +517,8 @@ fun MainHomeScreen(
                 isFilterButtonEnabled = flocks.isNotEmpty(),
                 onClickFilter = {
                     isFilterMenuShowing = !isFilterMenuShowing
-                }
+                },
+                contentType = contentType
             )
         },
         floatingActionButton = {
@@ -553,7 +555,8 @@ fun MainHomeScreen(
                 .padding(innerPadding)
         ) {
             ShowFilterOverflowMenu(
-                modifier = Modifier.align(Alignment.End),
+                modifier = Modifier
+                    .align(Alignment.End),
                 isOverflowMenuExpanded = isFilterMenuShowing,
                 onDismiss = { isFilterMenuShowing = false },
                 onClickAll = {
@@ -580,7 +583,8 @@ fun MainHomeScreen(
                 },
                 onClose = { flock ->
                     onClose(flock)
-                }
+                },
+                contentType = contentType
             )
         }
     }
@@ -594,7 +598,8 @@ fun FlockBodyList(
     onItemClick: (Int) -> Unit,
     listState: LazyListState,
     onDelete: (Int) -> Unit,
-    onClose: (Flock) -> Unit
+    onClose: (Flock) -> Unit,
+    contentType: ContentType
 ) {
     if (flockList.isEmpty()) {
         Box(
@@ -614,7 +619,8 @@ fun FlockBodyList(
             onItemClick = { onItemClick(it.id) },
             listState = listState,
             onDelete = onDelete,
-            onClose = onClose
+            onClose = onClose,
+            contentType = contentType
         )
     }
 }
@@ -652,18 +658,26 @@ fun FlockList(
     flockList: List<Flock>,
     onItemClick: (Flock) -> Unit,
     onClose: (Flock) -> Unit,
-    listState: LazyListState, onDelete: (Int) -> Unit
+    listState: LazyListState, onDelete: (Int) -> Unit,
+    contentType: ContentType
 ) {
+    var selectedItem by rememberSaveable { mutableStateOf(0) }
     LazyColumn(
-        modifier = modifier.semantics { contentDescription = "flockList" },
+        modifier = modifier
+            .semantics { contentDescription = "flockList" },
         state = listState
     ) {
         itemsIndexed(flockList) { index, flock ->
             FlockCard(
                 flock = flock,
-                onItemClick = onItemClick,
+                onItemClick = { flock1 ->
+                    selectedItem = flock1.id
+                    onItemClick(flock)
+                },
                 onClose = onClose,
-                onDelete = { onDelete(index) }
+                onDelete = { onDelete(index) },
+                selectedID = selectedItem,
+                contentType = contentType
             )
         }
     }
@@ -676,13 +690,17 @@ fun FlockCard(
     flock: Flock,
     onItemClick: (Flock) -> Unit,
     onDelete: () -> Unit,
-    onClose: (Flock) -> Unit
+    onClose: (Flock) -> Unit,
+    selectedID: Int,
+    contentType: ContentType
 ) {
     var isFlockItemMenuShowing by remember { mutableStateOf(false) }
     var isAlertDialogShowing by remember { mutableStateOf(false) }
     var isCloseAlertDialogShowing by remember { mutableStateOf(false) }
 
-
+    val color = if (selectedID == flock.id && contentType == ContentType.LIST_AND_DETAIL)
+        CardDefaults.outlinedCardColors(containerColor = Color.LightGray) else
+        CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
     ShowAlertDialog(
         onDismissAlertDialog = { isCloseAlertDialogShowing = false },
         onConfirm = {
@@ -699,8 +717,11 @@ fun FlockCard(
 
     OutlinedCard(
         modifier = modifier.padding(8.dp)
-            .clickable { onItemClick(flock) },
-        elevation = CardDefaults.cardElevation()
+            .clickable {
+                onItemClick(flock)
+            },
+        elevation = CardDefaults.cardElevation(),
+        colors = color
     ) {
         Box {
             if (!flock.active) {

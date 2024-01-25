@@ -13,9 +13,11 @@ import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.userinterface.vaccination.toVaccinationUiState
 import and.drew.nkhukumanagement.userinterface.weight.toWeightUiState
 import and.drew.nkhukumanagement.utils.BaseSingleRowDetailsItem
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -46,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -92,8 +93,13 @@ fun FlockDetailsScreen(
     navigateToFeedScreen: (Int) -> Unit = {},
     navigateToWeightScreen: (Int) -> Unit = {},
     flockEntryViewModel: FlockEntryViewModel,
-    detailsViewModel: FlockDetailsViewModel = hiltViewModel()
+    detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
+    contentType: ContentType
 ) {
+    BackHandler {
+        onNavigateUp()
+        flockEntryViewModel.resetAll()
+    }
     val flockWithVaccinations by detailsViewModel
         .flockWithVaccinationsStateFlow
         .collectAsState(
@@ -121,7 +127,10 @@ fun FlockDetailsScreen(
     MainFlockDetailsScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,
-        onNavigateUp = onNavigateUp,
+        onNavigateUp = {
+            onNavigateUp()
+            flockEntryViewModel.resetAll()
+        },
         navigateToFeedScreen = navigateToFeedScreen,
         navigateToFlockHealthScreen = navigateToFlockHealthScreen,
         navigateToVaccinationScreen = navigateToVaccinationScreen,
@@ -130,7 +139,8 @@ fun FlockDetailsScreen(
         onUpdateUiState = flockEntryViewModel::updateUiState,
         totalFeedQtyConsumed = flockWithFeed?.feedList?.sumOf { it.consumed },
         vaccinations = flockWithVaccinations?.vaccinations,
-        weights = flockWithWeight?.weights
+        weights = flockWithWeight?.weights,
+        contentType = contentType
     )
 
 }
@@ -149,7 +159,8 @@ fun MainFlockDetailsScreen(
     vaccinations: List<Vaccination>?,
     totalFeedQtyConsumed: Double?,
     weights: List<Weight>?,
-    onUpdateUiState: (FlockUiState) -> Unit
+    onUpdateUiState: (FlockUiState) -> Unit,
+    contentType: ContentType
 ) {
 
     flock?.toFlockUiState()?.copy(enabled = true)?.let { onUpdateUiState(it) }
@@ -158,9 +169,10 @@ fun MainFlockDetailsScreen(
             modifier = modifier,
             topBar = {
                 FlockManagementTopAppBar(
-                    title = stringResource(FlockDetailsDestination.resourceId),
+                    title = flock.batchName,
                     canNavigateBack = canNavigateBack,
-                    navigateUp = onNavigateUp
+                    navigateUp = onNavigateUp,
+                    contentType = contentType
                 )
             }
         ) { innerPadding ->

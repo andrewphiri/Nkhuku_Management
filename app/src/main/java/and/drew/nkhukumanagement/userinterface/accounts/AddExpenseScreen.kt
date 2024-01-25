@@ -8,6 +8,7 @@ import and.drew.nkhukumanagement.data.AccountsWithExpense
 import and.drew.nkhukumanagement.data.Expense
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import and.drew.nkhukumanagement.utils.currencySymbol
@@ -98,11 +99,10 @@ fun AddExpenseScreen(
     accountsViewModel: AccountsViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel,
     canNavigateBack: Boolean = true,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    contentType: ContentType
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scrollState = rememberScrollState()
     val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState(
         AccountsWithExpense(
             accountsSummary = AccountsSummary(
@@ -183,7 +183,8 @@ fun AddExpenseScreen(
         expenseIDArg = expenseViewModel.expenseID.value,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
-        currencySymbol = currency.symbol
+        currencySymbol = currency.symbol,
+        contentType = contentType
     )
 
 //    Scaffold(
@@ -302,6 +303,7 @@ fun MainAddExpenseScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     currencySymbol: String,
+    contentType: ContentType
 ) {
     BackHandler {
         onNavigateUp()
@@ -310,15 +312,6 @@ fun MainAddExpenseScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
 
-
-//    val expense by expenseViewModel.getExpense.collectAsState(
-//        initial = expenseViewModel.expenseUiState.copy(
-//            date = DateUtils().dateToStringShortFormat(
-//                LocalDate.now()
-//            ), costPerItem = "0", quantity = "0", totalExpense = "0",
-//            cumulativeTotalExpense = "0"
-//        ).toExpense()
-//    )
 
     //if id is 0, set initial date to today's date else get date from expense
     val dateState = if (expenseUiState.id == 0) rememberDatePickerState(
@@ -356,7 +349,8 @@ fun MainAddExpenseScreen(
                 title = if (expenseUiState.id > 0) context.resources.getString(R.string.edit_expense)
                 else title,
                 canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
+                navigateUp = onNavigateUp,
+                contentType = contentType
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
