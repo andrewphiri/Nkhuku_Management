@@ -3,6 +3,7 @@ package and.drew.nkhukumanagement.data
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.time.LocalDate
+import java.util.UUID
 
 /**
  * Data class that represent a table in the database.
@@ -14,5 +15,7 @@ data class Vaccination(
     val flockUniqueId: String,
     val name: String,
     val date: LocalDate,
-    val notes: String
+    val notes: String,
+    val notificationUUID: UUID,
+    val hasVaccineBeenAdministered: Boolean
 )

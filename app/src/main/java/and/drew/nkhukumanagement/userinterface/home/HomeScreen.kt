@@ -4,9 +4,12 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Flock
+import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.accounts.AccountsViewModel
+import and.drew.nkhukumanagement.userinterface.accounts.ExpenseViewModel
+import and.drew.nkhukumanagement.userinterface.accounts.IncomeViewModel
 import and.drew.nkhukumanagement.userinterface.feed.FeedScreen
 import and.drew.nkhukumanagement.userinterface.feed.FeedViewModel
 import and.drew.nkhukumanagement.userinterface.flock.EditFlockViewModel
@@ -15,7 +18,6 @@ import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockEditScreen
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockHealthScreen
-import and.drew.nkhukumanagement.userinterface.flock.toFlock
 import and.drew.nkhukumanagement.userinterface.flock.toFlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.userinterface.vaccination.AddVaccinationsScreen
@@ -34,6 +36,7 @@ import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.WEIGHT_SCREEN
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -79,7 +82,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -105,7 +107,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -121,12 +122,19 @@ fun HomeScreen(
     accountsViewModel: AccountsViewModel = hiltViewModel(),
     detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
     editFlockViewModel: EditFlockViewModel = hiltViewModel(),
+    incomeViewModel: IncomeViewModel = hiltViewModel(),
+    expenseViewModel: ExpenseViewModel = hiltViewModel(),
     feedViewModel: FeedViewModel = hiltViewModel(),
     weightViewModel: WeightViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val homeUiState by homeViewModel.homeUiState.collectAsState()
+    val vaccinationList by vaccinationViewModel.flockWithVaccinationsStateFlow.collectAsState(
+        initial = FlockWithVaccinations(
+            flock = null, vaccinations = listOf()
+        )
+    )
     var accountSummary: AccountsSummary? by remember {
         mutableStateOf(
             AccountsSummary(
@@ -138,49 +146,64 @@ fun HomeScreen(
             )
         )
     }
-
-    val flock: Flock? by detailsViewModel
-        .flock
-        .collectAsState(
-            initial = flockEntryViewModel.flockUiState.copy(
-                datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
-                quantity = "0",
-                donorFlock = "0",
-                cost = "0"
-            ).toFlock()
-        )
+    var flockID by rememberSaveable { mutableStateOf(-1) }
 
     val coroutineScope = rememberCoroutineScope()
 
-    DisposableEffect(Unit) {
-        onDispose {
-            flockEntryViewModel.resetAll()
-        }
-    }
+//    LaunchedEffect(key1 = flockID, key2 = vaccinationList) {
+//        if (flockID > 0) {
+//            val vaccineList= vaccinationList?.vaccinations
+//
+//            if (vaccinationList != null) {
+//                if (vaccineList != null) {
+//                    for (vaccine in vaccineList) {
+//                        Log.i("CANCEL_NOTIFICATION", vaccine.toString())
+//                        vaccinationViewModel.cancelAlarm(vaccine)
+//                    }
+//                }
+//
+//            }
+//        }
+//    }
 
     if (contentType == ContentType.LIST_ONLY) {
         MainHomeScreen(
             modifier = modifier,
             contentType = contentType,
-            navigateToAddFlock = navigateToAddFlock,
+            navigateToAddFlock = {
+                flockEntryViewModel.resetAll()
+                navigateToAddFlock()
+            },
             navigateToFlockDetails = navigateToFlockDetails,
             onClickSettings = onClickSettings,
             flocks = homeUiState.flockList,
             resetFlock = {
                 flockEntryViewModel.resetAll()
             },
+            onOverflowMenuClicked = {
+                flockID = it
+                vaccinationViewModel.setFlockID(flockID)
+            },
             deleteFlock = { index ->
                 coroutineScope.launch {
                     val uniqueId = homeUiState.flockList[index].uniqueId
+                    if (vaccinationList?.vaccinations != null) {
+                        vaccinationList?.vaccinations?.forEach { vaccine ->
+                            Log.i("CANCEL_NOTIFICATION", vaccine.toString())
+                            vaccinationViewModel.cancelAlarm(vaccine)
+                        }
+                    }
                     flockEntryViewModel.deleteFlock(uniqueId)
                     vaccinationViewModel.deleteVaccination(uniqueId)
                     vaccinationViewModel.deleteFeed(uniqueId)
                     vaccinationViewModel.deleteWeight(uniqueId)
                     flockEntryViewModel.deleteFlockHealth(uniqueId)
+                    accountsViewModel.deleteAccountsSummary(uniqueId)
+                    incomeViewModel.deleteIncome(uniqueId)
+                    expenseViewModel.deleteExpense(uniqueId)
                 }
             },
             onClose = { flock ->
-
                 accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
                     .observe(lifecycleOwner) { flockAndSummary ->
                         accountSummary = flockAndSummary.accountsSummary
@@ -223,7 +246,10 @@ fun HomeScreen(
     } else {
         HomeScreenListAndDetails(
             modifier = modifier,
-            navigateToAddFlock = navigateToAddFlock,
+            navigateToAddFlock = {
+                flockEntryViewModel.resetAll()
+                navigateToAddFlock()
+            },
             navigateToFlockDetails = {
                 detailsViewModel.setFlockID(it)
 
@@ -236,11 +262,20 @@ fun HomeScreen(
             deleteFlock = { index ->
                 coroutineScope.launch {
                     val uniqueId = homeUiState.flockList[index].uniqueId
+                    if (vaccinationList?.vaccinations != null) {
+                        vaccinationList?.vaccinations?.forEach { vaccine ->
+                            Log.i("CANCEL_NOTIFICATION", vaccine.toString())
+                            vaccinationViewModel.cancelAlarm(vaccine)
+                        }
+                    }
                     flockEntryViewModel.deleteFlock(uniqueId)
                     vaccinationViewModel.deleteVaccination(uniqueId)
                     vaccinationViewModel.deleteFeed(uniqueId)
                     vaccinationViewModel.deleteWeight(uniqueId)
                     flockEntryViewModel.deleteFlockHealth(uniqueId)
+                    accountsViewModel.deleteAccountsSummary(uniqueId)
+                    incomeViewModel.deleteIncome(uniqueId)
+                    expenseViewModel.deleteExpense(uniqueId)
                 }
             },
             onClose = { flock1 ->
@@ -291,7 +326,11 @@ fun HomeScreen(
             vaccinationViewModel = vaccinationViewModel,
             feedViewModel = feedViewModel,
             weightViewModel = weightViewModel,
-            contentType = contentType
+            contentType = contentType,
+            onOverflowMenuClicked = {
+                flockID = it
+                vaccinationViewModel.setFlockID(flockID)
+            }
         )
     }
 }
@@ -315,7 +354,8 @@ fun HomeScreenListAndDetails(
     vaccinationViewModel: VaccinationViewModel,
     feedViewModel: FeedViewModel,
     weightViewModel: WeightViewModel,
-    contentType: ContentType
+    contentType: ContentType,
+    onOverflowMenuClicked: (Int) -> Unit
 ) {
     var showDetailsPane by rememberSaveable { mutableStateOf(false) }
     var showDetailsScreen by rememberSaveable { mutableStateOf(true) }
@@ -346,7 +386,8 @@ fun HomeScreenListAndDetails(
                     resetFlock = resetFlock,
                     deleteFlock = deleteFlock,
                     onClose = onClose,
-                    contentType = contentType
+                    contentType = contentType,
+                    onOverflowMenuClicked = onOverflowMenuClicked
                 )
             }
 
@@ -495,7 +536,8 @@ fun MainHomeScreen(
     resetFlock: () -> Unit,
     deleteFlock: (Int) -> Unit,
     onClose: (Flock) -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    onOverflowMenuClicked: (Int) -> Unit
 ) {
     var flockList = flocks.filter { it.active }
     val listState = rememberLazyListState()
@@ -584,7 +626,8 @@ fun MainHomeScreen(
                 onClose = { flock ->
                     onClose(flock)
                 },
-                contentType = contentType
+                contentType = contentType,
+                onOverflowMenuClicked = onOverflowMenuClicked
             )
         }
     }
@@ -599,7 +642,8 @@ fun FlockBodyList(
     listState: LazyListState,
     onDelete: (Int) -> Unit,
     onClose: (Flock) -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    onOverflowMenuClicked: (Int) -> Unit
 ) {
     if (flockList.isEmpty()) {
         Box(
@@ -620,7 +664,8 @@ fun FlockBodyList(
             listState = listState,
             onDelete = onDelete,
             onClose = onClose,
-            contentType = contentType
+            contentType = contentType,
+            onOverflowMenuClicked = onOverflowMenuClicked
         )
     }
 }
@@ -658,7 +703,9 @@ fun FlockList(
     flockList: List<Flock>,
     onItemClick: (Flock) -> Unit,
     onClose: (Flock) -> Unit,
-    listState: LazyListState, onDelete: (Int) -> Unit,
+    onOverflowMenuClicked: (Int) -> Unit,
+    listState: LazyListState,
+    onDelete: (Int) -> Unit,
     contentType: ContentType
 ) {
     var selectedItem by rememberSaveable { mutableStateOf(0) }
@@ -677,7 +724,8 @@ fun FlockList(
                 onClose = onClose,
                 onDelete = { onDelete(index) },
                 selectedID = selectedItem,
-                contentType = contentType
+                contentType = contentType,
+                onOverflowMenuClicked = onOverflowMenuClicked
             )
         }
     }
@@ -690,6 +738,7 @@ fun FlockCard(
     flock: Flock,
     onItemClick: (Flock) -> Unit,
     onDelete: () -> Unit,
+    onOverflowMenuClicked: (Int) -> Unit,
     onClose: (Flock) -> Unit,
     selectedID: Int,
     contentType: ContentType
@@ -775,6 +824,7 @@ fun FlockCard(
                                     isAlertDialogShowing = isAlertDialogShowing,
                                     onDismissAlertDialog = { isAlertDialogShowing = false },
                                     onShowMenu = {
+                                        onOverflowMenuClicked(it)
                                         isFlockItemMenuShowing = true
                                     },
                                     onShowAlertDialog = { isAlertDialogShowing = true },
@@ -853,7 +903,7 @@ fun ShowOverflowMenu(
     isOverflowMenuExpanded: Boolean = false,
     isAlertDialogShowing: Boolean = false,
     onDismissAlertDialog: () -> Unit = {},
-    onShowMenu: () -> Unit = {},
+    onShowMenu: (Int) -> Unit = {},
     onShowAlertDialog: () -> Unit,
     onDismiss: () -> Unit,
     onDelete: () -> Unit = {},
@@ -873,7 +923,7 @@ fun ShowOverflowMenu(
         contentAlignment = Alignment.TopEnd
     ) {
         IconButton(
-            onClick = onShowMenu
+            onClick = { onShowMenu(flock.id) }
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,

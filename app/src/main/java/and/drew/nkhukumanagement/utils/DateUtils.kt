@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -148,11 +149,41 @@ class DateUtils {
      * Set alarm date to day before the vaccination
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun calculateAlarmDate(vaccination: Vaccination): Long {
-        return vaccination.date.minusDays(1).atTime(8, 0)
+    fun calculateVaccineNotificationDate(vaccination: Vaccination): Long {
+        return vaccination.date.minusDays(1).atTime(21, 40)
             .atZone(ZoneId.systemDefault())
-            .toEpochSecond() * 1000
+            .toEpochSecond()
 //        LocalDateTime.now().plusMinutes(1).toEpochSecond(ZoneOffset.UTC)
 
+    }
+
+    /**
+     * Set notification date to day before the vaccination
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun calculateVaccineNotificationDate(vaccination: Vaccination, hour: Int, minutes: Int): Long {
+        val currentTime = LocalDateTime.now()
+        val duration = ChronoUnit.MINUTES.between(
+            currentTime.plusDays(1),
+            vaccination.date.atTime(hour, minutes)
+        )
+        return duration
+    }
+
+    /**
+     * Set notification date to day before the vaccination
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun calculateConfirmVaccineNotificationDate(
+        vaccination: Vaccination,
+        hour: Int,
+        minutes: Int
+    ): Long {
+        val currentTime = LocalDateTime.now()
+        val duration = ChronoUnit.MINUTES.between(
+            currentTime,
+            vaccination.date.atTime(hour, minutes)
+        )
+        return duration
     }
 }

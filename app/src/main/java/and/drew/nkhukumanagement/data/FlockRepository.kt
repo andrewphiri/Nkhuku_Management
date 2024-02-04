@@ -162,10 +162,21 @@ interface FlockRepository {
      */
     suspend fun deleteIncome(income: Income)
 
+
+    /**
+     * Delete income from the database
+     */
+    suspend fun deleteIncome(uniqueID: String)
+
     /**
      * Delete expense from the database
      */
     suspend fun deleteExpense(expense: Expense)
+
+    /**
+     * Delete expense from the database
+     */
+    suspend fun deleteExpense(uniqueID: String)
 
     /**
      * Update flock in the database

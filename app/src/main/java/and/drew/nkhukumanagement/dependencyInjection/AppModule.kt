@@ -33,4 +33,5 @@ object AppModule {
     fun provideBaseApplication(@ApplicationContext context: Context): BaseFlockApplication {
         return context as BaseFlockApplication
     }
+
 }

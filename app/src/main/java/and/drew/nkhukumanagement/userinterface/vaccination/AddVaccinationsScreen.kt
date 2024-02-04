@@ -11,8 +11,6 @@ import and.drew.nkhukumanagement.userinterface.feed.FeedViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
-import and.drew.nkhukumanagement.userinterface.flock.toFlock
-import and.drew.nkhukumanagement.userinterface.flock.toFlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.userinterface.weight.WeightViewModel
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
@@ -21,7 +19,6 @@ import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -30,6 +27,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,6 +39,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -57,6 +56,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -119,6 +119,7 @@ fun AddVaccinationsScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val getAllVaccinationItems by vaccinationViewModel.getAllVaccinationItems.collectAsState()
     val flockWithVaccinations by detailsViewModel
         .flockWithVaccinationsStateFlow
         .collectAsState(
@@ -133,6 +134,20 @@ fun AddVaccinationsScreen(
     val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
+    var vaccineID by rememberSaveable { mutableStateOf(0) }
+    var flockID by rememberSaveable { mutableStateOf(0) }
+
+    LaunchedEffect(key1 = getAllVaccinationItems, key2 = flockList) {
+        if (getAllVaccinationItems.isNotEmpty()) {
+            vaccineID = getAllVaccinationItems.maxOf {
+                it.id
+            }
+        }
+
+        if (flockList.flockList.isNotEmpty()) {
+            flockID = flockList.flockList.maxOf { it.id }
+        }
+    }
 
     var title by remember { mutableStateOf("") }
     title = stringResource(AddVaccinationsDestination.resourceId)
@@ -230,34 +245,17 @@ fun AddVaccinationsScreen(
                                 flockEntryViewModel.flockUiState
                             )
                         )
-                        val flock =
-                            if (!flockList.flockList.isNullOrEmpty()) flockList.flockList.last() else
-                                flockEntryViewModel.flockUiState.toFlock()
                         if (userPreferences.receiveNotifications) {
                             for (uiState in vaccinationViewModel.getInitialVaccinationList()) {
-                                flock.toFlockUiState().let { flock ->
-                                    vaccinationViewModel.schedule(
-                                        uiState.toVaccination(),
-                                        flock.copy(id = flock.id + 1)
-                                    )
-                                    Log.i(
-                                        "VACCINATION_HASHCODE",
-                                        uiState.toVaccination().hashCode().toString()
-                                    )
-                                }
+                                vaccineID += 1
+                                flockID += 1
+                                vaccinationViewModel.schedule(
+                                    uiState.copy(flockUniqueId = flockEntryViewModel.flockUiState.getUniqueId())
+                                        .toVaccination(),
+                                    flockEntryViewModel.flockUiState.copy(id = flockID),
+                                    notificationID = vaccineID
+                                )
                             }
-//                            vaccinationViewModel.getInitialVaccinationList().forEach {
-//                                flock.toFlockUiState().let { flock ->
-//                                    vaccinationViewModel.schedule(
-//                                        it.toVaccination(),
-//                                        flock.copy(id = flock.id + 1)
-//                                    )
-//                                    Log.i(
-//                                        "VACCINATION_HASHCODE",
-//                                        it.toVaccination().hashCode().toString()
-//                                    )
-//                                }
-//                            }
                         }
 
                         coroutineScope.launch {
@@ -300,12 +298,6 @@ fun AddVaccinationsScreen(
                                     flock = flockEntryViewModel.flockUiState
                                 )
                             }
-//                            vaccinationViewModel.getInitialVaccinationList().forEach {
-//                                vaccinationViewModel.schedule(
-//                                    vaccination = it.toVaccination(),
-//                                    flock = flockEntryViewModel.flockUiState
-//                                )
-//                            }
                         }
 
                         coroutineScope.launch {
@@ -315,7 +307,9 @@ fun AddVaccinationsScreen(
                                 vaccinationViewModel.saveVaccination(it.copy(flockUniqueId = flockUniqueID))
                             }
 
-                        }.invokeOnCompletion { onNavigateUp() }
+                        }.invokeOnCompletion {
+                            onNavigateUp()
+                        }
                     }
 
                 }
@@ -579,50 +573,62 @@ fun VaccinationCardEntry(
         modifier = modifier.padding(8.dp),
         elevation = CardDefaults.cardElevation()
     ) {
-
-        Column(
-            modifier = modifier.fillMaxWidth().padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = modifier.fillMaxWidth().padding(8.dp)
         ) {
-            Text(
-                text = "Vaccination #${vaccinationUiState.vaccinationNumber}",
-                modifier = modifier.align(Alignment.CenterHorizontally),
-                color = MaterialTheme.colorScheme.secondary,
-                style = MaterialTheme.typography.headlineSmall
-            )
-            StatefulDropDownMenu(
-                modifier = modifier,
-                vaccinationUiState = vaccinationUiState,
-                onValueChanged = onValueChanged,
-                isEditable = isEditable,
-                options = options
-            )
-            StatefulPickDateDialog(
-                modifier = modifier,
-                vaccinationUiState = vaccinationUiState,
-                onValueChanged = onValueChanged,
-                isEditable = isEditable
-            )
-
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = vaccinationUiState.notes,
-                textStyle = MaterialTheme.typography.bodySmall,
-                onValueChange = { onValueChanged(vaccinationUiState.copy(notes = it)) },
-                minLines = 2,
-                label = {
-                    Text(
-                        text = "Notes",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+            Checkbox(
+                modifier = Modifier.align(Alignment.TopEnd),
+                checked = vaccinationUiState.vaccineAdministered,
+                onCheckedChange = {
+                    onValueChanged(vaccinationUiState.copy(vaccineAdministered = it))
                 },
-                enabled = isEditable,
-                colors = TextFieldDefaults.colors(
-                    disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha),
-                    disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(LocalContentColor.current.alpha)
-                )
+                enabled = isEditable
             )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Vaccination #${vaccinationUiState.vaccinationNumber}",
+                    modifier = modifier.align(Alignment.CenterHorizontally),
+                    color = MaterialTheme.colorScheme.secondary,
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                StatefulDropDownMenu(
+                    modifier = modifier,
+                    vaccinationUiState = vaccinationUiState,
+                    onValueChanged = onValueChanged,
+                    isEditable = isEditable,
+                    options = options
+                )
+                StatefulPickDateDialog(
+                    modifier = modifier,
+                    vaccinationUiState = vaccinationUiState,
+                    onValueChanged = onValueChanged,
+                    isEditable = isEditable
+                )
+
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = vaccinationUiState.notes,
+                    textStyle = MaterialTheme.typography.bodySmall,
+                    onValueChange = { onValueChanged(vaccinationUiState.copy(notes = it)) },
+                    minLines = 2,
+                    label = {
+                        Text(
+                            text = "Notes",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    },
+                    enabled = isEditable,
+                    colors = TextFieldDefaults.colors(
+                        disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha),
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(
+                            LocalContentColor.current.alpha
+                        )
+                    )
+                )
+            }
         }
     }
 }

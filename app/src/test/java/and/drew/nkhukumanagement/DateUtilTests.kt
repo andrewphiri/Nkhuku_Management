@@ -9,6 +9,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID
 
 class DateUtilTests {
     val dateUtil = DateUtils()
@@ -123,8 +124,10 @@ class DateUtilTests {
             date = LocalDate.of(
                 2024, 1, 1
             ),
+            hasVaccineBeenAdministered = false,
+            notificationUUID = UUID.randomUUID()
         )
-        val calculateVaccineAlarmDate = dateUtil.calculateAlarmDate(vaccination)
+        val calculateVaccineAlarmDate = dateUtil.calculateVaccineNotificationDate(vaccination)
         val actualAlarmDateLong = LocalDate.of(
             2024, 1, 1
         ).minusDays(1).atTime(8, 0)

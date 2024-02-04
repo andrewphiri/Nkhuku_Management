@@ -84,6 +84,14 @@ class ExpenseViewModel @Inject constructor(
         flockRepository.deleteExpense(expense)
     }
 
+    /**
+     * Delete an Expense Item from the database
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun deleteExpense(uniqueID: String) {
+        flockRepository.deleteExpense(uniqueID)
+    }
+
     fun setExpenseID(id: Int) {
         savedStateHandle[AddExpenseScreenDestination.expenseIdArg] = id
     }

@@ -22,8 +22,10 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,6 +38,7 @@ import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Vaccines
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -278,7 +281,7 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
             }
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -299,19 +302,23 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
             )
 
             flockUiState?.getMortality()?.let {
-                BaseSingleRowDetailsItem(
-                    label = "Mortality",
-                    value = it,
-                    weightA = 2f
-                )
+                Card {
+                    BaseSingleRowDetailsItem(
+                        label = "Mortality",
+                        value = it,
+                        weightA = 2f
+                    )
+                }
             }
 
             flockUiState?.getCulls()?.let {
-                BaseSingleRowDetailsItem(
-                    label = "Culls",
-                    value = it,
-                    weightA = 2f
-                )
+                Card {
+                    BaseSingleRowDetailsItem(
+                        label = "Culls",
+                        value = it,
+                        weightA = 2f
+                    )
+                }
             }
 
         }
@@ -330,7 +337,7 @@ fun FeedCard(
             .clickable { onFeedCardClick(flockUiState.id) }
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -350,14 +357,20 @@ fun FeedCard(
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
-            BaseSingleRowDetailsItem(
-                label = "Bags(50Kg)",
-                value = "${(quantityConsumed / 50).roundToInt()}"
-            )
-            BaseSingleRowDetailsItem(
-                label = "Total Feed Consumed",
-                value = "${String.format("%.2f", quantityConsumed)} Kg"
-            )
+            Card {
+                BaseSingleRowDetailsItem(
+                    label = "Bags(50Kg)",
+                    value = "${(quantityConsumed / 50).roundToInt()}"
+                )
+            }
+
+            Card {
+                BaseSingleRowDetailsItem(
+                    label = "Total Feed Consumed",
+                    value = "${String.format("%.2f", quantityConsumed)} Kg"
+                )
+            }
+
         }
     }
 }
@@ -369,9 +382,9 @@ fun VaccinationList(
     vaccinationUiStateList: List<Vaccination>?,
     onVaccinationCardClick: (Int) -> Unit, flock: Flock
 ) {
-    ElevatedCard(modifier = modifier.padding(4.dp)) {
+    ElevatedCard(modifier = modifier) {
         Column(
-            modifier = Modifier.padding(16.dp).clickable { onVaccinationCardClick(flock.id) },
+            modifier = Modifier.padding(8.dp).clickable { onVaccinationCardClick(flock.id) },
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -407,18 +420,29 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
         flockUniqueId = vaccination.flockUniqueId,
         date = vaccination.date,
         name = vaccination.name,
-        notes = vaccination.notes
+        notes = vaccination.notes,
+        notificationUUID = vaccination.notificationUUID,
+        hasVaccineBeenAdministered = vaccination.hasVaccineBeenAdministered
     ).toVaccinationUiState()
 
-    Card(modifier = modifier) {
-        Column {
-
+    Card(modifier = modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Checkbox(
+                modifier = Modifier.align(Alignment.TopEnd),
+                checked = vaccinationUiState.vaccineAdministered,
+                onCheckedChange = null
+            )
             BaseSingleRowDetailsItem(
                 label = vaccinationUiState.getDate(),
                 value = vaccinationUiState.getName(),
                 style = MaterialTheme.typography.labelSmall
             )
+
         }
+
     }
 }
 
@@ -442,7 +466,7 @@ fun WeightCard(
     ElevatedCard(modifier = modifier
         .clickable { onWeightCardClick(flock.id) }) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -472,17 +496,22 @@ fun WeightCard(
                 textAlign = TextAlign.Center
             )
 
-            BaseSingleRowDetailsItem(
-                label = "Actual",
-                value = "${weightUiState.actualWeight} Kg",
-                weightA = 1.5f,
-            )
+            Card {
+                BaseSingleRowDetailsItem(
+                    label = "Actual",
+                    value = "${weightUiState.actualWeight} Kg",
+                    weightA = 1.5f,
+                )
+            }
 
-            BaseSingleRowDetailsItem(
-                label = "Standard",
-                value = "${weightUiState.standard} Kg",
-                weightA = 1.5f
-            )
+            Card {
+                BaseSingleRowDetailsItem(
+                    label = "Standard",
+                    value = "${weightUiState.standard} Kg",
+                    weightA = 1.5f
+                )
+            }
+
         }
     }
 }

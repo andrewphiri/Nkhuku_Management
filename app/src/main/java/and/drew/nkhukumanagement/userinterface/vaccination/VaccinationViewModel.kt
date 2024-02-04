@@ -5,19 +5,27 @@ import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
-import and.drew.nkhukumanagement.utils.AlarmReceiver
 import and.drew.nkhukumanagement.utils.AlarmScheduler
 import and.drew.nkhukumanagement.utils.Constants.BIG_TEXT_CONTENT
+import and.drew.nkhukumanagement.utils.Constants.BIG_TEXT_CONTENT_TWO
 import and.drew.nkhukumanagement.utils.Constants.CONTENT_TEXT
+import and.drew.nkhukumanagement.utils.Constants.CONTENT_TEXT_TWO
 import and.drew.nkhukumanagement.utils.Constants.FLOCK_ID
 import and.drew.nkhukumanagement.utils.Constants.TITLE
-import and.drew.nkhukumanagement.utils.Constants.VACCINE_HASHCODE
+import and.drew.nkhukumanagement.utils.Constants.TITLE_TWO
+import and.drew.nkhukumanagement.utils.Constants.VACCINATION_ADMINISTERED
+import and.drew.nkhukumanagement.utils.Constants.VACCINATION_DATE
+import and.drew.nkhukumanagement.utils.Constants.VACCINATION_FLOCK_UNIQUE_ID
+import and.drew.nkhukumanagement.utils.Constants.VACCINATION_ID
+import and.drew.nkhukumanagement.utils.Constants.VACCINATION_NAME
+import and.drew.nkhukumanagement.utils.Constants.VACCINATION_NOTES
+import and.drew.nkhukumanagement.utils.Constants.VACCINATION_NOTIFICATION_UUID
+import and.drew.nkhukumanagement.utils.Constants.VACCINE_NOTIFICATION_ID
 import and.drew.nkhukumanagement.utils.DateUtils
+import and.drew.nkhukumanagement.utils.VaccinationConfirmationWorker
+import and.drew.nkhukumanagement.utils.VaccinationReminderWorker
 import android.app.AlarmManager
-import android.app.PendingIntent
-import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -26,10 +34,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -44,6 +61,19 @@ class VaccinationViewModel @Inject constructor(
 ) : ViewModel(), AlarmScheduler {
     companion object {
         private const val MILLIS = 5_000L
+//        class Factory(val context: Context) : ViewModelProvider.Factory  {
+//            @Suppress("UNCHECKED_CAST")
+//            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+//                val application = this.context
+//                val savedStateHandle = extras.createSavedStateHandle()
+//
+//                return VaccinationViewModel(
+//                    flockRepository = (application as FlockApplication).flockRepository,
+//                    savedStateHandle = savedStateHandle,
+//                    application = application as BaseFlockApplication
+//                ) as T
+//            }
+//        }
     }
 
     val flockID: Int = savedStateHandle[AddVaccinationsDestination.flockIdArg] ?: 0
@@ -61,6 +91,15 @@ class VaccinationViewModel @Inject constructor(
 
     //Dropdown menu items for the vaccination entry
     val options = mutableListOf("Gumburo", "Lasota")
+
+    val getAllVaccinationItems: StateFlow<List<Vaccination>> =
+        flockRepository.getAllVaccinationItems()
+            .map { it }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(MILLIS),
+                initialValue = listOf()
+            )
 
     /**
      * Get all flock with vaccinations items.
@@ -102,6 +141,9 @@ class VaccinationViewModel @Inject constructor(
         }
     }
 
+    suspend fun updateVaccination(vaccination: Vaccination) {
+        flockRepository.updateVaccination(vaccination)
+    }
 
     /**
      * Delete weight items from the database
@@ -308,42 +350,221 @@ class VaccinationViewModel @Inject constructor(
         )
     }
 
+//    /**
+//     * Schedule an alarm to be triggered day before the vaccination date
+//     */
+//    override fun schedule(vaccination: Vaccination, flock: FlockUiState) {
+//        val intent = Intent(application.applicationContext, AlarmReceiver::class.java).apply {
+//            putExtra(TITLE, "Vaccination Reminder")
+//            putExtra(CONTENT_TEXT, "${vaccination.name} vaccination due.")
+//            putExtra(
+//                BIG_TEXT_CONTENT,
+//                "${vaccination.name} vaccination for ${flock.batchName} is due tomorrow, " +
+//                        "${DateUtils().dateToStringLongFormat(vaccination.date)}."
+//            )
+//            putExtra(FLOCK_ID, flock.id)
+//            putExtra(VACCINE_NOTIFICATION_ID, vaccination.id)
+//        }
+//        val pendingIntent = PendingIntent.getBroadcast(
+//            application.applicationContext,
+//            vaccination.hashCode(),
+//            intent,
+//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+//        )
+//        alarmManager.set(
+//            AlarmManager.RTC_WAKEUP,
+//            DateUtils().calculateVaccineNotificationDate(vaccination),
+//            pendingIntent
+//        )
+//    }
+
+//    /**
+//     * Schedule an alarm to be triggered day before the vaccination date
+//     */
+//    override fun schedule(vaccination: Vaccination, flock: FlockUiState, notificationID: Int) {
+//        val intent = Intent(application.applicationContext, AlarmReceiver::class.java).apply {
+//            putExtra(TITLE, "Vaccination Reminder")
+//            putExtra(CONTENT_TEXT, "${vaccination.name} vaccination due.")
+//            putExtra(
+//                BIG_TEXT_CONTENT,
+//                "${vaccination.name} vaccination for ${flock.batchName} is due tomorrow, " +
+//                        "${DateUtils().dateToStringLongFormat(vaccination.date)}."
+//            )
+//            putExtra(FLOCK_ID, flock.id)
+//            putExtra(VACCINE_NOTIFICATION_ID, notificationID)
+//        }
+//        Log.i("CHECK_ID_EXTRA", flock.id.toString())
+//        val pendingIntent = PendingIntent.getBroadcast(
+//            application.applicationContext,
+//            vaccination.hashCode(),
+//            intent,
+//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+//        )
+//        alarmManager.set(
+//            AlarmManager.RTC_WAKEUP,
+//            DateUtils().calculateVaccineNotificationDate(vaccination),
+//            pendingIntent
+//        )
+//    }
+
+    /**
+     * Schedule an alarm to be triggered day before the vaccination date
+     */
+    override fun schedule(vaccination: Vaccination, flock: FlockUiState, notificationID: Int) {
+        val notificationData = buildDataObjectFirstNotification(
+            vaccination = vaccination,
+            flock = flock,
+            notificationID = notificationID
+        )
+
+        val secondNotificationData = buildDataObjectSecondNotification(
+            vaccination = vaccination,
+            flock = flock,
+            notificationID = notificationID
+        )
+
+        val vaccineWorkerRequest = OneTimeWorkRequest.Builder(VaccinationReminderWorker::class.java)
+            .setInputData(notificationData)
+            .setId(vaccination.notificationUUID)
+            .setInitialDelay(
+                DateUtils().calculateVaccineNotificationDate(
+                    vaccination = vaccination,
+                    hour = 8, minutes = 0
+                ), TimeUnit.MINUTES
+            )
+            .build()
+        val secondNotificationWorker =
+            OneTimeWorkRequest.Builder(VaccinationConfirmationWorker::class.java)
+                .setInputData(secondNotificationData)
+                .addTag(vaccination.notificationUUID.toString())
+                .setInitialDelay(
+                    DateUtils().calculateConfirmVaccineNotificationDate(
+                        vaccination = vaccination,
+                        hour = 10, minutes = 0
+                    ), TimeUnit.MINUTES
+                )
+                .build()
+
+        WorkManager.getInstance(application.applicationContext)
+            .beginWith(vaccineWorkerRequest)
+            .then(secondNotificationWorker)
+            .enqueue()
+
+    }
+
     /**
      * Schedule an alarm to be triggered day before the vaccination date
      */
     override fun schedule(vaccination: Vaccination, flock: FlockUiState) {
-        val intent = Intent(application.applicationContext, AlarmReceiver::class.java).apply {
-            putExtra(TITLE, "Vaccination Reminder")
-            putExtra(CONTENT_TEXT, "${vaccination.name} vaccination due.")
-            putExtra(
+        val notificationData = buildDataObjectFirstNotification(
+            vaccination = vaccination,
+            flock = flock,
+            notificationID = vaccination.id
+        )
+        val secondNotificationData = buildDataObjectSecondNotification(
+            vaccination = vaccination,
+            flock = flock,
+            notificationID = vaccination.id
+        )
+
+        val vaccineWorkerRequest = OneTimeWorkRequest.Builder(VaccinationReminderWorker::class.java)
+            .setInputData(notificationData)
+            .setId(vaccination.notificationUUID)
+            .setInitialDelay(
+                DateUtils().calculateVaccineNotificationDate(
+                    vaccination = vaccination,
+                    hour = 8, minutes = 0
+                ), TimeUnit.MINUTES
+            )
+            .build()
+
+        val secondNotificationWorker =
+            OneTimeWorkRequest.Builder(VaccinationConfirmationWorker::class.java)
+                .setInputData(secondNotificationData)
+                .addTag(vaccination.notificationUUID.toString())
+                .setInitialDelay(
+                    DateUtils().calculateConfirmVaccineNotificationDate(
+                        vaccination = vaccination,
+                        hour = 10, minutes = 0
+                    ), TimeUnit.MINUTES
+                )
+                .build()
+
+        WorkManager.getInstance(application.applicationContext)
+            .enqueue(vaccineWorkerRequest)
+        WorkManager.getInstance(application.applicationContext)
+            .enqueue(secondNotificationWorker)
+    }
+
+    fun buildDataObjectFirstNotification(
+        vaccination: Vaccination,
+        flock: FlockUiState,
+        notificationID: Int
+    ): Data {
+        return Data.Builder().apply {
+            putString(TITLE, "Vaccination Reminder")
+            putString(CONTENT_TEXT, "${vaccination.name} vaccination due.")
+            putString(
                 BIG_TEXT_CONTENT,
                 "${vaccination.name} vaccination for ${flock.batchName} is due tomorrow, " +
                         "${DateUtils().dateToStringLongFormat(vaccination.date)}."
             )
-            putExtra(FLOCK_ID, flock.id)
-            putExtra(VACCINE_HASHCODE, vaccination.hashCode())
-        }
-        Log.i("CHECK_ID_EXTRA", flock.id.toString())
-        val pendingIntent = PendingIntent.getBroadcast(
-            application.applicationContext,
-            vaccination.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        alarmManager.set(
-            AlarmManager.RTC_WAKEUP,
-            DateUtils().calculateAlarmDate(vaccination),
-            pendingIntent
-        )
+            putInt(FLOCK_ID, flock.id)
+            putInt(VACCINE_NOTIFICATION_ID, notificationID)
+        }.build()
     }
 
-    override fun cancelAlarm(vaccination: Vaccination) {
-        val pendingIntent = PendingIntent.getBroadcast(
-            application.applicationContext,
-            vaccination.hashCode(),
-            Intent(application, AlarmReceiver::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        alarmManager.cancel(pendingIntent)
+    fun buildDataObjectSecondNotification(
+        vaccination: Vaccination,
+        flock: FlockUiState,
+        notificationID: Int
+    ): Data {
+        val vaccineData = Data.Builder().apply {
+            putInt(VACCINATION_ID, notificationID)
+            putString(VACCINATION_FLOCK_UNIQUE_ID, vaccination.flockUniqueId)
+            putString(VACCINATION_NAME, vaccination.name)
+            putString(VACCINATION_NOTES, vaccination.notes)
+            putString(VACCINATION_DATE, DateUtils().dateToStringLongFormat(vaccination.date))
+            putString(VACCINATION_NOTIFICATION_UUID, vaccination.notificationUUID.toString())
+            putBoolean(VACCINATION_ADMINISTERED, vaccination.hasVaccineBeenAdministered)
+        }.build()
+        return Data.Builder().apply {
+            putString(TITLE_TWO, "Vaccination Reminder")
+            putString(CONTENT_TEXT_TWO, "${vaccination.name} vaccination due.")
+            putString(
+                BIG_TEXT_CONTENT_TWO,
+                "${vaccination.name} vaccination for ${flock.batchName} is due today, " +
+                        "Have you administered the vaccine?"
+            )
+            putInt(FLOCK_ID, flock.id)
+            putInt(VACCINE_NOTIFICATION_ID, vaccination.hashCode())
+            putInt(VACCINATION_ID, notificationID)
+            putString(VACCINATION_FLOCK_UNIQUE_ID, vaccination.flockUniqueId)
+            putString(VACCINATION_NAME, vaccination.name)
+            putString(VACCINATION_NOTES, vaccination.notes)
+            putString(VACCINATION_DATE, DateUtils().dateToStringLongFormat(vaccination.date))
+            putString(VACCINATION_NOTIFICATION_UUID, vaccination.notificationUUID.toString())
+            putBoolean(VACCINATION_ADMINISTERED, vaccination.hasVaccineBeenAdministered)
+
+        }.build()
     }
+
+
+    override fun cancelAlarm(vaccination: Vaccination) {
+        WorkManager.getInstance(application.applicationContext)
+            .cancelWorkById(vaccination.notificationUUID)
+        WorkManager.getInstance(application.applicationContext)
+            .cancelAllWorkByTag(vaccination.notificationUUID.toString())
+
+    }
+
+//    override fun cancelAlarm(vaccination: Vaccination) {
+//        val pendingIntent = PendingIntent.getBroadcast(
+//            application.applicationContext,
+//            vaccination.id,
+//            Intent(application, AlarmReceiver::class.java),
+//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+//        )
+//        alarmManager.cancel(pendingIntent)
+//    }
 }

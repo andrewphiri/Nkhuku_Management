@@ -12,7 +12,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -33,17 +32,16 @@ class AlarmReceiver : BroadcastReceiver() {
         val contentText = intent.getStringExtra(CONTENT_TEXT) ?: "No text"
         val bigText = intent.getStringExtra(BIG_TEXT_CONTENT) ?: return
         val flockID = intent.getIntExtra(FLOCK_ID, -1)
-        val vaccinationHashcode = intent.getIntExtra(Constants.VACCINE_HASHCODE, 0)
+        val vaccinationID = intent.getIntExtra(Constants.VACCINE_NOTIFICATION_ID, 0)
 
         val deepLinkIntent = Intent(
             Intent.ACTION_VIEW,
             "${FlockDetailsDestination.uri}/$flockID".toUri()
         )
-        Log.i("EXTRA_FLOCK_ID", flockID.toString())
 
         val deepLinkPendingIntent: PendingIntent? = TaskStackBuilder.create(context).run {
             addNextIntentWithParentStack(deepLinkIntent)
-            getPendingIntent(vaccinationHashcode, PendingIntent.FLAG_UPDATE_CURRENT)
+            getPendingIntent(vaccinationID, PendingIntent.FLAG_CANCEL_CURRENT)
         }
 
         with(NotificationManagerCompat.from(context)) {
@@ -68,8 +66,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 .setContentText(contentText)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
                 .setContentIntent(deepLinkPendingIntent)
-            notify(vaccinationHashcode, notificationBuilder.build())
-            println("ALARM WORKED, $contentText")
+            notify(vaccinationID, notificationBuilder.build())
         }
     }
 }

@@ -21,6 +21,11 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:node="remove"></provider>
+
         <activity
             android:name="and.drew.nkhukumanagement.MainActivity"
             android:exported="true"
@@ -45,6 +50,7 @@
             </intent-filter>
         </activity>
         <receiver android:name="and.drew.nkhukumanagement.utils.AlarmReceiver" />
+        <receiver android:name=".utils.NotificationReceiver" />
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 

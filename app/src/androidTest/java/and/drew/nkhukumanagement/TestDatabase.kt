@@ -17,6 +17,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
 import java.time.LocalDate
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -72,14 +73,18 @@ class TestDatabase {
             id = 1, name = "Gumburro",
             flockUniqueId = "1",
             notes = "",
-            date = LocalDate.now()
+            date = LocalDate.now(),
+            hasVaccineBeenAdministered = false,
+            notificationUUID = UUID.randomUUID()
         )
 
         val vaccination1 = Vaccination(
             id = 1, name = "Gumburro",
             flockUniqueId = "1",
             notes = "",
-            date = LocalDate.now()
+            date = LocalDate.now(),
+            hasVaccineBeenAdministered = false,
+            notificationUUID = UUID.randomUUID()
         )
         runTest {
             dao.insertVaccination(vaccination)

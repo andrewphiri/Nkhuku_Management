@@ -78,8 +78,10 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
         flockDao.deleteFlockHealth(flockUniqueID)
 
     override suspend fun deleteIncome(income: Income) = flockDao.deleteIncome(income)
+    override suspend fun deleteIncome(uniqueID: String) = flockDao.deleteIncome(uniqueID)
 
     override suspend fun deleteExpense(expense: Expense) = flockDao.deleteExpense(expense)
+    override suspend fun deleteExpense(uniqueID: String) = flockDao.deleteExpense(uniqueID)
 
     override suspend fun updateFlock(flock: Flock) = flockDao.updateFlock(flock)
     override suspend fun updateVaccination(vaccination: Vaccination) =

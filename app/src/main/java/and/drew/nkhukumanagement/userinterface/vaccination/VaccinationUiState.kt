@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Parcelable
 import androidx.annotation.RequiresApi
 import kotlinx.parcelize.Parcelize
+import java.util.UUID
 
 /**
  * Represents the UI state for [AddVaccinationsScreen].
@@ -19,7 +20,9 @@ data class VaccinationUiState(
     private var date: String = "",
     val notes: String = "",
     val actionEnabled: Boolean = false,
-    var isExpanded: Boolean = false
+    var isExpanded: Boolean = false,
+    val notificationUUID: UUID = UUID.randomUUID(),
+    val vaccineAdministered: Boolean = false
 ) : Parcelable {
 
     fun setDate(mDate: String) {
@@ -58,7 +61,9 @@ fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
     flockUniqueId = getUniqueId(),
     name = getName(),
     date = DateUtils().stringToLocalDate(getDate()),
-    notes = notes
+    notes = notes,
+    hasVaccineBeenAdministered = vaccineAdministered,
+    notificationUUID = notificationUUID
 )
 
 /**
@@ -75,7 +80,9 @@ fun Vaccination.toVaccinationUiState(
     date = DateUtils().dateToStringLongFormat(date),
     notes = notes,
     actionEnabled = enabled,
-    vaccinationNumber = vaccinationNumber
+    vaccinationNumber = vaccinationNumber,
+    notificationUUID = notificationUUID,
+    vaccineAdministered = hasVaccineBeenAdministered
 )
 
 /**

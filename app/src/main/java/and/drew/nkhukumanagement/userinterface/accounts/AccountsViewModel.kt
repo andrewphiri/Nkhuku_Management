@@ -103,6 +103,13 @@ class AccountsViewModel @Inject constructor(
     /**
      * Insert an Account Item into the database
      */
+    suspend fun deleteAccountsSummary(uniqueID: String) {
+        flockRepository.deleteAccounts(uniqueID)
+    }
+
+    /**
+     * Delete an Account Item from the database
+     */
     suspend fun insertAccount(accountsSummary: AccountsSummary) {
         flockRepository.insertAccounts(accountsSummary)
     }

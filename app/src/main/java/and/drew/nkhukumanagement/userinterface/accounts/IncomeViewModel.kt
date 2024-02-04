@@ -69,11 +69,19 @@ class IncomeViewModel @Inject constructor(
     }
 
     /**
-     * Delete an Expense Item from the database
+     * Delete an Income Item from the database
      */
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun deleteIncome(income: Income) {
         flockRepository.deleteIncome(income)
+    }
+
+    /**
+     * Delete an Income Item from the database
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun deleteIncome(uniqueID: String) {
+        flockRepository.deleteIncome(uniqueID)
     }
 
     fun setIncomeID(id: Int) {

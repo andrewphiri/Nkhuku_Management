@@ -83,6 +83,12 @@ interface FlockDao {
     @Delete
     suspend fun deleteIncome(income: Income)
 
+    @Query("DELETE FROM income WHERE flockUniqueID = :flockUniqueID")
+    suspend fun deleteIncome(flockUniqueID: String)
+
+    @Query("DELETE FROM expense WHERE flockUniqueID = :flockUniqueID")
+    suspend fun deleteExpense(flockUniqueID: String)
+
     @Delete
     suspend fun deleteExpense(expense: Expense)
 
