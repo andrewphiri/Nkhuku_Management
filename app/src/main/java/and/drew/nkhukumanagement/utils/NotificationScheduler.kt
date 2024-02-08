@@ -3,8 +3,8 @@ package and.drew.nkhukumanagement.utils
 import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 
-interface AlarmScheduler {
+interface NotificationScheduler {
     fun schedule(vaccination: Vaccination, flock: FlockUiState)
     fun schedule(vaccination: Vaccination, flock: FlockUiState, notificationID: Int)
-    fun cancelAlarm(vaccination: Vaccination)
+    fun cancelNotification(vaccination: Vaccination)
 }

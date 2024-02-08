@@ -5,7 +5,6 @@ import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
-import and.drew.nkhukumanagement.utils.AlarmScheduler
 import and.drew.nkhukumanagement.utils.Constants.BIG_TEXT_CONTENT
 import and.drew.nkhukumanagement.utils.Constants.BIG_TEXT_CONTENT_TWO
 import and.drew.nkhukumanagement.utils.Constants.CONTENT_TEXT
@@ -22,9 +21,12 @@ import and.drew.nkhukumanagement.utils.Constants.VACCINATION_NOTES
 import and.drew.nkhukumanagement.utils.Constants.VACCINATION_NOTIFICATION_UUID
 import and.drew.nkhukumanagement.utils.Constants.VACCINE_NOTIFICATION_ID
 import and.drew.nkhukumanagement.utils.DateUtils
+import and.drew.nkhukumanagement.utils.NotificationScheduler
 import and.drew.nkhukumanagement.utils.VaccinationConfirmationWorker
 import and.drew.nkhukumanagement.utils.VaccinationReminderWorker
 import android.app.AlarmManager
+import android.app.NotificationManager
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
@@ -58,22 +60,9 @@ class VaccinationViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val application: BaseFlockApplication,
     private val flockRepository: FlockRepository
-) : ViewModel(), AlarmScheduler {
+) : ViewModel(), NotificationScheduler {
     companion object {
         private const val MILLIS = 5_000L
-//        class Factory(val context: Context) : ViewModelProvider.Factory  {
-//            @Suppress("UNCHECKED_CAST")
-//            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-//                val application = this.context
-//                val savedStateHandle = extras.createSavedStateHandle()
-//
-//                return VaccinationViewModel(
-//                    flockRepository = (application as FlockApplication).flockRepository,
-//                    savedStateHandle = savedStateHandle,
-//                    application = application as BaseFlockApplication
-//                ) as T
-//            }
-//        }
     }
 
     val flockID: Int = savedStateHandle[AddVaccinationsDestination.flockIdArg] ?: 0
@@ -446,9 +435,9 @@ class VaccinationViewModel @Inject constructor(
                 .build()
 
         WorkManager.getInstance(application.applicationContext)
-            .beginWith(vaccineWorkerRequest)
-            .then(secondNotificationWorker)
-            .enqueue()
+            .enqueue(vaccineWorkerRequest)
+        WorkManager.getInstance(application.applicationContext)
+            .enqueue(secondNotificationWorker)
 
     }
 
@@ -550,21 +539,15 @@ class VaccinationViewModel @Inject constructor(
     }
 
 
-    override fun cancelAlarm(vaccination: Vaccination) {
+    override fun cancelNotification(vaccination: Vaccination) {
         WorkManager.getInstance(application.applicationContext)
             .cancelWorkById(vaccination.notificationUUID)
         WorkManager.getInstance(application.applicationContext)
             .cancelAllWorkByTag(vaccination.notificationUUID.toString())
 
+        val notificationManager =
+            application.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(vaccination.id)
     }
 
-//    override fun cancelAlarm(vaccination: Vaccination) {
-//        val pendingIntent = PendingIntent.getBroadcast(
-//            application.applicationContext,
-//            vaccination.id,
-//            Intent(application, AlarmReceiver::class.java),
-//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-//        )
-//        alarmManager.cancel(pendingIntent)
-//    }
 }

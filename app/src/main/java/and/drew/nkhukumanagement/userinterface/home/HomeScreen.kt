@@ -190,7 +190,7 @@ fun HomeScreen(
                     if (vaccinationList?.vaccinations != null) {
                         vaccinationList?.vaccinations?.forEach { vaccine ->
                             Log.i("CANCEL_NOTIFICATION", vaccine.toString())
-                            vaccinationViewModel.cancelAlarm(vaccine)
+                            vaccinationViewModel.cancelNotification(vaccine)
                         }
                     }
                     flockEntryViewModel.deleteFlock(uniqueId)
@@ -204,6 +204,11 @@ fun HomeScreen(
                 }
             },
             onClose = { flock ->
+                if (vaccinationList?.vaccinations != null) {
+                    vaccinationList?.vaccinations?.forEach { vaccine ->
+                        vaccinationViewModel.cancelNotification(vaccine)
+                    }
+                }
                 accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
                     .observe(lifecycleOwner) { flockAndSummary ->
                         accountSummary = flockAndSummary.accountsSummary
@@ -264,8 +269,7 @@ fun HomeScreen(
                     val uniqueId = homeUiState.flockList[index].uniqueId
                     if (vaccinationList?.vaccinations != null) {
                         vaccinationList?.vaccinations?.forEach { vaccine ->
-                            Log.i("CANCEL_NOTIFICATION", vaccine.toString())
-                            vaccinationViewModel.cancelAlarm(vaccine)
+                            vaccinationViewModel.cancelNotification(vaccine)
                         }
                     }
                     flockEntryViewModel.deleteFlock(uniqueId)
@@ -279,7 +283,11 @@ fun HomeScreen(
                 }
             },
             onClose = { flock1 ->
-
+                if (vaccinationList?.vaccinations != null) {
+                    vaccinationList?.vaccinations?.forEach { vaccine ->
+                        vaccinationViewModel.cancelNotification(vaccine)
+                    }
+                }
                 accountsViewModel.flockRepository.getFlockAndAccountSummary(flock1.id)
                     .observe(lifecycleOwner) { flockAndSummary ->
                         accountSummary = flockAndSummary.accountsSummary
