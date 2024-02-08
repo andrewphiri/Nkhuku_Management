@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedTextField
@@ -115,6 +117,7 @@ fun PlannerCardEntry(
     //Define dependent checkboxes states
     val (checkboxState, onStateChange) = rememberSaveable { mutableStateOf(false) }
     val (checkboxState2, onStateChange2) = rememberSaveable { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     //TriStateCheckbox state reflects state of dependent checkboxes
     val parentState = remember(checkboxState, checkboxState2) {
@@ -136,7 +139,8 @@ fun PlannerCardEntry(
 
     }
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(16.dp)
+            .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         OutlinedTextField(

@@ -288,7 +288,7 @@ fun AddVaccinationsScreen(
                     } else {
                         val flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId()
                         withVaccinationsToEdit?.vaccinations?.forEach {
-                            vaccinationViewModel.cancelAlarm(it)
+                            vaccinationViewModel.cancelNotification(it)
                         }
 
                         if (userPreferences.receiveNotifications) {

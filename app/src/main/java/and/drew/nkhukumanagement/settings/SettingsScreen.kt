@@ -7,6 +7,7 @@ import and.drew.nkhukumanagement.backup.BackupAndRestoreViewModel
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
+import and.drew.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
@@ -40,6 +41,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -84,15 +86,18 @@ object SettingsDestination : NkhukuDestinations {
         get() = R.string.settings
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SettingsScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     userPrefsViewModel: UserPrefsViewModel,
     backupAndRestore: BackupAndRestoreViewModel = hiltViewModel(),
+    vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
     navigateToAccountInfoScreen: () -> Unit,
     contentType: ContentType
 ) {
+    val allVaccinationItems by vaccinationViewModel.getAllVaccinationItems.collectAsState()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var showCurrencyDialog by remember { mutableStateOf(false) }
@@ -239,6 +244,11 @@ fun SettingsScreen(
                 receiveNotifications = receiveNotifications,
                 onCheckedChange = {
                     userPrefsViewModel.updateNotifications(it)
+                    if (!receiveNotifications) {
+                        allVaccinationItems.forEach {
+                            vaccinationViewModel.cancelNotification(it)
+                        }
+                    }
                 },
                 navigateToAccountInfoScreen = navigateToAccountInfoScreen
             )
@@ -287,7 +297,7 @@ fun SettingsCard(
                 .alpha(if (isCircularIndicatorShowing) 0.5f else 1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            currencyPickerDialog(
+            CurrencyPickerDialog(
                 showDialog = showCurrencyDialog,
                 onDismiss = onDismissCurrencyDialog,
                 selectedCurrency = selectedCurrency,
@@ -323,7 +333,7 @@ fun SettingsCard(
                 text = "Account Information"
             )
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.fillMaxWidth(),
                 thickness = Dp.Hairline,
                 color = Color.DarkGray
@@ -354,7 +364,7 @@ fun SettingsCard(
                     fontWeight = FontWeight.Light
                 )
             }
-            Divider(
+            HorizontalDivider(
                 thickness = Dp.Hairline,
                 color = Color.DarkGray
             )
@@ -390,7 +400,7 @@ fun SettingsCard(
                 )
             }
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .fillMaxWidth(),
                 thickness = Dp.Hairline,
@@ -425,7 +435,7 @@ fun SettingsCard(
 }
 
 @Composable
-fun currencyPickerDialog(
+fun CurrencyPickerDialog(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     showDialog: Boolean,

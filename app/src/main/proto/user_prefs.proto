@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_package = "and.drew.nkhukumanagement";
+option java_multiple_files = true;
+
+message UserPreferences {
+  string symbol = 1;
+  string displayName = 2;
+  string currencyCode = 3;
+  int32 numericCode = 4;
+  bool receiveNotifications = 5;
+  string currencyLocale = 6;
+  bool skipAccountSetup = 7;
+}
