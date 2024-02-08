@@ -60,7 +60,7 @@ Package [app/src/main/java/and/drew/nkhukumanagement/userinterface/tips]
 Package [app/src/main/java/and/drew/nkhukumanagement/userinterface/overview]
 
 - Get a summarized view of finances and flock details.
-- [app/src/main/java/and/drew/nkhukumanagement/userinterface/overview/OverviewScreen.kt](app/src/main/java/and/drew/nkhukumanagement/userinterface/overview/OverviewScreen.kt)
+[app/src/main/java/and/drew/nkhukumanagement/userinterface/overview/OverviewScreen.kt](app/src/main/java/and/drew/nkhukumanagement/userinterface/overview/OverviewScreen.kt)
 
 ### Add Vaccination Screen
 
