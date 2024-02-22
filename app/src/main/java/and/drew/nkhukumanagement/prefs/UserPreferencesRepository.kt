@@ -63,6 +63,15 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     /**
+     * Update language locale
+     */
+    suspend fun updateLanguageLocale(languageLocale: String) {
+        userPrefsDataStore.updateData { currentPreferences ->
+            currentPreferences.toBuilder().setLanguageLocale(languageLocale).build()
+        }
+    }
+
+    /**
      * Save Currency Selected
      */
     suspend fun updateDefaultCurrency(currency: Currency, uLocale: String) {

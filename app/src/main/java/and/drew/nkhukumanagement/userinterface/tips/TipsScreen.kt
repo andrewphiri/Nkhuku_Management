@@ -1,6 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.tips
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
 import and.drew.nkhukumanagement.auth.SignInViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
@@ -57,12 +58,6 @@ fun TipsScreen(
     contentType: ContentType,
     isUserSignedIn: Boolean
 ) {
-//    val userSignedIn by signInViewModel.userLoggedIn.collectAsState(initial = false)
-//    LaunchedEffect(
-//        key1 = signInViewModel.userLoggedIn
-//    ) {
-//        signInViewModel.setUserLoggedIn(loggedIn = googleAuthUiClient.getSignedInUser() != null)
-//    }
 
     if (contentType == ContentType.LIST_ONLY) {
         MainTipsScreen(
@@ -205,7 +200,7 @@ fun MainTipsScreen(
             ) {
                 Row {
                     Text(
-                        text = "Please ",
+                        text = stringResource(R.string.please),
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
@@ -214,11 +209,11 @@ fun MainTipsScreen(
                         ),
                         color = Color.Blue,
                         textDecoration = TextDecoration.Underline,
-                        text = "Sign in",
+                        text = stringResource(R.string.signin),
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        text = " to receive tips.",
+                        text = stringResource(R.string.to_receive_tips),
                         style = MaterialTheme.typography.labelMedium
                     )
                 }

@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -75,29 +76,6 @@ fun FlockOverviewScreen(
     contentType: ContentType
 ) {
     val homeUiState by homeViewModel.homeUiState.collectAsState()
-    val flockOptions: MutableMap<String, String> = mutableMapOf("All" to "All flock")
-    var playAnimation by remember { mutableStateOf(false) }
-
-    val defaultDropDownMenuValue by remember { mutableStateOf(flockOptions["All"] ?: "") }
-
-    homeUiState.flockList.forEach {
-        flockOptions[it.uniqueId] = it.batchName
-    }
-    // Filter the list based on the batch picked
-    //Use the batch name(value) to get the key(unique ID) and compare it to the Account Summary unique ID
-    val flockList: List<Account> =
-        if (defaultDropDownMenuValue == flockOptions["All"]) overviewViewModel.flockTotalsList(
-            homeUiState.flockList
-        )
-        else overviewViewModel.flockTotalsList(homeUiState.flockList.filter {
-            it.uniqueId == flockOptions.entries.find { it.value == defaultDropDownMenuValue }?.key
-        })
-
-    LaunchedEffect(flockList) {
-        if (homeUiState.flockList.isNotEmpty()) {
-            playAnimation = true
-        }
-    }
 
     MainFlockOverviewScreen(
         modifier = modifier,
@@ -122,11 +100,20 @@ fun MainFlockOverviewScreen(
     contentType: ContentType
 ) {
     //val homeUiState by homeViewModel.homeUiState.collectAsState()
-    val flockOptions: MutableMap<String, String> = mutableMapOf("All" to "All flock")
+    val context = LocalContext.current
+    val flockOptions: MutableMap<String, String> = mutableMapOf(
+        context.getString(R.string.all) to context.getString(
+            R.string.all_flock
+        )
+    )
     var playAnimation by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     var isExpanded by remember { mutableStateOf(false) }
-    var defaultDropDownMenuValue by remember { mutableStateOf(flockOptions["All"] ?: "") }
+    var defaultDropDownMenuValue by remember {
+        mutableStateOf(
+            flockOptions[context.getString(R.string.all)] ?: ""
+        )
+    }
 
     flocks.forEach {
         flockOptions[it.uniqueId] = it.batchName
@@ -134,7 +121,7 @@ fun MainFlockOverviewScreen(
     // Filter the list based on the batch picked
     //Use the batch name(value) to get the key(unique ID) and compare it to the Account Summary unique ID
     val flockList: List<Account> =
-        if (defaultDropDownMenuValue == flockOptions["All"]) setFlockTotals(
+        if (defaultDropDownMenuValue == flockOptions[context.getString(R.string.all)]) setFlockTotals(
             flocks
         )
         else setFlockTotals(flocks.filter {
@@ -188,8 +175,6 @@ fun MainFlockOverviewScreen(
                 )
             }
         }
-
-
     }
 }
 
@@ -217,7 +202,7 @@ fun OverviewFlockCard(
             onOptionSelected = onValueChanged,
             onDismissed = onDismissed,
             options = flockOptions,
-            label = "Flock"
+            label = stringResource(R.string.flock)
         )
 
         PieChart(
@@ -301,7 +286,7 @@ fun OverviewFlockCard(
                 )
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
-                    label = "Total Ordered",
+                    label = stringResource(R.string.total_ordered),
                     styleForLabel = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     styleForTitle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     value = totalFlockList[0].total.toInt().toString(),

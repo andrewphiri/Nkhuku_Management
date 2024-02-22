@@ -101,7 +101,7 @@ fun FlockHealthScreen(
             ).toFlock(), health = listOf()
         )
     )
-    val flockID = editFlockViewModel.flockId.value
+    val flockID by editFlockViewModel.flockId.collectAsState(initial = 0)
     val title = flockWithHealth?.flock?.batchName
 
     MainFlockHealthScreen(
@@ -215,12 +215,12 @@ fun FlockHealthList(
             ) {
                 Text(
                     modifier = Modifier.weight(1.5f),
-                    text = "Date",
+                    text = stringResource(R.string.date),
                     textAlign = TextAlign.Center
                 )
                 Text(
                     modifier = Modifier.weight(1f, fill = true),
-                    text = "Mortality",
+                    text = stringResource(R.string.mortality),
                     textAlign = TextAlign.Center
                 )
 
@@ -231,7 +231,7 @@ fun FlockHealthList(
 
                 Text(
                     modifier = Modifier.weight(1f, fill = true),
-                    text = "Culls",
+                    text = stringResource(R.string.culls),
                     textAlign = TextAlign.Center
                 )
             }

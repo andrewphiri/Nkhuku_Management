@@ -9,7 +9,6 @@ import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.BaseSignInRow
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -67,13 +67,13 @@ fun ResetPasswordScreen(
     navigateToAccountSetupScreen: () -> Unit,
     contentType: ContentType
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var isSendingResetLinkButtonLoading by remember { mutableStateOf(false) }
     var snackbarHostState = remember { SnackbarHostState() }
     var isCircularBarShowing by remember { mutableStateOf(false) }
     var isPasswordResetLinkDialogSuccessShowing by remember { mutableStateOf(false) }
     var isResetLinkSuccessfullySent by remember { mutableStateOf(false) }
-
 
     Scaffold(
         modifier = modifier,
@@ -104,13 +104,11 @@ fun ResetPasswordScreen(
 
                         delay(2000)
 
-                        Log.i("PASSWORD RESET LINK", isResetLinkSuccessfullySent.toString())
                         if (isResetLinkSuccessfullySent) {
                             isPasswordResetLinkDialogSuccessShowing = true
                         } else {
                             snackbarHostState.showSnackbar(
-                                message = "Invalid email address. Please provide a valid" +
-                                        " email address and try again.",
+                                message = context.getString(R.string.invalid_email),
                                 duration = SnackbarDuration.Long
                             )
                         }
@@ -136,8 +134,8 @@ fun ResetPasswordScreen(
 @Composable
 fun ResetPasswordCard(
     modifier: Modifier = Modifier,
-    loadingText: String = "Sending link",
-    defaultText: String = "Send password reset link",
+    loadingText: String = stringResource(R.string.sending_link),
+    defaultText: String = stringResource(R.string.send_password_reset_link),
     onClickResetPassword: () -> Unit,
     progressIndicatorColor: Color = MaterialTheme.colorScheme.primary,
     isLoadingSignInButton: Boolean,
@@ -163,11 +161,10 @@ fun ResetPasswordCard(
             modifier = Modifier.align(Alignment.Center),
             onDismissSuccessAlertDialog = onDismissSuccessAlertDialog,
             isSuccessAlertDialogShowing = isSuccessAlertDialogShowing,
-            title = "Reset Link Sent",
-            failureTitle = "Link Successfully Sent",
+            title = stringResource(R.string.reset_link_sent),
+            failureTitle = stringResource(R.string.link_successfully_sent),
             isActionSuccessful = false,
-            fileValidMessage = "A password reset link was successfully sent to your email address. Please check your " +
-                    "inbox, spam or junk folder and follow the instructions provided. Attempt to log in when you are done."
+            fileValidMessage = stringResource(R.string.link_sent_successfully_message)
         )
 
         Column(
@@ -183,7 +180,7 @@ fun ResetPasswordCard(
 
                 BaseSignInRow(
                     value = userUiState.email,
-                    placeholder = "Email address",
+                    placeholder = stringResource(R.string.email_address),
                     onValueChanged = {
                         onValueChanged(userUiState.copy(email = it))
                     },

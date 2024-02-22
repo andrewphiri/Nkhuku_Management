@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -81,30 +82,10 @@ fun AccountOverviewScreen(
 ) {
     val overviewUiState by overviewViewModel.accountsList.collectAsState()
     val flockList by homeViewModel.homeUiState.collectAsState()
-    val flockOptions: MutableMap<String, String> = mutableMapOf("All" to "All flock")
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
 
-    var playAnimation by remember { mutableStateOf(false) }
-    var defaultDropDownMenuValue by remember { mutableStateOf(flockOptions["All"] ?: "") }
-
-    flockList.flockList.forEach {
-        flockOptions[it.uniqueId] = it.batchName
-    }
-    // Filter the list based on the batch picked
-    //Use the batch name(value) to get the key(unique ID) and compare it to the Account Summary unique ID
-    val accountList: List<Account> = if (defaultDropDownMenuValue == flockOptions["All"])
-        overviewViewModel.accountsTotalsList(overviewUiState.accountsList) else
-        overviewViewModel.accountsTotalsList(overviewUiState.accountsList
-            .filter { it.flockUniqueID == flockOptions.entries.find { it.value == defaultDropDownMenuValue }?.key })
-
-
-    LaunchedEffect(accountList) {
-        if (overviewUiState.accountsList.isNotEmpty()) {
-            playAnimation = true
-        }
-    }
 
     MainAccountOverviewScreen(
         modifier = modifier,
@@ -134,23 +115,32 @@ fun MainAccountOverviewScreen(
 ) {
     // val overviewUiState by overviewViewModel.accountsList.collectAsState()
     // val flockList by homeViewModel.homeUiState.collectAsState()
-    val flockOptions: MutableMap<String, String> = mutableMapOf("All" to "All flock")
-
+    val context = LocalContext.current
+    val flockOptions: MutableMap<String, String> = mutableMapOf(
+        context.getString(R.string.all) to context.getString(
+            R.string.all_flock
+        )
+    )
 
     var playAnimation by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     var isExpanded by remember { mutableStateOf(false) }
-    var defaultDropDownMenuValue by remember { mutableStateOf(flockOptions["All"] ?: "") }
+    var defaultDropDownMenuValue by remember {
+        mutableStateOf(
+            flockOptions[context.getString(R.string.all)] ?: ""
+        )
+    }
 
     flockList.forEach {
         flockOptions[it.uniqueId] = it.batchName
     }
     // Filter the list based on the batch picked
     //Use the batch name(value) to get the key(unique ID) and compare it to the Account Summary unique ID
-    val accountList: List<Account> = if (defaultDropDownMenuValue == flockOptions["All"])
-        setAccountsList(accountsTotalsList) else
-        setAccountsList(accountsTotalsList
-            .filter { it.flockUniqueID == flockOptions.entries.find { it.value == defaultDropDownMenuValue }?.key })
+    val accountList: List<Account> =
+        if (defaultDropDownMenuValue == flockOptions[context.getString(R.string.all)])
+            setAccountsList(accountsTotalsList) else
+            setAccountsList(accountsTotalsList
+                .filter { it.flockUniqueID == flockOptions.entries.find { it.value == defaultDropDownMenuValue }?.key })
 
 
     LaunchedEffect(accountList) {
@@ -230,7 +220,7 @@ fun OverviewAccountsCard(
             onOptionSelected = onValueChanged,
             onDismissed = onDismissed,
             options = flockOptions,
-            label = "Flock"
+            label = stringResource(R.string.flock)
         )
         PieChart(
             modifier = Modifier.padding(16.dp),
@@ -294,7 +284,7 @@ fun OverviewAccountsCard(
                 )
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
-                    label = "Net",
+                    label = stringResource(R.string.net),
                     styleForLabel = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     styleForTitle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     value = currencyFormatter(totalAccountsList[0].net, currencyLocale),
@@ -309,7 +299,7 @@ fun OverviewAccountsCard(
                 )
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
-                    label = "Net Profit Margin",
+                    label = stringResource(R.string.net_profit_margin),
                     styleForLabel = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     styleForTitle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     value = "${String.format("%.2f", netProfitMargin)} %",

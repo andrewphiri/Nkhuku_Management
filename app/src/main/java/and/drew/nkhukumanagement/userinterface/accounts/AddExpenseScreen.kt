@@ -128,22 +128,9 @@ fun AddExpenseScreen(
         ).toExpense()
     )
 
-    //if id is 0, set initial date to today's date else get date from expense
-    val dateState = if (expenseViewModel.expenseUiState.id == 0) rememberDatePickerState(
-        initialDisplayMode = DisplayMode.Picker,
-        initialSelectedDateMillis =   LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
-            .toEpochMilli())
-    else rememberDatePickerState(
-                initialDisplayMode = DisplayMode.Picker,
-                initialSelectedDateMillis = expense.date
-                    .atStartOfDay()
-                    .atZone(ZoneId.of("UTC")).toInstant().toEpochMilli())
-
-    var isUpdateButtonEnabled by remember { mutableStateOf(false) }
     var title by remember { mutableStateOf("") }
-    var showDialog by rememberSaveable { mutableStateOf(false) }
-    val context = LocalContext.current
     title = stringResource(AddExpenseScreenDestination.resourceId)
+    val expenseIDArg by expenseViewModel.expenseID.collectAsState(initial = 0)
 
     /**
      * if nav argument expenseID is greater than zero, update state. LaunchedEffect used because this
@@ -180,111 +167,12 @@ fun AddExpenseScreen(
                 )
             }
         },
-        expenseIDArg = expenseViewModel.expenseID.value,
+        expenseIDArg = expenseIDArg,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
         currencySymbol = currency.symbol,
         contentType = contentType
     )
-
-//    Scaffold(
-//        topBar = {
-//            FlockManagementTopAppBar(
-//                title = if (expenseViewModel.expenseUiState.id > 0) context.resources.getString(R.string.edit_expense)
-//                else title,
-//                canNavigateBack = canNavigateBack,
-//                navigateUp = onNavigateUp
-//            )
-//        },
-//        snackbarHost = { SnackbarHost(snackbarHostState) }
-//    ) { innerPadding ->
-//
-//        isUpdateButtonEnabled = if (expenseViewModel.expenseID > 0) expenseViewModel.expenseUiState !=
-//                expense.toExpenseUiState(enabled = true) else expenseViewModel.expenseUiState.isEnabled
-//
-//        Column(
-//            modifier = modifier.verticalScroll(
-//                state = scrollState
-//            ).padding(innerPadding)
-//        ) {
-//            AddExpenseCard(
-//                expensesUiState = expenseViewModel.expenseUiState,
-//                onValueChanged = expenseViewModel::updateState,
-//                onNavigateUp = onNavigateUp,
-//                isUpdateButtonEnabled = isUpdateButtonEnabled,
-//                onSaveExpense = {
-//                    if (expenseViewModel.expenseID > 0) {
-//                        if (handleNumberExceptions(
-//                                expenseViewModel.expenseUiState.copy(
-//                                    cumulativeTotalExpense = calculateCumulativeExpenseUpdate(
-//                                        expenseViewModel.expenseUiState.cumulativeTotalExpense,
-//                                        totalExpense = expenseViewModel.expenseUiState.totalExpense,
-//                                        initialItemExpense = expenseViewModel.expenseUiState.initialItemExpense
-//                                    ).toString()
-//                                )
-//                            )
-//                        ) {
-//                            coroutineScope.launch {
-//                                expenseViewModel.updateExpense(expenseViewModel.expenseUiState)
-//                                    accountsViewModel.updateAccount(
-//                                        accountsSummary = accountsWithExpense.accountsSummary,
-//                                        expenseUiState = expenseViewModel.expenseUiState
-//                                    )
-//                            }.invokeOnCompletion { onNavigateUp() }
-//                        } else {
-//                            coroutineScope.launch {
-//                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
-//                            }
-//                        }
-//                    } else {
-//                        if (handleNumberExceptions(expenseViewModel.expenseUiState)) {
-//                            coroutineScope.launch {
-//                                expenseViewModel.insertExpense(
-//                                    expenseViewModel.expenseUiState.copy(
-//                                        flockUniqueID = accountsWithExpense.accountsSummary.flockUniqueID,
-//                                        cumulativeTotalExpense = calculateCumulativeExpense(
-//                                            accountsWithExpense.accountsSummary.totalExpenses.toString(),
-//                                            expenseViewModel.expenseUiState.totalExpense
-//                                        ).toString()
-//                                    )
-//                                )
-//                                accountsViewModel.updateAccount(
-//                                    accountsSummary = accountsWithExpense.accountsSummary,
-//                                    expenseUiState = expenseViewModel.expenseUiState
-//                                )
-//                            }.invokeOnCompletion { onNavigateUp() }
-//                        } else {
-//                            coroutineScope.launch {
-//                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
-//                            }
-//                            Log.i("EXPENSEUISTATE", accountsWithExpense.accountsSummary.flockUniqueID)
-//                        }
-//                    }
-//                },
-//                showDialog = showDialog,
-//                onDismissed = { showDialog = false },
-//                updateShowDialogOnClick = { showDialog = true },
-//                label = "Date",
-//                state = dateState,
-//                saveDateSelected = { dateState ->
-//                    val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
-//                        DateUtils().convertMillisToLocalDate(
-//                            millis
-//                        )
-//                    }
-//                    val localDateToString = millisToLocalDate?.let { date ->
-//                        DateUtils().dateToStringShortFormat(
-//                            date
-//                        )
-//                    }
-//                    localDateToString
-//                },
-//                currencySymbol = currency.symbol
-//            )
-//        }
-//
-//    }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -389,7 +277,7 @@ fun MainAddExpenseScreen(
                             onNavigateUp()
                         } else {
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
+                                snackbarHostState.showSnackbar(message = context.getString(R.string.please_enter_a_valid_number))
                             }
                         }
                     } else {
@@ -410,7 +298,7 @@ fun MainAddExpenseScreen(
                             onNavigateUp()
                         } else {
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
+                                snackbarHostState.showSnackbar(message = context.getString(R.string.please_enter_a_valid_number))
                             }
                         }
                     }
@@ -418,7 +306,7 @@ fun MainAddExpenseScreen(
                 showDialog = showDialog,
                 onDismissed = { showDialog = false },
                 updateShowDialogOnClick = { showDialog = true },
-                label = "Date",
+                label = stringResource(R.string.date),
                 state = dateState,
                 saveDateSelected = { dateState ->
                     val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
@@ -478,7 +366,7 @@ fun AddExpenseCard(
             modifier = Modifier.fillMaxWidth(),
             value = expensesUiState.expenseName,
             onValueChange = { onValueChanged(expensesUiState.copy(expenseName = it)) },
-            label = { Text("Description") },
+            label = { Text(stringResource(R.string.description)) },
             singleLine = true
         )
 
@@ -486,7 +374,7 @@ fun AddExpenseCard(
             modifier = Modifier.fillMaxWidth(),
             value = expensesUiState.supplier,
             onValueChange = { onValueChanged(expensesUiState.copy(supplier = it)) },
-            label = { Text("Supplier") },
+            label = { Text(stringResource(R.string.supplier)) },
             singleLine = true
         )
 
@@ -505,12 +393,12 @@ fun AddExpenseCard(
                 )
             },
             prefix = {
-                    Text(
-                        modifier = Modifier.padding(end = 4.dp),
-                        text = currencySymbol
-                    )
+                Text(
+                    modifier = Modifier.padding(end = 4.dp),
+                    text = currencySymbol
+                )
             },
-            label = { Text("Unit Price") },
+            label = { Text(stringResource(R.string.unit_price)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
         )
@@ -529,12 +417,11 @@ fun AddExpenseCard(
                     )
                 )
             },
-            label = { Text("Quantity") },
+            label = { Text(stringResource(R.string.quantity)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
-//       onValueChanged(expensesUiState.copy(totalExpense = calculateTotalExpense(
-//           expensesUiState.quantity, expensesUiState.costPerItem).toString() ))
+
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = expensesUiState.totalExpense,
@@ -547,7 +434,7 @@ fun AddExpenseCard(
                     )
                 }
             },
-            label = { Text("Total Expense") },
+            label = { Text(stringResource(R.string.total_expense)) },
             readOnly = true,
             singleLine = true,
         )
@@ -556,7 +443,7 @@ fun AddExpenseCard(
             modifier = Modifier.fillMaxWidth(),
             value = expensesUiState.notes,
             onValueChange = { onValueChanged(expensesUiState.copy(notes = it)) },
-            label = { Text("Notes") },
+            label = { Text(stringResource(R.string.notes)) },
             minLines = 2,
             maxLines = 2
         )
@@ -572,7 +459,7 @@ fun AddExpenseCard(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = "Cancel",
+                    text = stringResource(R.string.cancel),
                     textAlign = TextAlign.Center
                 )
             }
@@ -586,7 +473,9 @@ fun AddExpenseCard(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = if (expensesUiState.id > 0) "Update" else "Save",
+                    text = if (expensesUiState.id > 0) stringResource(R.string.update) else stringResource(
+                        R.string.save
+                    ),
                     textAlign = TextAlign.Center
                 )
             }

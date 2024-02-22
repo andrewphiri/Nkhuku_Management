@@ -17,7 +17,6 @@ import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.content.Intent
 import android.os.Build
-import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -51,6 +50,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -99,10 +100,7 @@ fun FlockDetailsScreen(
     detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
     contentType: ContentType
 ) {
-    BackHandler {
-        onNavigateUp()
-        flockEntryViewModel.resetAll()
-    }
+
     val flockWithVaccinations by detailsViewModel
         .flockWithVaccinationsStateFlow
         .collectAsState(
@@ -165,7 +163,7 @@ fun MainFlockDetailsScreen(
     onUpdateUiState: (FlockUiState) -> Unit,
     contentType: ContentType
 ) {
-
+    val context = LocalContext.current
     flock?.toFlockUiState()?.copy(enabled = true)?.let { onUpdateUiState(it) }
     if (flock != null) {
         Scaffold(
@@ -190,7 +188,10 @@ fun MainFlockDetailsScreen(
             ) {
                 item {
                     HealthCard(
-                        modifier = Modifier.semantics { contentDescription = "Health" },
+                        modifier = Modifier.semantics {
+                            contentDescription =
+                                context.getString(R.string.health)
+                        },
                         flock = flock,
                         onHealthCardClick = {
                             if (flock.active) {
@@ -201,7 +202,10 @@ fun MainFlockDetailsScreen(
                 item {
 
                     VaccinationList(
-                        modifier = Modifier.semantics { contentDescription = "Vaccines" },
+                        modifier = Modifier.semantics {
+                            contentDescription =
+                                context.getString(R.string.vaccines)
+                        },
                         vaccinationUiStateList = vaccinations,
                         onVaccinationCardClick = { id ->
                             if (flock.active) {
@@ -217,7 +221,9 @@ fun MainFlockDetailsScreen(
                     if (totalFeedQtyConsumed != null) {
                         flock.toFlockUiState(enabled = true).let {
                             FeedCard(
-                                modifier = Modifier.semantics { contentDescription = "Feed" },
+                                modifier = Modifier.semantics {
+                                    contentDescription = context.getString(R.string.feed)
+                                },
                                 quantityConsumed = totalFeedQtyConsumed,
                                 flockUiState = it,
                                 onFeedCardClick = { id ->
@@ -236,7 +242,9 @@ fun MainFlockDetailsScreen(
                     if (weight != null) {
                         flock.let { flock ->
                             WeightCard(
-                                modifier = Modifier.semantics { contentDescription = "Weight" },
+                                modifier = Modifier.semantics {
+                                    contentDescription = context.getString(R.string.weight)
+                                },
                                 weight = weight,
                                 flock = flock,
                                 onWeightCardClick = { id ->
@@ -288,11 +296,11 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
             Image(
                 modifier = Modifier.size(50.dp),
                 imageVector = Icons.Default.MedicalServices,
-                contentDescription = "Health of flock"
+                contentDescription = stringResource(R.string.health_of_flock)
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Health",
+                text = stringResource(R.string.health),
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
@@ -304,7 +312,7 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
             flockUiState?.getMortality()?.let {
                 Card {
                     BaseSingleRowDetailsItem(
-                        label = "Mortality",
+                        label = stringResource(R.string.mortality),
                         value = it,
                         weightA = 2f
                     )
@@ -314,7 +322,7 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
             flockUiState?.getCulls()?.let {
                 Card {
                     BaseSingleRowDetailsItem(
-                        label = "Culls",
+                        label = stringResource(R.string.culls),
                         value = it,
                         weightA = 2f
                     )
@@ -349,7 +357,7 @@ fun FeedCard(
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Feed",
+                text = stringResource(R.string.feed),
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
@@ -359,14 +367,15 @@ fun FeedCard(
 
             Card {
                 BaseSingleRowDetailsItem(
-                    label = "Bags(50Kg)",
+                    label = stringResource(R.string.bags_50kg),
                     value = "${(quantityConsumed / 50).roundToInt()}"
                 )
             }
 
             Card {
                 BaseSingleRowDetailsItem(
-                    label = "Total Feed Consumed",
+                    label = stringResource(R.string.total_feed_consumed).lowercase()
+                        .replaceFirstChar { it.uppercase() },
                     value = "${String.format("%.2f", quantityConsumed)} Kg"
                 )
             }
@@ -396,7 +405,7 @@ fun VaccinationList(
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Vaccination",
+                text = stringResource(R.string.vaccination),
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
@@ -479,7 +488,7 @@ fun WeightCard(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Weight",
+                text = stringResource(R.string.weight),
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
@@ -498,7 +507,7 @@ fun WeightCard(
 
             Card {
                 BaseSingleRowDetailsItem(
-                    label = "Actual",
+                    label = stringResource(R.string.actual),
                     value = "${weightUiState.actualWeight} Kg",
                     weightA = 1.5f,
                 )
@@ -506,7 +515,7 @@ fun WeightCard(
 
             Card {
                 BaseSingleRowDetailsItem(
-                    label = "Standard",
+                    label = stringResource(R.string.standard),
                     value = "${weightUiState.standard} Kg",
                     weightA = 1.5f
                 )

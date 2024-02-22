@@ -122,7 +122,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Feed",
+                text = stringResource(R.string.feed),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
@@ -139,19 +139,19 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "Feed Type",
+                        text = stringResource(R.string.feed_type),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Quantity",
+                        text = stringResource(R.string.quantity),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Bags(50 Kg)",
+                        text = stringResource(R.string.bags_50kg),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
@@ -159,7 +159,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "Starter",
+                        text = stringResource(R.string.starter),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -176,7 +176,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "Grower",
+                        text = stringResource(R.string.grower),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -193,7 +193,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "Finisher",
+                        text = stringResource(R.string.finisher),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -210,7 +210,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "TOTAL",
+                        text = stringResource(R.string.total),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
@@ -244,7 +244,7 @@ fun FeedersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Feeders",
+                text = stringResource(R.string.feeders),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
@@ -261,19 +261,19 @@ fun FeedersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "Age(Days)",
+                        text = stringResource(R.string.age_days),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Type",
+                        text = stringResource(R.string.type),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Quantity",
+                        text = stringResource(R.string.quantity),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
@@ -281,12 +281,12 @@ fun FeedersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "1 - 10",
+                        text = stringResource(R.string._1_10),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Trays",
+                        text = stringResource(R.string.trays),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -298,12 +298,12 @@ fun FeedersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "10 - 21",
+                        text = stringResource(R.string._10_21),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Chick feeders",
+                        text = stringResource(R.string.chick_feeders),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -315,12 +315,12 @@ fun FeedersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "21 - market",
+                        text = stringResource(R.string._21_market),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Adult Cone/Tube feeder",
+                        text = stringResource(R.string.adult_cone_tube_feeder),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -334,17 +334,17 @@ fun FeedersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "21 - market",
+                        text = stringResource(R.string._21_market),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Trough",
+                        text = stringResource(R.string.trough),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "5-7 cm space per bird",
+                        text = stringResource(R.string._5_7_cm_space_per_bird),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -366,7 +366,7 @@ fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Drinkers",
+                text = stringResource(R.string.drinkers),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
@@ -383,19 +383,19 @@ fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "Age(Days)",
+                        text = stringResource(R.string.age_days),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Type",
+                        text = stringResource(R.string.type),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Quantity",
+                        text = stringResource(R.string.quantity),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
@@ -403,12 +403,12 @@ fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "1 - 21",
+                        text = stringResource(R.string._1_21),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Chick drinkers",
+                        text = stringResource(R.string.chick_drinkers),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -420,12 +420,12 @@ fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "21 - market",
+                        text = stringResource(R.string._21_market),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "10L Manual feeders",
+                        text = stringResource(R.string._10l_manual_feeders),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -438,12 +438,12 @@ fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "21 - market",
+                        text = stringResource(R.string._21_market),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Automatic drinkers",
+                        text = stringResource(R.string.automatic_drinkers),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -456,12 +456,12 @@ fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         modifier = Modifier.weight(weight = 2f, fill = true),
-                        text = "21 - market",
+                        text = stringResource(R.string._21_market),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Nipple drinkers",
+                        text = stringResource(R.string.nipple_drinkers),
                         textAlign = TextAlign.Center
                     )
                     Text(

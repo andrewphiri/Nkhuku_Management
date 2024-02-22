@@ -50,6 +50,12 @@ class UserPrefsViewModel @Inject constructor(
         }
     }
 
+    fun updateLanguageLocale(languageLocale: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateLanguageLocale(languageLocale)
+        }
+    }
+
     fun updateSkipAccountSetup(skipAccount: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.updateSkipAccountSetup(skipAccount)

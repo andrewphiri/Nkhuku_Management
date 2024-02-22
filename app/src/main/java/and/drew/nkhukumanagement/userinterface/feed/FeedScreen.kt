@@ -32,7 +32,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -63,6 +62,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -162,8 +162,7 @@ fun MainFeedScreen(
         onNavigateUp()
     }
     val coroutineScope = rememberCoroutineScope()
-
-//    val feedList: List<Feed> = flockWithFeed.feedList ?: listOf()
+    val context = LocalContext.current
     val feedUiStateList: MutableList<FeedUiState> = mutableListOf()
     var showDialog by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
@@ -216,7 +215,13 @@ fun MainFeedScreen(
                             showDialog = false
                         }
                     } else {
-                        coroutineScope.launch { snackBarHostState.showSnackbar(message = "Please enter a valid number.") }
+                        coroutineScope.launch {
+                            snackBarHostState.showSnackbar(
+                                message = context.getString(
+                                    R.string.please_enter_a_valid_number
+                                )
+                            )
+                        }
                     }
                 },
                 feedList = feedStateList,
@@ -257,7 +262,7 @@ fun FeedConsumptionList(
             )
             Text(
                 modifier = Modifier.weight(1.41f, fill = true).padding(4.dp),
-                text = "CONSUMPTION PER BIRD",
+                text = stringResource(R.string.consumption_per_bird),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleSmall
             )
@@ -269,7 +274,7 @@ fun FeedConsumptionList(
 
             Text(
                 modifier = Modifier.weight(1.51f, fill = true).padding(4.dp),
-                text = "TOTAL FEED CONSUMED",
+                text = stringResource(R.string.total_feed_consumed),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleSmall
             )
@@ -282,13 +287,13 @@ fun FeedConsumptionList(
             )
             Text(
                 modifier = Modifier.weight(0.70f, fill = true),
-                text = "ACTUAL \n Kg",
+                text = stringResource(R.string.actual_kg),
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center
             )
             Text(
                 modifier = Modifier.weight(0.71f, fill = true),
-                text = "STANDARD \n Kg",
+                text = stringResource(R.string.standard_kg),
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center
             )
@@ -296,13 +301,13 @@ fun FeedConsumptionList(
 
             Text(
                 modifier = Modifier.weight(0.755f, fill = true),
-                text = "ACTUAL \n Kg",
+                text = stringResource(R.string.actual_kg),
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center
             )
             Text(
                 modifier = Modifier.weight(0.755f, fill = true),
-                text = "STANDARD \n Kg",
+                text = stringResource(R.string.standard_kg),
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center
             )
@@ -403,7 +408,7 @@ fun FeedCardItem(
             },
         )
 
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.weight(0.01f).fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
@@ -426,7 +431,7 @@ fun FeedCardItem(
             }
         )
 
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.weight(0.02f).fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
@@ -449,7 +454,7 @@ fun FeedCardItem(
             }
         )
 
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.weight(0.01f).fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
@@ -534,7 +539,7 @@ fun UpdateFeedDialog(
                                     onValueChange = {
                                         onChangedValue(feedUiState.copy(type = it))
                                     },
-                                    label = { Text("Feed type") },
+                                    label = { Text(stringResource(R.string.feed_type)) },
                                     isError = feedUiState.isSingleEntryValid(feedUiState.type),
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -575,9 +580,9 @@ fun UpdateFeedDialog(
                     }
 
                     TextField(
-                        value = if (feedUiState.actualConsumed == "0.0") "" else feedUiState.actualConsumed,
+                        value = if (feedUiState.actualConsumed == stringResource(R.string._0_0)) "" else feedUiState.actualConsumed,
                         onValueChange = { onChangedValue(feedUiState.copy(actualConsumed = it)) },
-                        label = { Text("Quantity") },
+                        label = { Text(text = stringResource(R.string.quantity)) },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done
@@ -592,7 +597,7 @@ fun UpdateFeedDialog(
                         showDialog = isAddFeedTypeDialogShowing,
                         onValueChanged = { newFeedType = it },
                         onDismissed = onInnerDialogDismiss,
-                        label = "Feed type",
+                        label = stringResource(R.string.feed_type),
                         onSaveEntry = {
                             feedUiState.options.add(newFeedType)
                             onChangedValue(feedUiState.copy(type = newFeedType))
@@ -614,7 +619,7 @@ fun UpdateFeedDialog(
                         ) {
                             Text(
                                 modifier = Modifier.fillMaxWidth().padding(8.dp),
-                                text = "Cancel",
+                                text = stringResource(R.string.cancel),
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -626,7 +631,7 @@ fun UpdateFeedDialog(
                         ) {
                             Text(
                                 modifier = Modifier.fillMaxWidth().padding(8.dp),
-                                text = "Save",
+                                text = stringResource(R.string.save),
                                 textAlign = TextAlign.Center
                             )
                         }

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -46,7 +47,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -102,6 +102,7 @@ fun WeightScreen(
     val flockWithWeights by weightViewModel.flockWithWeight.collectAsState(
         initial = FlockWithWeight(flock = null, weights = listOf())
     )
+    val scrollState = rememberScrollState()
     val weightList: List<Weight> = flockWithWeights.weights ?: listOf()
     val weightUiStateList: MutableList<WeightUiState> = mutableListOf()
     var isEditable by remember { mutableStateOf(false) }
@@ -117,6 +118,7 @@ fun WeightScreen(
     weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
 
     var isUpdateEnabled by remember { mutableStateOf(false) }
+
 
     Scaffold(
         modifier = modifier,
@@ -151,7 +153,7 @@ fun WeightScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit weights"
+                        contentDescription = stringResource(R.string.edit_weights)
                     )
                 }
             }
@@ -161,18 +163,50 @@ fun WeightScreen(
             weightViewModel.getWeightList().zip(weightUiStateList).all { it.first == it.second }
                 .not()
         Column(
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             WeightInputList(
                 weightUiStateList = weightViewModel.getWeightList(),
                 onItemChange = weightViewModel::updateWeightState,
-                isEditable = isEditable
+                isEditable = isEditable,
+                isUpdateEnabled = isUpdateEnabled,
+                onClickCancel = {
+                    title = context.resources.getString(R.string.weight)
+                    isEditable = false
+                    isFABVisible = true
+
+                    weightUiStateList.clear()
+                    for (item in weightList) {
+                        weightUiStateList.add(item.toWeightUiState())
+                    }
+                    weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
+                },
+                onClickUpdate = {
+                    val weight = weightViewModel.getWeightList()
+                    val updatedWeights = mutableListOf<Weight>()
+
+                    if (weight.all { checkNumberExceptions(it) }) {
+                        weight.forEach {
+                            updatedWeights.add(it.toWeight())
+                        }
+                        coroutineScope.launch {
+                            weightViewModel.updateWeight(updatedWeights)
+                        }.invokeOnCompletion { onNavigateUp() }
+                    } else {
+                        coroutineScope.launch {
+                            snackBarHostState.showSnackbar(context.getString(R.string.please_enter_a_valid_number))
+                        }
+                    }
+                }
             )
             if (isEditable) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     OutlinedButton(
@@ -191,7 +225,7 @@ fun WeightScreen(
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Cancel",
+                            text = stringResource(R.string.cancel),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -212,14 +246,14 @@ fun WeightScreen(
                                 }.invokeOnCompletion { onNavigateUp() }
                             } else {
                                 coroutineScope.launch {
-                                    snackBarHostState.showSnackbar("Please enter a valid number.")
+                                    snackBarHostState.showSnackbar(context.getString(R.string.please_enter_a_valid_number))
                                 }
                             }
                         }
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Update",
+                            text = stringResource(R.string.update),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -229,156 +263,20 @@ fun WeightScreen(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun MainWeightScreen(
-    modifier: Modifier = Modifier,
-    canNavigateBack: Boolean = true,
-    onNavigateUp: () -> Unit,
-    weightList: List<Weight>,
-    weightUiStateList: MutableList<WeightUiState>,
-    weightViewModelList: MutableList<WeightUiState>,
-    setWeightList: () -> Unit,
-    updateWeight: (MutableList<Weight>) -> Unit,
-    updateWeightState: (Int, WeightUiState) -> Unit,
-    contentType: ContentType
-) {
-    val scope = rememberCoroutineScope()
-    var isEditable by remember { mutableStateOf(false) }
-    var isFABVisible by remember { mutableStateOf(true) }
-    var title by remember { mutableStateOf("") }
-    title = stringResource(WeightScreenDestination.resourceId)
-    val context = LocalContext.current
-    val snackBarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(weightUiStateList) {
-        setWeightList()
-    }
-
-    var isUpdateEnabled by remember { mutableStateOf(false) }
-
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            FlockManagementTopAppBar(
-                title = title,
-                canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp,
-                contentType = contentType
-            )
-        },
-        snackbarHost = { SnackbarHost(snackBarHostState) },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = isFABVisible,
-                enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
-                    initialOffset = {
-                        IntOffset(180, 90)
-                    }),
-                exit = slideOut(tween(200, easing = FastOutSlowInEasing)) {
-                    IntOffset(180, 90)
-                }) {
-                FloatingActionButton(
-                    onClick = {
-                        title = context.resources.getString(R.string.edit_weights)
-                        isEditable = true
-                        isFABVisible = false
-                    },
-                    shape = ShapeDefaults.Small,
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    elevation = FloatingActionButtonDefaults.elevation()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit weights"
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
-        isUpdateEnabled =
-            weightViewModelList.zip(weightUiStateList).all { it.first == it.second }
-                .not()
-        Column(
-            modifier = Modifier
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            WeightInputList(
-                weightUiStateList = weightViewModelList,
-                onItemChange = updateWeightState,
-                isEditable = isEditable
-            )
-            if (isEditable) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            title = context.resources.getString(R.string.weight)
-                            isEditable = false
-                            isFABVisible = true
-
-                            weightUiStateList.clear()
-                            for (item in weightList) {
-                                weightUiStateList.add(item.toWeightUiState())
-                            }
-                            setWeightList()
-                        }
-                    ) {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = "Cancel",
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        enabled = isUpdateEnabled,
-                        onClick = {
-                            val weight = weightUiStateList
-                            val updatedWeights = mutableListOf<Weight>()
-
-                            if (weight.all { checkNumberExceptions(it) }) {
-                                weight.forEach {
-                                    updatedWeights.add(it.toWeight())
-                                }
-
-                                updateWeight(updatedWeights)
-                                onNavigateUp()
-                            } else {
-                                scope.launch {
-                                    snackBarHostState.showSnackbar("Please enter a valid number.")
-                                }
-                            }
-                        }
-                    ) {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = "Update",
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun WeightInputList(
     modifier: Modifier = Modifier,
     onItemChange: (Int, WeightUiState) -> Unit,
     weightUiStateList: MutableList<WeightUiState>,
+    onClickCancel: () -> Unit,
+    onClickUpdate: () -> Unit,
+    isUpdateEnabled: Boolean,
     isEditable: Boolean
 ) {
     Column(
         modifier = modifier
-            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+            .padding(top = 8.dp, start = 16.dp, end = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
@@ -392,7 +290,7 @@ fun WeightInputList(
             )
             Text(
                 modifier = Modifier.weight(1.5f, fill = true),
-                text = "ACTUAL \n Kg",
+                text = stringResource(R.string.actual_kg),
                 textAlign = TextAlign.Center
             )
 
@@ -403,11 +301,13 @@ fun WeightInputList(
 
             Text(
                 modifier = Modifier.weight(1.5f, fill = true),
-                text = "STANDARD \n Kg",
+                text = stringResource(R.string.standard_kg),
                 textAlign = TextAlign.Center
             )
         }
-        LazyColumn {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             itemsIndexed(weightUiStateList) { index, weightItem ->
                 WeightCard(
                     weightUiState = weightItem,
@@ -418,6 +318,39 @@ fun WeightInputList(
                     isEditable = isEditable,
                     description = "Weight $index"
                 )
+            }
+            item {
+                if (isEditable) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedButton(
+                            modifier = Modifier.weight(1f),
+                            onClick = onClickCancel
+                        ) {
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = stringResource(R.string.cancel),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            enabled = isUpdateEnabled,
+                            onClick = onClickUpdate
+                        ) {
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = stringResource(R.string.update),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -432,6 +365,7 @@ fun WeightCard(
     isEditable: Boolean,
     description: String
 ) {
+    val context = LocalContext.current
     Row(
         modifier = modifier.height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically,
@@ -442,41 +376,52 @@ fun WeightCard(
             text = weightUiState.week
         )
 
-        TextField(
-            modifier = Modifier
-                .weight(1.5f)
-                .semantics { contentDescription = description },
-            value = if (weightUiState.actualWeight == "0.0") "" else weightUiState.actualWeight,
-            onValueChange = {
-                onValueChanged(weightUiState.copy(actualWeight = if (it == "") "0.0" else it))
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            enabled = isEditable,
-            colors = TextFieldDefaults.colors(
-                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = LocalContentColor.current.alpha),
-                disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha)
-            ),
-            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
-        )
+        Row(
+            modifier = Modifier.weight(2f),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            TextField(
+                modifier = Modifier
+                    .weight(1.5f)
+                    .semantics { contentDescription = description },
+                value = if (weightUiState.actualWeight == stringResource(R.string._0_0)) "" else weightUiState.actualWeight,
+                onValueChange = {
+                    onValueChanged(
+                        weightUiState.copy(
+                            actualWeight = if (it == "") context.getString(
+                                R.string._0_0
+                            ) else it
+                        )
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                enabled = isEditable,
+                colors = TextFieldDefaults.colors(
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = LocalContentColor.current.alpha),
+                    disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha)
+                ),
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
+            )
 
-        HorizontalDivider(
-            modifier = Modifier.weight(0.01f).fillMaxHeight(),
-            thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
-        )
+            HorizontalDivider(
+                modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+            )
 
-        TextField(
-            modifier = Modifier.weight(1.5f),
-            value = weightUiState.standard,
-            onValueChange = {
-                onValueChanged(weightUiState.copy(standard = it))
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            enabled = false,
-            colors = TextFieldDefaults.colors(
-                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = LocalContentColor.current.alpha),
-                disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha)
-            ),
-            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
-        )
+            TextField(
+                modifier = Modifier.weight(1.5f),
+                value = weightUiState.standard,
+                onValueChange = {
+                    onValueChanged(weightUiState.copy(standard = it))
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                enabled = false,
+                colors = TextFieldDefaults.colors(
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = LocalContentColor.current.alpha),
+                    disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha)
+                ),
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
+            )
+        }
     }
 }

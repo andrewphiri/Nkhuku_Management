@@ -162,6 +162,15 @@ class AuthUiClient(
         }
     }
 
+    fun refreshEmail() {
+        try {
+            auth.currentUser?.reload()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (e is CancellationException) throw e
+        }
+    }
+
     suspend fun resetPassword(email: String): Boolean {
         var emailSentSuccessfully = false
         try {

@@ -161,29 +161,31 @@ class DateUtils {
      * Set notification date to day before the vaccination
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun calculateVaccineNotificationDate(vaccination: Vaccination, hour: Int, minutes: Int): Long {
-        val currentTime = LocalDateTime.now()
-        val duration = ChronoUnit.MINUTES.between(
-            currentTime.plusDays(1),
-            vaccination.date.atTime(hour, minutes)
-        )
-        return duration
-    }
-
-    /**
-     * Set notification date to day before the vaccination
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun calculateConfirmVaccineNotificationDate(
+    fun calculateVaccineNotificationDate(
+        currentTime: LocalDateTime = LocalDateTime.now(),
         vaccination: Vaccination,
         hour: Int,
         minutes: Int
     ): Long {
-        val currentTime = LocalDateTime.now()
-        val duration = ChronoUnit.MINUTES.between(
+        return ChronoUnit.MINUTES.between(
+            currentTime.plusDays(1),
+            vaccination.date.atTime(hour, minutes)
+        )
+    }
+
+    /**
+     * Set notification date on the day of the vaccination
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun calculateConfirmVaccineNotificationDate(
+        currentTime: LocalDateTime = LocalDateTime.now(),
+        vaccination: Vaccination,
+        hour: Int,
+        minutes: Int
+    ): Long {
+        return ChronoUnit.MINUTES.between(
             currentTime,
             vaccination.date.atTime(hour, minutes)
         )
-        return duration
     }
 }

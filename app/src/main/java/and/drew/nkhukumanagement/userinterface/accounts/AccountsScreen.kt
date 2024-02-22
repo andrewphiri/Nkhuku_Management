@@ -6,7 +6,6 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
-import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.AccountDetailsCurrentScreen
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
@@ -51,7 +50,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -332,7 +330,7 @@ fun SummaryAccountsCard(
                         .rotate(-45f)
                 ) {
                     Text(
-                        text = "Closed",
+                        text = stringResource(R.string.closed),
                         textAlign = TextAlign.Center,
                         color = Color.Red
                     )
@@ -357,7 +355,7 @@ fun SummaryAccountsCard(
 
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     BaseSingleRowItem(
-                        label = "Income",
+                        label = stringResource(R.string.income),
                         value = currencyFormatter(accountsSummary.totalIncome, currencyLocale),
                         styleForLabel = MaterialTheme.typography.bodyMedium,
                         styleForTitle = MaterialTheme.typography.bodyMedium,
@@ -367,7 +365,7 @@ fun SummaryAccountsCard(
                         weightB = 1f
                     )
                     BaseSingleRowItem(
-                        label = "Expenses",
+                        label = stringResource(R.string.expenses),
                         value = currencyFormatter(accountsSummary.totalExpenses, currencyLocale),
                         styleForLabel = MaterialTheme.typography.bodyMedium,
                         styleForTitle = MaterialTheme.typography.bodyMedium,
@@ -376,21 +374,6 @@ fun SummaryAccountsCard(
                         weightA = 1f,
                         weightB = 1f
                     )
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.SpaceEvenly
-//                ) {
-//                    Text(
-//                        modifier = Modifier.weight(weight = 1f, fill = true),
-//                        text = "Income",
-//                        textAlign = TextAlign.Center
-//                    )
-//                    Text(
-//                        modifier = Modifier.weight(weight = 1f, fill = true),
-//                        text = accountsSummary.totalIncome.toString(),
-//                        textAlign = TextAlign.Center
-//                    )
-//                }
 
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth(),
@@ -400,7 +383,9 @@ fun SummaryAccountsCard(
 
                     BaseSingleRowItem(
                         label = if (accountsSummary.variance > 0)
-                            "Profit" else if (accountsSummary.variance < 0) "Loss" else "Break-Even",
+                            stringResource(R.string.profit) else if (accountsSummary.variance < 0) stringResource(
+                            R.string.loss
+                        ) else stringResource(R.string.break_even),
                         value = currencyFormatter(accountsSummary.variance, currencyLocale),
                         styleForLabel = MaterialTheme.typography.bodyMedium,
                         styleForTitle = MaterialTheme.typography.bodyMedium,
@@ -413,44 +398,9 @@ fun SummaryAccountsCard(
                         weightA = 1f,
                         weightB = 1f
                     )
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.SpaceEvenly
-//                ) {
-//                    Text(
-//                        modifier = Modifier.weight(weight = 1f, fill = true),
-//                        text = "Profit",
-//                        fontWeight = FontWeight.Bold,
-//                        textAlign = TextAlign.Center
-//                    )
-//                    Text(
-//                        modifier = Modifier.weight(weight = 1f, fill = true),
-//                        text = accountsSummary.variance.toString(),
-//                        fontWeight = FontWeight.Bold,
-//                        textAlign = TextAlign.Center,
-//                        color =
-//                        if (accountsSummary.totalIncome > accountsSummary.totalExpenses) Color.Green
-//                        else if (accountsSummary.totalIncome == accountsSummary.totalExpenses) Color.Black
-//                        else Color.Red
-//                    )
-//                }
+
                 }
             }
         }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-fun AccountsCardPreview() {
-    NkhukuManagementTheme {
-//        SummaryAccountsCard(
-//            accountsSummary =
-//            AccountsSummary(
-//                flockUniqueID = "", totalExpenses = 2500.0, totalIncome = 2600.0,
-//                batchName = "August Batch", variance = 100.0
-//            )
-//        )
     }
 }

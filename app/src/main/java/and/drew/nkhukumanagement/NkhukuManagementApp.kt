@@ -126,6 +126,7 @@ fun BottomNavigationForApp(
             screens.forEach { screen ->
                 NavigationBarItem(
                     modifier = Modifier.semantics { contentDescription = screen.route },
+                    alwaysShowLabel = false,
                     icon = {
                         Icon(screen.icon, contentDescription = "${screen.route} screen")
                     },

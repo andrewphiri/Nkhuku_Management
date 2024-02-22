@@ -8,14 +8,17 @@ import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,7 +26,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -67,6 +74,9 @@ fun ReadArticleScreen(
     val article by articleViewModel.article.collectAsState(
         initial = Article()
     )
+    val categoryId by articleViewModel.categoryId.collectAsState()
+    val articleId by articleViewModel.articleId.collectAsState()
+    var isCircularIndicatorShowing by rememberSaveable { mutableStateOf(true) }
 
     MainReadArticleScreen(
         modifier = modifier,
@@ -79,11 +89,12 @@ fun ReadArticleScreen(
                     id = categoryId,
                     documentId = documentId
                 )
-            }
+            }.invokeOnCompletion { isCircularIndicatorShowing = false }
         },
-        categoryId = articleViewModel.categoryId.value,
-        articleId = articleViewModel.articleId.value,
-        contentType = contentType
+        categoryId = categoryId,
+        articleId = articleId,
+        contentType = contentType,
+        isCircularIndicatorShowing = isCircularIndicatorShowing
     )
 }
 
@@ -97,7 +108,8 @@ fun MainReadArticleScreen(
     generateSingleArticle: (Int, String) -> Unit,
     categoryId: Int,
     articleId: String,
-    contentType: ContentType
+    contentType: ContentType,
+    isCircularIndicatorShowing: Boolean
 ) {
 
     BackHandler {
@@ -121,42 +133,58 @@ fun MainReadArticleScreen(
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding)) {
             ReadArticleCard(
-                article = article
+                article = article,
+                isCircularIndicatorShowing = isCircularIndicatorShowing
             )
         }
     }
 }
 
 @Composable
-fun ReadArticleCard(modifier: Modifier = Modifier, article: Article) {
+fun ReadArticleCard(
+    modifier: Modifier = Modifier,
+    article: Article,
+    isCircularIndicatorShowing: Boolean
+) {
     val scrollState = rememberScrollState()
-
-    Column(
-        modifier = modifier.verticalScroll(state = scrollState, enabled = true),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        AsyncImage(
-            modifier = Modifier
-                .fillMaxWidth().defaultMinSize(minHeight = 300.dp),
-            model = article.imageUrl,
-            contentDescription = article.title
-        )
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+    if (isCircularIndicatorShowing) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = article.title,
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = article.body.replace("\\n", "\n"),
-                style = MaterialTheme.typography.bodyLarge
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.primary
             )
         }
-    }
+    } else {
+        Column(
+            modifier = modifier.verticalScroll(state = scrollState, enabled = true),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            AsyncImage(
+                modifier = Modifier
+                    .fillMaxWidth().defaultMinSize(minHeight = 300.dp),
+                model = article.imageUrl,
+                contentDescription = article.title
+            )
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = article.title,
+                    style = MaterialTheme.typography.headlineMedium
+                )
 
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = article.body.replace("\\n", "\n"),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+    }
 }

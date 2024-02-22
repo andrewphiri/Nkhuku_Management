@@ -2,6 +2,7 @@ package and.drew.nkhukumanagement.userinterface.overview
 
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.BaseCard
@@ -175,16 +176,16 @@ fun OverviewScreenCardList(
         item {
             BaseCard(
                 onCardClick = onAccountOverviewCardClick,
-                description = "Account Overview",
-                label = "Accounts",
+                description = stringResource(R.string.account_overview),
+                label = stringResource(R.string.accounts),
                 imageVector = Icons.Default.AttachMoney,
             )
         }
         item {
             BaseCard(
                 onCardClick = onFlockOverviewCardClick,
-                description = "Flock Overview",
-                label = "Flock",
+                description = stringResource(R.string.flock_overview),
+                label = stringResource(R.string.flock),
                 imageVector = Icons.Default.Inventory,
             )
 

@@ -1,6 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.tips
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.ui.theme.sapphireBlue
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ContentType
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,10 +28,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -80,6 +86,9 @@ fun TipsArticlesListScreen(
     val articlesList by tipsViewModel.articlesList.collectAsState(
         initial = mutableListOf()
     )
+    val title by tipsViewModel.title.collectAsState()
+    val articleIdCategory by tipsViewModel.articleIdCategory.collectAsState()
+    var isCircularBarShowing by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(tipsViewModel.articlesList) {
         tipsViewModel.generateArticles(tipsViewModel.articleIdCategory.value)
     }
@@ -93,11 +102,13 @@ fun TipsArticlesListScreen(
         generateArticles = {
             coroutineScope.launch {
                 tipsViewModel.generateArticles(it)
-            }
+
+            }.invokeOnCompletion { isCircularBarShowing = false }
         },
-        articleIdCategory = tipsViewModel.articleIdCategory.value,
-        title = tipsViewModel.title.value,
-        contentType = contentType
+        articleIdCategory = articleIdCategory,
+        title = title,
+        contentType = contentType,
+        isCircularIndicatorShowing = isCircularBarShowing
     )
 }
 
@@ -112,7 +123,8 @@ fun MainTipsArticlesListScreen(
     generateArticles: (Int) -> Unit,
     articleIdCategory: Int,
     title: String,
-    contentType: ContentType
+    contentType: ContentType,
+    isCircularIndicatorShowing: Boolean
 ) {
 
     LaunchedEffect(articles) {
@@ -132,7 +144,8 @@ fun MainTipsArticlesListScreen(
             ArticlesList(
                 articles = articles,
                 onArticleClick = navigateToReadArticle,
-                categoryId = articleIdCategory
+                categoryId = articleIdCategory,
+                isCircularIndicatorShowing = isCircularIndicatorShowing
             )
         }
     }
@@ -142,15 +155,27 @@ fun ArticlesList(
     modifier: Modifier = Modifier,
     articles: List<Article>,
     onArticleClick: (Int, String) -> Unit,
-    categoryId: Int
+    categoryId: Int,
+    isCircularIndicatorShowing: Boolean
 ) {
-    if (articles.isNullOrEmpty()) {
+    if (isCircularIndicatorShowing) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    } else if (!isCircularIndicatorShowing && articles.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                "No articles available."
+                stringResource(R.string.no_articles_available)
             )
         }
     } else {

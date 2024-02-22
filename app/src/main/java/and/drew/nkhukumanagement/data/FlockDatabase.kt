@@ -12,7 +12,7 @@ import androidx.room.TypeConverters
 @Database(
     entities = [Flock::class, Vaccination::class, Feed::class, Weight::class,
         FlockHealth::class, Income::class, Expense::class, AccountsSummary::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)

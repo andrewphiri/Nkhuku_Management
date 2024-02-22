@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,8 +41,8 @@ import androidx.compose.ui.unit.dp
 fun SignUpScreen(
     modifier: Modifier = Modifier,
     onClickSignUpWithGoogle: () -> Unit,
-    loadingText: String = "Signing up",
-    defaultText: String = "Sign up",
+    loadingText: String = stringResource(R.string.signing_up),
+    defaultText: String = stringResource(R.string.signup),
     onClickSignUpWithEmailAndPassword: () -> Unit,
     progressIndicatorColor: Color = MaterialTheme.colorScheme.primary,
     isLoadingSignUpButton: Boolean = false,
@@ -58,7 +59,7 @@ fun SignUpScreen(
 
             BaseSignInRow(
                 value = userUiState.email,
-                placeholder = "Email address",
+                placeholder = stringResource(R.string.email_address),
                 onValueChanged = {
                     onValueChanged(userUiState.copy(email = it))
                 },
@@ -67,7 +68,7 @@ fun SignUpScreen(
 
             BaseSignInPassword(
                 value = userUiState.password,
-                placeholder = "Password",
+                placeholder = stringResource(R.string.password),
                 onValueChanged = {
                     onValueChanged(userUiState.copy(password = it))
                 },
@@ -112,15 +113,15 @@ fun SignUpScreen(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "or",
+                text = stringResource(R.string.or),
                 textAlign = TextAlign.Center
             )
 
             SignInGoogleButton(
-                text = "Sign up with Google",
-                loadingText = "Signing up",
+                text = stringResource(R.string.sign_up_with_google),
+                loadingText = stringResource(R.string.signing_up),
                 isLoading = isLoadingGoogleButton,
-                contentDescription = "Sign up with Google",
+                contentDescription = stringResource(R.string.sign_up_with_google),
                 icon = painterResource(R.drawable.ic_google_logo),
                 onClick = onClickSignUpWithGoogle
             )

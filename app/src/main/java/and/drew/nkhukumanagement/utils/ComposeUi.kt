@@ -1,10 +1,12 @@
 package and.drew.nkhukumanagement.utils
 
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Account
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.ui.theme.Shapes
 import and.drew.nkhukumanagement.userinterface.navigation.TabScreens
+import android.content.res.Configuration
 import android.graphics.Paint
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -87,6 +89,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -166,6 +170,7 @@ fun Tabs(
     pagerState: PagerState
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
     TabRow(selectedTabIndex = pagerState.currentPage) {
         tabs.forEachIndexed { index, tabItem ->
             Tab(
@@ -174,7 +179,7 @@ fun Tabs(
                         color = if (pagerState.currentPage == index) MaterialTheme.colorScheme.primary else
                             Color.Unspecified
                     ),
-                text = { Text(tabItem.title) },
+                text = { Text(text = context.getString(tabItem.title)) },
                 selectedContentColor = MaterialTheme.colorScheme.onPrimary,
                 unselectedContentColor = LocalContentColor.current,
                 selected = pagerState.currentPage == index,
@@ -237,11 +242,11 @@ fun PickerDateDialog(
             confirmButton = {
                 Button(
                     onClick = onDismissed
-                ) { Text("OK") }
+                ) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
                 Button(onClick = onDismissed) {
-                    Text("Cancel")
+                    Text(text = stringResource(R.string.cancel))
                 }
             }
         ) {
@@ -296,7 +301,7 @@ fun AddNewEntryDialog(
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth().padding(8.dp),
-                            text = "Cancel",
+                            text = stringResource(R.string.cancel),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -308,7 +313,7 @@ fun AddNewEntryDialog(
                     ) {
                         Text(
                             modifier = Modifier.fillMaxWidth().padding(8.dp),
-                            text = "Save",
+                            text = stringResource(R.string.save),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -527,15 +532,15 @@ fun ShowFilterOverflowMenu(
             onDismissRequest = onDismiss
         ) {
             DropdownMenuItem(
-                text = { Text("All") },
+                text = { Text(text = stringResource(R.string.all)) },
                 onClick = onClickAll
             )
             DropdownMenuItem(
-                text = { Text("Active") },
+                text = { Text(text = stringResource(R.string.active)) },
                 onClick = onClickActive
             )
             DropdownMenuItem(
-                text = { Text("Closed") },
+                text = { Text(text = stringResource(R.string.closed)) },
                 onClick = onClickInactive
             )
         }
@@ -550,10 +555,10 @@ fun ShowSuccessfulDialog(
     modifier: Modifier = Modifier,
     onDismissSuccessAlertDialog: () -> Unit,
     isSuccessAlertDialogShowing: Boolean,
-    title: String = "Restore Successful",
-    failureTitle: String = "Restore Failed",
-    dismissSuccessButtonText: String = "Close",
-    fileValidMessage: String = "This file is not supported. Please choose a valid file.",
+    title: String = stringResource(R.string.restore_successful),
+    failureTitle: String = stringResource(R.string.restore_failed),
+    dismissSuccessButtonText: String = stringResource(R.string.close),
+    fileValidMessage: String = stringResource(R.string.this_file_is_not_supported_please_choose_a_valid_file),
     animDuration: Int = 1000,
     isActionSuccessful: Boolean = true
 ) {
@@ -627,8 +632,8 @@ fun ShowAlertDialog(
     isAlertDialogShowing: Boolean,
     title: String,
     message: String,
-    confirmButtonText: String = "Delete",
-    dismissButtonText: String = "Cancel"
+    confirmButtonText: String = stringResource(R.string.delete),
+    dismissButtonText: String = stringResource(R.string.cancel)
 ) {
     if (isAlertDialogShowing) {
         AlertDialog(
@@ -814,6 +819,8 @@ fun PieChart(
     animationPlayed: Boolean = false
 ) {
     var centerCircle by remember { mutableStateOf(Offset.Zero) }
+    val context = LocalContext.current
+    val currentUIMode by remember { mutableStateOf(context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) }
 
     val animateSize by animateFloatAsState(
         targetValue = if (animationPlayed) radiusOuter.value * 2f else 0f,
@@ -838,7 +845,7 @@ fun PieChart(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.size(animateSize.dp),
             contentAlignment = Alignment.Center
         ) {
             Canvas(
@@ -881,11 +888,12 @@ fun PieChart(
                                 drawText(
                                     "${String.format("%.2f", percentageValue)}%",
                                     centerCircle.x,
-                                    centerCircle.y + ((radius * 1.5f) - innerRadius) * factor,
+                                    centerCircle.y + ((radius * 1.4f) - innerRadius) * factor,
                                     Paint().apply {
                                         textSize = 13.sp.toPx()
                                         textAlign = Paint.Align.CENTER
-                                        color = Color.White.toArgb()
+                                        color = if (currentUIMode == Configuration.UI_MODE_NIGHT_NO)
+                                            chartInput.color.toArgb() else Color.White.toArgb()
                                     }
                                 )
                             }

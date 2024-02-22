@@ -127,6 +127,7 @@ fun AddIncomeScreen(
 
     var title by remember { mutableStateOf("") }
     title = stringResource(AddIncomeScreenDestination.resourceId)
+    val incomeID by incomeViewModel.incomeID.collectAsState(initial = 0)
 
     /**
      * if nav argument IncomeID is greater than zero, update state. LaunchedEffect used because this
@@ -163,7 +164,7 @@ fun AddIncomeScreen(
                 )
             }
         },
-        incomeIDArg = incomeViewModel.incomeID.value,
+        incomeIDArg = incomeID,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
         currencySymbol = currency.symbol,
@@ -239,8 +240,7 @@ fun MainAddIncomeScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-//        Log.i("INCOME", income.toIncomeUiState(true).toString())
-//        Log.i("INCOMEUISTATE", incomeViewModel.incomeUiState.toString())
+
         isUpdateButtonEnabled = if (incomeIDArg > 0) incomeUiState !=
                 income?.toIncomeUiState(enabled = true) else incomeUiState.enabled
 
@@ -273,7 +273,7 @@ fun MainAddIncomeScreen(
                             onNavigateUp()
                         } else {
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
+                                snackbarHostState.showSnackbar(message = context.getString(R.string.please_enter_a_valid_number))
                             }
                         }
                     } else {
@@ -295,7 +295,7 @@ fun MainAddIncomeScreen(
                             onNavigateUp()
                         } else {
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar(message = "Please enter a valid number.")
+                                snackbarHostState.showSnackbar(message = context.getString(R.string.please_enter_a_valid_number))
                             }
                         }
                     }
@@ -303,7 +303,7 @@ fun MainAddIncomeScreen(
                 showDialog = showDialog,
                 onDismissed = { showDialog = false },
                 updateShowDialogOnClick = { showDialog = true },
-                label = "Date",
+                label = stringResource(R.string.date),
                 state = dateState,
                 saveDateSelected = { dateState ->
                     val millisToLocalDate = dateState.selectedDateMillis?.let { millis ->
@@ -363,7 +363,7 @@ fun AddIncomeCard(
             modifier = Modifier.fillMaxWidth(),
             value = incomeUiState.incomeName,
             onValueChange = { onValueChanged(incomeUiState.copy(incomeName = it)) },
-            label = { Text("Description") },
+            label = { Text(text = stringResource(R.string.description)) },
             singleLine = true
         )
 
@@ -371,7 +371,7 @@ fun AddIncomeCard(
             modifier = Modifier.fillMaxWidth(),
             value = incomeUiState.customer,
             onValueChange = { onValueChanged(incomeUiState.copy(customer = it)) },
-            label = { Text("Customer") },
+            label = { Text(stringResource(R.string.customer)) },
             singleLine = true
         )
 
@@ -389,12 +389,12 @@ fun AddIncomeCard(
                     )
                 )
             },
-            label = { Text("Unit Price") },
+            label = { Text(text = stringResource(R.string.unit_price)) },
             prefix = {
-                    Text(
-                        modifier = Modifier.padding(end = 4.dp),
-                        text = currencySymbol
-                    )
+                Text(
+                    modifier = Modifier.padding(end = 4.dp),
+                    text = currencySymbol
+                )
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -414,12 +414,11 @@ fun AddIncomeCard(
                     )
                 )
             },
-            label = { Text("Quantity") },
+            label = { Text(text = stringResource(R.string.quantity)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
-//       onValueChanged(expensesUiState.copy(totalExpense = calculateTotalExpense(
-//           expensesUiState.quantity, expensesUiState.costPerItem).toString() ))
+
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = incomeUiState.totalIncome,
@@ -432,7 +431,7 @@ fun AddIncomeCard(
                     )
                 }
             },
-            label = { Text("Total Income") },
+            label = { Text(stringResource(R.string.total_income)) },
             readOnly = true,
             singleLine = true
         )
@@ -441,7 +440,7 @@ fun AddIncomeCard(
             modifier = Modifier.fillMaxWidth(),
             value = incomeUiState.notes,
             onValueChange = { onValueChanged(incomeUiState.copy(notes = it)) },
-            label = { Text("Notes") },
+            label = { Text(text = stringResource(R.string.notes)) },
             minLines = 2,
             maxLines = 2
         )
@@ -457,7 +456,7 @@ fun AddIncomeCard(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = "Cancel",
+                    text = stringResource(R.string.cancel),
                     textAlign = TextAlign.Center
                 )
             }
@@ -471,7 +470,9 @@ fun AddIncomeCard(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = if (incomeUiState.id > 0) "Update" else "Save",
+                    text = if (incomeUiState.id > 0) stringResource(R.string.update) else stringResource(
+                        R.string.save
+                    ),
                     textAlign = TextAlign.Center
                 )
             }

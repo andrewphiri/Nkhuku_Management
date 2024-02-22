@@ -47,6 +47,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -80,9 +82,6 @@ fun AccountSetupScreen(
     onClickSkipAccountSetup: () -> Unit
 ) {
 
-
-
-
     MainAccountSetupScreen(
         modifier = modifier,
         navigateToVerificationScreen = navigateToVerificationScreen,
@@ -101,6 +100,9 @@ fun AccountSetupScreen(
         onClickSkipAccountSetup = onClickSkipAccountSetup,
         updateSkipAccountSetup = {
             userPrefsViewModel.updateSkipAccountSetup(it)
+        },
+        setEmailVerification = {
+            signInViewModel.setEmailVerification(authUiClient.isEmailVerified())
         }
     )
 }
@@ -125,17 +127,19 @@ fun MainAccountSetupScreen(
     isEmailVerified: Boolean,
     onClickForgotPassword: () -> Unit,
     onClickSkipAccountSetup: () -> Unit,
-    updateSkipAccountSetup: (Boolean) -> Unit
+    updateSkipAccountSetup: (Boolean) -> Unit,
+    setEmailVerification: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
     var isLoadingGoogleButton by remember { mutableStateOf(false) }
     var isLoadingEmailAndPasswordButtonSignIn by remember { mutableStateOf(false) }
     var isLoadingEmailAndPasswordButtonSignUp by remember { mutableStateOf(false) }
-    var snackbarHostState = remember { SnackbarHostState() }
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(key1 = state.signInError) {
         state.signInError?.let { error ->
             snackbarHostState.showSnackbar(
-                message = "Invalid username or password. Try again",
+                message = context.getString(R.string.invalid_username_or_password_try_again),
                 duration = SnackbarDuration.Long
             )
         }
@@ -165,8 +169,10 @@ fun MainAccountSetupScreen(
     )
 
     LaunchedEffect(key1 = state, key2 = isEmailVerified) {
+        setEmailVerification()
         if (state.isSignInSuccessful) {
 //            authUiClient.verifyEmail()
+            authUiClient.refreshEmail()
             if (isEmailVerified) {
                 navigateToHome()
             } else {
@@ -248,7 +254,7 @@ fun MainAccountSetupScreen(
                         } else {
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(
-                                    message = "Password should contain letters, numbers and symbols and should be " +
+                                    message = context.getString(R.string.password_invalid_message) +
                                             "at least 8 characters",
                                     duration = SnackbarDuration.Long
                                 )
@@ -278,7 +284,7 @@ fun MainAccountSetupScreen(
                             updateSkipAccountSetup(true)
                             onClickSkipAccountSetup()
                         }),
-                text = "Skip"
+                text = stringResource(R.string.skip)
             )
         }
     }

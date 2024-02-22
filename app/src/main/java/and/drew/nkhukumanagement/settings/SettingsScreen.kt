@@ -13,6 +13,7 @@ import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
 import and.drew.nkhukumanagement.utils.getAllCurrenciesInUse
 import android.Manifest
+import android.app.LocaleManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.icu.util.Currency
@@ -22,6 +23,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,7 +41,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +52,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,9 +75,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 object SettingsDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -101,14 +105,15 @@ fun SettingsScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var showCurrencyDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
     var showRestoreDialog by remember { mutableStateOf(false) }
-    var showSuccesfulAfterRestoreDialog by remember { mutableStateOf(false) }
+    var showSuccessfulAfterRestoreDialog by remember { mutableStateOf(false) }
     var isFileValid by remember { mutableStateOf(false) }
     val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
     var restoreBackupUri by remember { mutableStateOf<Uri?>(null) }
-    var snackbarHostState = remember { SnackbarHostState() }
+    val snackbarHostState = remember { SnackbarHostState() }
     var isCircularIndicatorShowing by rememberSaveable { mutableStateOf(false) }
     var key by remember { mutableStateOf("en_zm") }
     var (selectedCurrency, onCurrencySelected) = remember {
@@ -118,6 +123,37 @@ fun SettingsScreen(
             )
         )
     }
+    var allLocale: List<Locale> by rememberSaveable { mutableStateOf(listOf()) }
+    var selectedLocale by remember { mutableStateOf(ULocale(userPreferences.languageLocale)) }
+    selectedLocale = ULocale(userPreferences.languageLocale)
+    val defaultLocale = Locale.getDefault()
+
+    LaunchedEffect(key1 = selectedLocale) {
+
+//        Log.i("Default_Language", defaultLanguage.toString())
+        val appLanguages = context.resources.getStringArray(R.array.app_languages)
+//        Log.i("Default____ARRAYY", appLanguages.toString())
+        val languagesList = mutableListOf<Locale>()
+        for (language in appLanguages) {
+//             Log.i("Default____", ULocale(language).displayLanguage)
+            if (defaultLocale == ULocale(language).toLocale() && defaultLocale == selectedLocale.toLocale()) {
+                languagesList.add(0, defaultLocale)
+            } else if (defaultLocale == ULocale(language).toLocale() &&
+                defaultLocale != selectedLocale.toLocale() &&
+                languagesList.isNotEmpty()
+            ) {
+                languagesList.add(1, selectedLocale.toLocale())
+            } else if (selectedLocale.toLocale() == ULocale(language).toLocale() && languagesList.isNotEmpty()) {
+                languagesList.add(0, ULocale(language).toLocale())
+            } else {
+                languagesList.add(ULocale(language).toLocale())
+            }
+//             Log.i("Default____LOCALE", allLocale.toString())
+        }
+        allLocale = languagesList
+    }
+
+
     var receiveNotifications by remember { mutableStateOf(true) }
     receiveNotifications = userPreferences.receiveNotifications
     selectedCurrency = Currency.getInstance(
@@ -129,7 +165,7 @@ fun SettingsScreen(
         restoreBackupUri = it.data?.data
         isFileValid = backupAndRestore.isFileValid(restoreBackupUri)
         if (!isFileValid) {
-            showSuccesfulAfterRestoreDialog = true
+            showSuccessfulAfterRestoreDialog = true
         } else {
             showRestoreDialog = true
         }
@@ -149,7 +185,7 @@ fun SettingsScreen(
         } else {
             coroutineScope.launch {
                 snackbarHostState.showSnackbar(
-                    message = "This feature is unavailable because it requires access to the phone's storage.",
+                    message = context.getString(R.string.feature_unavailable),
                     duration = SnackbarDuration.Long
                 )
             }
@@ -234,12 +270,12 @@ fun SettingsScreen(
                         backupAndRestore.restoreBackUp(restoreBackupUri)
                         isCircularIndicatorShowing = false
                     }.invokeOnCompletion {
-                        showSuccesfulAfterRestoreDialog = true
+                        showSuccessfulAfterRestoreDialog = true
                     }
                 },
                 onDismissRestoreBackupDialog = { showRestoreDialog = false },
-                onDismissSuccessAlertDialog = { showSuccesfulAfterRestoreDialog = false },
-                isSuccessAlertDialogShowing = showSuccesfulAfterRestoreDialog,
+                onDismissSuccessAlertDialog = { showSuccessfulAfterRestoreDialog = false },
+                isSuccessAlertDialogShowing = showSuccessfulAfterRestoreDialog,
                 isFileValid = isFileValid,
                 receiveNotifications = receiveNotifications,
                 onCheckedChange = {
@@ -250,7 +286,31 @@ fun SettingsScreen(
                         }
                     }
                 },
-                navigateToAccountInfoScreen = navigateToAccountInfoScreen
+                navigateToAccountInfoScreen = navigateToAccountInfoScreen,
+                showLanguageDialog = showLanguageDialog,
+                onLanguageSelected = { locale ->
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        context.getSystemService(LocaleManager::class.java)
+                            .applicationLocales =
+                            android.os.LocaleList.forLanguageTags(locale.toLanguageTag())
+                    } else {
+                        AppCompatDelegate.setApplicationLocales(
+                            LocaleListCompat.forLanguageTags(
+                                locale.toLanguageTag()
+                            )
+                        )
+                    }
+                    coroutineScope.launch {
+                        userPrefsViewModel.updateLanguageLocale(locale.toLanguageTag())
+                    }
+                },
+                onDismissLanguageDialog = { showLanguageDialog = false },
+                allLocale = allLocale,
+                selectedLocale = selectedLocale.toLocale(),
+                onShowLanguageDialog = {
+                    showLanguageDialog = true
+                },
+                defaultLocale = defaultLocale
             )
         }
     }
@@ -260,6 +320,7 @@ fun SettingsScreen(
 fun SettingsCard(
     modifier: Modifier = Modifier,
     onShowCurrencyDialog: () -> Unit = {},
+    onShowLanguageDialog: () -> Unit = {},
     onDismissCurrencyDialog: () -> Unit = {},
     showCurrencyDialog: Boolean = false,
     onCurrencySelected: (Currency?) -> Unit,
@@ -275,9 +336,14 @@ fun SettingsCard(
     isFileValid: Boolean,
     receiveNotifications: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    navigateToAccountInfoScreen: () -> Unit
+    navigateToAccountInfoScreen: () -> Unit,
+    onLanguageSelected: (Locale) -> Unit,
+    showLanguageDialog: Boolean,
+    selectedLocale: Locale,
+    defaultLocale: Locale,
+    onDismissLanguageDialog: () -> Unit,
+    allLocale: List<Locale>
 ) {
-
     Box(
         modifier = modifier
             .padding(16.dp)
@@ -289,7 +355,6 @@ fun SettingsCard(
                 strokeWidth = 2.dp,
                 color = MaterialTheme.colorScheme.primary
             )
-
         }
         Column(
             modifier = Modifier
@@ -298,20 +363,28 @@ fun SettingsCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             CurrencyPickerDialog(
-                showDialog = showCurrencyDialog,
+                showCurrencyDialog = showCurrencyDialog,
                 onDismiss = onDismissCurrencyDialog,
                 selectedCurrency = selectedCurrency,
                 allCurrencies = getAllCurrenciesInUse().map { it.value }.toSet().toList()
                     .sortedBy { it?.displayName },
                 onCurrencySelected = onCurrencySelected
             )
+            AppLanguagePickerDialog(
+                onLanguageSelected = onLanguageSelected,
+                onDismiss = onDismissLanguageDialog,
+                allLocale = allLocale,
+                showLanguageDialog = showLanguageDialog,
+                selectedLocale = selectedLocale,
+                defaultLocale = defaultLocale
+            )
             ShowAlertDialog(
                 onDismissAlertDialog = onDismissRestoreBackupDialog,
                 onConfirm = onConfirmRestore,
-                dismissButtonText = "Cancel",
-                confirmButtonText = "Restore",
-                title = "Restore Backup",
-                message = "Data will be overwritten. Are you sure you want to proceed?",
+                dismissButtonText = stringResource(R.string.cancel),
+                confirmButtonText = stringResource(R.string.restore),
+                title = stringResource(R.string.restore_backup),
+                message = stringResource(R.string.data_will_be_overwritten_are_you_sure_you_want_to_proceed),
                 isAlertDialogShowing = isRestoreBackupDialogShowing
             )
 
@@ -321,7 +394,7 @@ fun SettingsCard(
                 isActionSuccessful = isFileValid
             )
             Text(
-                text = "ACCOUNT",
+                text = stringResource(R.string.account),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )
@@ -330,7 +403,7 @@ fun SettingsCard(
                     .fillMaxWidth()
                     .clickable(onClick = navigateToAccountInfoScreen)
                     .padding(vertical = 8.dp),
-                text = "Account Information"
+                text = stringResource(R.string.account_information)
             )
 
             HorizontalDivider(
@@ -341,7 +414,37 @@ fun SettingsCard(
 
             Text(
                 modifier = Modifier.padding(top = 8.dp),
-                text = "CURRENCY",
+                text = stringResource(R.string.app_language),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = {
+                        if (!isCircularIndicatorShowing) {
+                            onShowLanguageDialog()
+                        }
+                    })
+                    .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.default_label)
+                )
+                Text(
+                    text = selectedLocale.displayLanguage,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Light
+                )
+            }
+            HorizontalDivider(
+                thickness = Dp.Hairline,
+                color = Color.DarkGray
+            )
+
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = stringResource(R.string.currency),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )
@@ -356,7 +459,7 @@ fun SettingsCard(
                     .padding(vertical = 8.dp)
             ) {
                 Text(
-                    text = "Default"
+                    text = stringResource(R.string.default_label)
                 )
                 Text(
                     text = "${selectedCurrency?.symbol} - ${selectedCurrency?.displayName}",
@@ -370,7 +473,7 @@ fun SettingsCard(
             )
             Text(
                 modifier = Modifier.padding(top = 8.dp),
-                text = "BACKUP AND RESTORE",
+                text = stringResource(R.string.backup_and_restore),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )
@@ -384,7 +487,7 @@ fun SettingsCard(
                             }
                         })
                         .padding(vertical = 8.dp),
-                    text = "Create backup"
+                    text = stringResource(R.string.create_backup)
                 )
                 Text(
                     modifier = Modifier
@@ -396,7 +499,7 @@ fun SettingsCard(
                             }
                         })
                         .padding(vertical = 8.dp),
-                    text = "Restore"
+                    text = stringResource(R.string.restore)
                 )
             }
 
@@ -408,7 +511,7 @@ fun SettingsCard(
             )
             Text(
                 modifier = Modifier.padding(top = 8.dp),
-                text = "NOTIFICATIONS",
+                text = stringResource(R.string.notifications),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.tertiary
             )
@@ -420,7 +523,7 @@ fun SettingsCard(
             ) {
                 Text(
                     modifier = Modifier.weight(weight = 0.8f, fill = true),
-                    text = "Vaccination reminders"
+                    text = stringResource(R.string.vaccination_reminders)
                 )
                 Switch(
                     modifier = Modifier
@@ -438,12 +541,12 @@ fun SettingsCard(
 fun CurrencyPickerDialog(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
-    showDialog: Boolean,
+    showCurrencyDialog: Boolean,
     allCurrencies: List<Currency?>,
     selectedCurrency: Currency?,
     onCurrencySelected: (Currency?) -> Unit
 ) {
-    if (showDialog) {
+    if (showCurrencyDialog) {
         Dialog(
             onDismissRequest = onDismiss,
             properties = DialogProperties()
@@ -451,7 +554,7 @@ fun CurrencyPickerDialog(
             ElevatedCard(
                 modifier = modifier
             ) {
-                Box() {
+                Box {
                     Column(
                         modifier = Modifier.padding(16.dp).fillMaxHeight(0.95f)
                             .align(Alignment.TopCenter),
@@ -460,10 +563,10 @@ fun CurrencyPickerDialog(
                     ) {
                         Text(
                             modifier = Modifier.align(Alignment.Start),
-                            text = "Choose default currency",
+                            text = stringResource(R.string.choose_default_currency),
                             style = MaterialTheme.typography.titleSmall
                         )
-                        Divider(
+                        HorizontalDivider(
                             modifier = Modifier.fillMaxWidth(),
                             thickness = Dp.Hairline,
                             color = Color.DarkGray
@@ -471,6 +574,7 @@ fun CurrencyPickerDialog(
                         LazyColumn(
                             contentPadding = PaddingValues(bottom = 8.dp),
                             modifier = Modifier.padding(bottom = 24.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(allCurrencies) { currency ->
                                 Row(
@@ -490,14 +594,18 @@ fun CurrencyPickerDialog(
                                         ),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    RadioButton(
-                                        selected = currency?.equals(selectedCurrency) == true,
-                                        onClick = null
-                                    )
-                                    Text(
-                                        modifier = Modifier.padding(start = 16.dp),
-                                        text = "${currency?.symbol} - ${currency?.displayName}"
-                                    )
+                                    Row(
+
+                                    ) {
+                                        RadioButton(
+                                            selected = currency?.equals(selectedCurrency) == true,
+                                            onClick = null
+                                        )
+                                        Text(
+                                            modifier = Modifier.padding(start = 16.dp),
+                                            text = "${currency?.symbol} - ${currency?.displayName}"
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -507,7 +615,7 @@ fun CurrencyPickerDialog(
                             .fillMaxWidth()
                             .align(Alignment.BottomCenter)
                     ) {
-                        Divider(
+                        HorizontalDivider(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = 16.dp, end = 16.dp),
@@ -519,7 +627,7 @@ fun CurrencyPickerDialog(
                                 .padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 16.dp)
                                 .align(Alignment.End)
                                 .clickable(onClick = onDismiss),
-                            text = "Cancel",
+                            text = stringResource(R.string.cancel),
                             color = MaterialTheme.colorScheme.tertiary
                         )
                     }
@@ -532,7 +640,116 @@ fun CurrencyPickerDialog(
     }
 }
 
+@Composable
+fun AppLanguagePickerDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    showLanguageDialog: Boolean,
+    allLocale: List<Locale>,
+    selectedLocale: Locale,
+    defaultLocale: Locale,
+    onLanguageSelected: (Locale) -> Unit
+) {
+    if (showLanguageDialog) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties()
+        ) {
+            ElevatedCard(
+                modifier = modifier
+            ) {
+                Box {
+                    Column(
+                        modifier = Modifier.padding(16.dp).fillMaxHeight(0.95f)
+                            .align(Alignment.TopCenter),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            modifier = Modifier.align(Alignment.Start),
+                            text = "Choose default language",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth(),
+                            thickness = Dp.Hairline,
+                            color = Color.DarkGray
+                        )
+                        LazyColumn(
+                            contentPadding = PaddingValues(bottom = 8.dp),
+                            modifier = Modifier.padding(bottom = 24.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(allLocale) { locale ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp)
+                                        .selectable(
+                                            selected = (
+                                                    locale.equals(selectedLocale)),
+                                            onClick = {
+                                                onLanguageSelected(locale)
+                                                onDismiss()
+                                            },
+                                            role = Role.RadioButton
+                                        ),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = locale.equals(selectedLocale),
+                                        onClick = null
+                                    )
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            modifier = Modifier.padding(start = 16.dp),
+                                            text = locale.displayLanguage
+                                        )
+                                        Text(
+                                            modifier = Modifier.padding(start = 16.dp),
+                                            fontWeight = FontWeight.Light,
+                                            text = if (locale.toLanguageTag() == defaultLocale.toLanguageTag())
+                                                "(device's language)" else
+                                                ULocale(locale.toLanguageTag()).displayLanguageWithDialect
+                                        )
+                                    }
 
+                                }
+                            }
+                        }
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                    ) {
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp),
+                            thickness = Dp.Hairline,
+                            color = Color.DarkGray
+                        )
+                        Text(
+                            modifier = Modifier
+                                .padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 16.dp)
+                                .align(Alignment.End)
+                                .clickable(onClick = onDismiss),
+                            text = stringResource(R.string.cancel),
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+
+                }
+
+            }
+        }
+
+    }
+}
 
 
 @RequiresApi(Build.VERSION_CODES.O)

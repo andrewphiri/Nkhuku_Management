@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,7 +61,7 @@ fun SignInScreen(
 
             BaseSignInRow(
                 value = userUiState.email,
-                placeholder = "Email address",
+                placeholder = stringResource(R.string.email_address),
                 onValueChanged = {
                     onValueChanged(userUiState.copy(email = it))
                 },
@@ -69,7 +70,7 @@ fun SignInScreen(
 
             BaseSignInPassword(
                 value = userUiState.password,
-                placeholder = "Password",
+                placeholder = stringResource(R.string.password),
                 onValueChanged = {
                     onValueChanged(userUiState.copy(password = it))
                 },
@@ -85,7 +86,7 @@ fun SignInScreen(
                     .align(Alignment.End)
                     .padding(8.dp)
                     .clickable(onClick = onClickForgotPassword),
-                text = "Forgot password?"
+                text = stringResource(R.string.forgot_password)
             )
 
             FilledTonalButton(
@@ -121,14 +122,14 @@ fun SignInScreen(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "or",
+                text = stringResource(R.string.or),
                 textAlign = TextAlign.Center
             )
 
             SignInGoogleButton(
-                text = "Sign in with Google",
-                loadingText = "Signing in",
-                contentDescription = "Sign in with Google",
+                text = stringResource(R.string.sign_in_with_google),
+                loadingText = stringResource(R.string.signing_in),
+                contentDescription = stringResource(R.string.sign_in_with_google),
                 icon = painterResource(R.drawable.ic_google_logo),
                 isLoading = isLoadingGoogleButton,
                 onClick = onClickSignInWithGoogle

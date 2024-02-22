@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -116,6 +117,7 @@ fun MainAddFlockScreen(
     contentType: ContentType
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     Scaffold(
@@ -140,7 +142,7 @@ fun MainAddFlockScreen(
                         navigateToVaccinationsScreen(flockUiState)
                     } else {
                         coroutineScope.launch {
-                            snackBarHostState.showSnackbar(message = "Please enter a valid number.")
+                            snackBarHostState.showSnackbar(message = context.getString(R.string.please_enter_a_valid_number))
                         }
                     }
                 },
@@ -179,7 +181,7 @@ fun AddFlockBody(
             Text(
                 modifier = Modifier.fillMaxWidth().padding(8.dp),
                 textAlign = TextAlign.Center,
-                text = "Set vaccination days",
+                text = stringResource(R.string.set_vaccination_days),
             )
         }
     }
@@ -207,12 +209,17 @@ fun AddFlockInputForm(
     )
 
     var showDialog by rememberSaveable { mutableStateOf(false) }
+    var isBatchNameBlank by remember { mutableStateOf(false) }
+    var isQuantityBlank by remember { mutableStateOf(false) }
+    var isPriceBlank by remember { mutableStateOf(false) }
+    var isDonorBlank by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp).also { Arrangement.Center }
     ) {
+
         Row {
             DropDownMenuDialog(
                 modifier = Modifier.weight(0.8f).semantics { contentDescription = "breed options" },
@@ -228,7 +235,7 @@ fun AddFlockInputForm(
                     expanded = false
                 },
                 options = options,
-                label = "Breed"
+                label = stringResource(R.string.breed)
             )
             IconButton(
                 modifier = Modifier.weight(0.2f),
@@ -236,7 +243,7 @@ fun AddFlockInputForm(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add breed",
+                    contentDescription = stringResource(R.string.add_breed),
                     tint = MaterialTheme.colorScheme.secondary
                 )
             }
@@ -253,24 +260,27 @@ fun AddFlockInputForm(
                 isBreedDialogShowing = false
             },
             isEnabled = newBreedEntry.isNotBlank(),
-            label = "Add Breed"
+            label = stringResource(R.string.add_breed)
         )
 
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth(),
             value = flockUiState.batchName,
-            onValueChange = { onValueChanged(flockUiState.copy(batchName = it)) },
-            label = { Text("Batch name") },
+            onValueChange = {
+                onValueChanged(flockUiState.copy(batchName = it))
+                isBatchNameBlank = flockUiState.isSingleEntryValid(it)
+            },
+            label = { Text(text = stringResource(R.string.batch_name)) },
             enabled = true,
             singleLine = true,
-            isError = flockUiState.isSingleEntryValid(flockUiState.batchName)
+            isError = isBatchNameBlank
         )
 
         PickerDateDialog(
             showDialog = showDialog,
             onDismissed = { showDialog = false },
-            label = "Date Received",
+            label = stringResource(R.string.date_received),
             date = flockUiState.getDate(),
             updateShowDialogOnClick = { showDialog = true },
             onValueChanged = { onValueChanged(flockUiState.copy(datePlaced = it)) },
@@ -293,20 +303,26 @@ fun AddFlockInputForm(
             modifier = Modifier
                 .fillMaxWidth(),
             value = flockUiState.quantity,
-            onValueChange = { onValueChanged(flockUiState.copy(quantity = it)) },
-            label = { Text("Number of chicks placed") },
+            onValueChange = {
+                onValueChanged(flockUiState.copy(quantity = it))
+                isQuantityBlank = flockUiState.isSingleEntryValid(it)
+            },
+            label = { Text(text = stringResource(R.string.number_of_chicks_placed)) },
             enabled = true,
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-            isError = flockUiState.isSingleEntryValid(flockUiState.quantity)
+            isError = isQuantityBlank
         )
 
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth(),
             value = flockUiState.cost,
-            onValueChange = { onValueChanged(flockUiState.copy(cost = it)) },
-            label = { Text("Price Per Bird") },
+            onValueChange = {
+                onValueChanged(flockUiState.copy(cost = it))
+                isPriceBlank = flockUiState.isSingleEntryValid(it)
+            },
+            label = { Text(stringResource(R.string.price_per_bird)) },
             prefix = {
                 Text(
                     modifier = Modifier.padding(end = 4.dp),
@@ -317,16 +333,19 @@ fun AddFlockInputForm(
             enabled = true,
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            isError = flockUiState.isSingleEntryValid(flockUiState.cost)
+            isError = isPriceBlank
         )
 
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth(),
             value = flockUiState.donorFlock,
-            onValueChange = { onValueChanged(flockUiState.copy(donorFlock = it)) },
-            label = { Text("Donor flock") },
-            isError = flockUiState.isSingleEntryValid(flockUiState.donorFlock),
+            onValueChange = {
+                onValueChanged(flockUiState.copy(donorFlock = it))
+                isDonorBlank = flockUiState.isSingleEntryValid(it)
+            },
+            label = { Text(stringResource(R.string.donor_flock)) },
+            isError = isDonorBlank,
             enabled = true,
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -335,74 +354,6 @@ fun AddFlockInputForm(
     }
 
 }
-
-
-//@RequiresApi(Build.VERSION_CODES.O)
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun PickerDialog(
-//    showDialog: Boolean,
-//    label: String,
-//    onDismissed: () -> Unit,
-//    updateShowDialogOnClick: (Boolean) -> Unit,
-//    flockUiState: FlockUiState,
-//    saveDateSelected: (DatePickerState) -> String,
-//    onValueChanged: (FlockUiState) -> Unit
-//) {
-//    val state = rememberDatePickerState(
-//        initialDisplayMode = DisplayMode.Picker,
-//        initialSelectedDateMillis = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
-//            .toEpochMilli()
-//    )
-//
-//    flockUiState.setDate(saveDateSelected(state))
-//
-//    OutlinedTextField(
-//        modifier = Modifier
-//            .fillMaxWidth(),
-//        value = flockUiState.getDate(),
-//        onValueChange = { onValueChanged(flockUiState.copy(datePlaced = it)) },
-//        label = { Text(text = label) },
-//        singleLine = true,
-//        readOnly = true,
-//        colors = TextFieldDefaults.colors(
-//            cursorColor = Color.Unspecified,
-//            errorCursorColor = Color.Unspecified
-//        ),
-//        isError = flockUiState.isSingleEntryValid(flockUiState.getDate()),
-//        interactionSource = remember { MutableInteractionSource() }
-//            .also { interactionSource ->
-//                LaunchedEffect(interactionSource) {
-//                    interactionSource.interactions.collect {
-//                        if (it is PressInteraction.Release) {
-//                            updateShowDialogOnClick(showDialog)
-//                        }
-//                    }
-//                }
-//            }
-//    )
-//    if (showDialog) {
-//        DatePickerDialog(
-//            onDismissRequest = onDismissed,
-//            confirmButton = {
-//                Button(
-//                    onClick = onDismissed
-//                ) { Text("OK") }
-//            },
-//            dismissButton = {
-//                Button(onClick = onDismissed) {
-//                    Text("Cancel")
-//                }
-//            }
-//        ) {
-//            DatePicker(
-//                state = state,
-//                modifier = Modifier,
-//                showModeToggle = false,
-//            )
-//        }
-//    }
-//}
 
 
 @Preview(showBackground = true)

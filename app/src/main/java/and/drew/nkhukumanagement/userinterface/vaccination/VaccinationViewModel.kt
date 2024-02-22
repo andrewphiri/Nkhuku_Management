@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -206,6 +207,13 @@ class VaccinationViewModel @Inject constructor(
                 )
             }
 
+            "Tiger" -> {
+                defaultTigerVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+
             "Other" -> {
                 defaultOtherVaccinations(
                     flockUiState = flockUiState,
@@ -292,7 +300,7 @@ class VaccinationViewModel @Inject constructor(
     }
 
     /**
-     * Default Ross vaccination dates
+     * Default Zamhatch vaccination dates
      */
     @RequiresApi(Build.VERSION_CODES.O)
     fun defaultZamhatchVaccinations(
@@ -318,6 +326,35 @@ class VaccinationViewModel @Inject constructor(
 
             )
     }
+
+    /**
+     * Default Tiger vaccination dates
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultTigerVaccinations(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
+        val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
+        return mutableStateListOf(
+            VaccinationUiState(
+                vaccinationNumber = 1, name = options[0],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 9,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 2, name = options[1],
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 11,
+                    vaccinationUiState = vaccinationUiState
+                )
+            ),
+
+            )
+    }
+
 
     /**
      * Default Other vaccination dates
@@ -398,9 +435,10 @@ class VaccinationViewModel @Inject constructor(
 
     /**
      * Schedule an alarm to be triggered day before the vaccination date
+     * and another on day of vaccine to confirm if vaccine has been administered
      */
     override fun schedule(vaccination: Vaccination, flock: FlockUiState, notificationID: Int) {
-        val notificationData = buildDataObjectFirstNotification(
+        val firstNotificationData = buildDataObjectFirstNotification(
             vaccination = vaccination,
             flock = flock,
             notificationID = notificationID
@@ -412,17 +450,18 @@ class VaccinationViewModel @Inject constructor(
             notificationID = notificationID
         )
 
-        val vaccineWorkerRequest = OneTimeWorkRequest.Builder(VaccinationReminderWorker::class.java)
-            .setInputData(notificationData)
-            .setId(vaccination.notificationUUID)
-            .setInitialDelay(
-                DateUtils().calculateVaccineNotificationDate(
-                    vaccination = vaccination,
-                    hour = 8, minutes = 0
-                ), TimeUnit.MINUTES
-            )
-            .build()
-        val secondNotificationWorker =
+        val firstNotificationWorkerRequest =
+            OneTimeWorkRequest.Builder(VaccinationReminderWorker::class.java)
+                .setInputData(firstNotificationData)
+                .setId(vaccination.notificationUUID)
+                .setInitialDelay(
+                    DateUtils().calculateVaccineNotificationDate(
+                        vaccination = vaccination,
+                        hour = 8, minutes = 0
+                    ), TimeUnit.MINUTES
+                )
+                .build()
+        val secondNotificationWorkerRequest =
             OneTimeWorkRequest.Builder(VaccinationConfirmationWorker::class.java)
                 .setInputData(secondNotificationData)
                 .addTag(vaccination.notificationUUID.toString())
@@ -433,19 +472,24 @@ class VaccinationViewModel @Inject constructor(
                     ), TimeUnit.MINUTES
                 )
                 .build()
-
-        WorkManager.getInstance(application.applicationContext)
-            .enqueue(vaccineWorkerRequest)
-        WorkManager.getInstance(application.applicationContext)
-            .enqueue(secondNotificationWorker)
-
+        if (LocalDate.now().isBefore(vaccination.date)) {
+            WorkManager.getInstance(application.applicationContext)
+                .enqueue(firstNotificationWorkerRequest)
+            WorkManager.getInstance(application.applicationContext)
+                .enqueue(secondNotificationWorkerRequest)
+            //Log.i("UISTATE__NAME", vaccination.name)
+        } else if (LocalDate.now().isEqual(vaccination.date)) {
+            WorkManager.getInstance(application.applicationContext)
+                .enqueue(secondNotificationWorkerRequest)
+        }
     }
 
     /**
      * Schedule an alarm to be triggered day before the vaccination date
+     * and another on day of vaccine to confirm if vaccine has been administered
      */
     override fun schedule(vaccination: Vaccination, flock: FlockUiState) {
-        val notificationData = buildDataObjectFirstNotification(
+        val firstNotificationData = buildDataObjectFirstNotification(
             vaccination = vaccination,
             flock = flock,
             notificationID = vaccination.id
@@ -456,18 +500,19 @@ class VaccinationViewModel @Inject constructor(
             notificationID = vaccination.id
         )
 
-        val vaccineWorkerRequest = OneTimeWorkRequest.Builder(VaccinationReminderWorker::class.java)
-            .setInputData(notificationData)
-            .setId(vaccination.notificationUUID)
-            .setInitialDelay(
-                DateUtils().calculateVaccineNotificationDate(
-                    vaccination = vaccination,
-                    hour = 8, minutes = 0
-                ), TimeUnit.MINUTES
-            )
-            .build()
+        val firstNotificationWorkerRequest =
+            OneTimeWorkRequest.Builder(VaccinationReminderWorker::class.java)
+                .setInputData(firstNotificationData)
+                .setId(vaccination.notificationUUID)
+                .setInitialDelay(
+                    DateUtils().calculateVaccineNotificationDate(
+                        vaccination = vaccination,
+                        hour = 8, minutes = 0
+                    ), TimeUnit.MINUTES
+                )
+                .build()
 
-        val secondNotificationWorker =
+        val secondNotificationWorkerRequest =
             OneTimeWorkRequest.Builder(VaccinationConfirmationWorker::class.java)
                 .setInputData(secondNotificationData)
                 .addTag(vaccination.notificationUUID.toString())
@@ -479,10 +524,21 @@ class VaccinationViewModel @Inject constructor(
                 )
                 .build()
 
-        WorkManager.getInstance(application.applicationContext)
-            .enqueue(vaccineWorkerRequest)
-        WorkManager.getInstance(application.applicationContext)
-            .enqueue(secondNotificationWorker)
+//        WorkManager.getInstance(application.applicationContext)
+//            .enqueue(vaccineWorkerRequest)
+//        WorkManager.getInstance(application.applicationContext)
+//            .enqueue(secondNotificationWorker)
+
+        if (LocalDate.now().isBefore(vaccination.date)) {
+            WorkManager.getInstance(application.applicationContext)
+                .enqueue(firstNotificationWorkerRequest)
+            WorkManager.getInstance(application.applicationContext)
+                .enqueue(secondNotificationWorkerRequest)
+            //Log.i("UISTATENAME", vaccination.name)
+        } else if (LocalDate.now().isEqual(vaccination.date)) {
+            WorkManager.getInstance(application.applicationContext)
+                .enqueue(secondNotificationWorkerRequest)
+        }
     }
 
     fun buildDataObjectFirstNotification(
@@ -508,15 +564,6 @@ class VaccinationViewModel @Inject constructor(
         flock: FlockUiState,
         notificationID: Int
     ): Data {
-        val vaccineData = Data.Builder().apply {
-            putInt(VACCINATION_ID, notificationID)
-            putString(VACCINATION_FLOCK_UNIQUE_ID, vaccination.flockUniqueId)
-            putString(VACCINATION_NAME, vaccination.name)
-            putString(VACCINATION_NOTES, vaccination.notes)
-            putString(VACCINATION_DATE, DateUtils().dateToStringLongFormat(vaccination.date))
-            putString(VACCINATION_NOTIFICATION_UUID, vaccination.notificationUUID.toString())
-            putBoolean(VACCINATION_ADMINISTERED, vaccination.hasVaccineBeenAdministered)
-        }.build()
         return Data.Builder().apply {
             putString(TITLE_TWO, "Vaccination Reminder")
             putString(CONTENT_TEXT_TWO, "${vaccination.name} vaccination due.")

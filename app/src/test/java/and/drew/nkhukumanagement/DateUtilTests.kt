@@ -8,6 +8,7 @@ import and.drew.nkhukumanagement.utils.DateUtils
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
 
@@ -116,7 +117,7 @@ class DateUtilTests {
     }
 
     @Test
-    fun calculateAlarmDate() {
+    fun calculateNotificationDate() {
         val vaccination = Vaccination(
             id = 1, name = "Gumburro",
             flockUniqueId = "1",
@@ -134,5 +135,55 @@ class DateUtilTests {
             .atZone(ZoneId.systemDefault())
             .toEpochSecond() * 1000
         assertEquals(actualAlarmDateLong, calculateVaccineAlarmDate)
+    }
+
+    /**
+     * Check if notification date set is before date of vaccine
+     * Vaccine date 2024-01-01 at 08:00
+     * Notification Date 2023-12-31 at 08:00
+     * In this case -1440 should the difference in minutes between the two dates
+     */
+    @Test
+    fun calculateVaccineNotificationDateTests() {
+        val vaccination = Vaccination(
+            id = 1, name = "Gumburro",
+            flockUniqueId = "1",
+            notes = "",
+            date = LocalDate.of(
+                2024, 1, 1
+            ),
+            hasVaccineBeenAdministered = false,
+            notificationUUID = UUID.randomUUID()
+        )
+        val notificationTime = dateUtil.calculateVaccineNotificationDate(
+            currentTime = LocalDateTime.of(2024, 1, 1, 8, 0),
+            vaccination = vaccination, hour = 8, minutes = 0
+        )
+        assertEquals(-1440, notificationTime)
+    }
+
+    /**
+     * Check if notification date set on date of vaccine
+     *  Vaccine date 2024-01-01 at 08:00
+     *  Notification Date 2024-01-01 at 08:00
+     * In this case 0 should the difference in minutes between the two dates
+     */
+    @Test
+    fun calculateConfirmVaccineNotificationDateTests() {
+        val vaccination = Vaccination(
+            id = 1, name = "Gumburro",
+            flockUniqueId = "1",
+            notes = "",
+            date = LocalDate.of(
+                2024, 1, 1
+            ),
+            hasVaccineBeenAdministered = false,
+            notificationUUID = UUID.randomUUID()
+        )
+        val notificationTime = dateUtil.calculateConfirmVaccineNotificationDate(
+            currentTime = LocalDateTime.of(2024, 1, 1, 7, 0),
+            vaccination = vaccination, hour = 8, minutes = 0
+        )
+        assertEquals(0, notificationTime)
     }
 }

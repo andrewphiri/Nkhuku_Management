@@ -555,6 +555,7 @@ fun NavGraphBuilder.homeGraph(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.settingsGraph(
     navController: NavHostController,
     signInViewModel: SignInViewModel,
@@ -604,7 +605,7 @@ fun NavGraphBuilder.settingsGraph(
                 googleAuthUiClient = googleAuthUiClient,
                 signInViewModel = signInViewModel,
                 contentType = contentType
-                )
+            )
         }
     }
 }

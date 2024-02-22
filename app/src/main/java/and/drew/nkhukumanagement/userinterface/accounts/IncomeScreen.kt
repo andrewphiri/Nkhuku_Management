@@ -95,7 +95,7 @@ fun IncomeScreen(
     userPrefsViewModel: UserPrefsViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
+    val accountsIdArg by accountsViewModel.accountsID.collectAsState(initial = 0)
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
@@ -120,7 +120,7 @@ fun IncomeScreen(
         },
         accountsSummary = accountsWithIncome.accountsSummary,
         incomeList = accountsWithIncome.incomeList,
-        accountsIdArg = accountsViewModel.accountsID.value,
+        accountsIdArg = accountsIdArg,
         updateAccountWhenDeletingIncome = { accountsSummary, income ->
             coroutineScope.launch {
                 accountsViewModel.updateAccountWhenDeletingIncome(
@@ -131,48 +131,6 @@ fun IncomeScreen(
         },
         currencyLocale = currency.currencyLocale
     )
-//    Scaffold(
-//        floatingActionButton = {
-//            FloatingActionButton(
-//                shape = ShapeDefaults.Small,
-//                elevation = FloatingActionButtonDefaults.elevation(),
-//                containerColor = MaterialTheme.colorScheme.secondary,
-//                contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-//                onClick = { navigateToAddIncomeScreen(0, accountsViewModel.id) }) {
-//                Row(modifier = Modifier.padding(horizontal = 16.dp)) {
-//                    Icon(
-//                        imageVector = Icons.Default.Add,
-//                        contentDescription = null
-//                    )
-//                    AnimatedVisibility(visible = listState.isScrollingUp()) {
-//                        Text(
-//                            text = "Income",
-//                            modifier = Modifier.padding(start = 8.dp, top = 3.dp)
-//                        )
-//                    }
-//
-//                }
-//            }
-//        }
-//    ) { innerPadding ->
-//        IncomeList(
-//            modifier = modifier.padding(innerPadding),
-//            incomeList = accountsWithIncome.incomeList,
-//            onItemClick = { income ->
-//                navigateToAddIncomeScreen(income.id, accountsViewModel.id)
-//            },
-//            onDeleteIncome = { income ->
-//                coroutineScope.launch {
-//                    accountsViewModel.updateAccountWhenDeletingIncome(
-//                        accountsSummary = accountsWithIncome.accountsSummary,
-//                        income = income
-//                    )
-//                    incomeViewModel.deleteIncome(income)
-//                }
-//            },
-//            currencyLocale = currency.currencyLocale
-//        )
-//    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -205,7 +163,7 @@ fun MainIncomeScreen(
                     )
                     AnimatedVisibility(visible = listState.isScrollingUp()) {
                         Text(
-                            text = "Income",
+                            text = stringResource(R.string.income),
                             modifier = Modifier.padding(start = 8.dp, top = 3.dp)
                         )
                     }
@@ -341,29 +299,29 @@ fun IncomeCardItem(
                                 isAlertDialogShowing = false
                                 isMenuShowing = false
                             },
-                            title = "Delete income?",
-                            message = "This cannot be undone.",
-                            dropDownMenuItemLabel = "Delete income"
+                            title = stringResource(R.string.delete_income),
+                            message = stringResource(R.string.this_cannot_be_undone),
+                            dropDownMenuItemLabel = stringResource(R.string.delete_income_label)
                         )
                     }
                 }
 
 
                 BaseAccountRow(
-                    labelA = "Date",
+                    labelA = stringResource(R.string.date),
                     weightForLabelA = 0.5f,
                     titleA = incomeUiState.getDate(),
                     weightForTitleA = 1.5f,
-                    labelB = "Suppler",
+                    labelB = stringResource(R.string.customer),
                     titleB = incomeUiState.customer
                 )
                 BaseAccountRow(
-                    labelA = "Unit Price",
+                    labelA = stringResource(R.string.unit_price),
                     titleA = currencyFormatter(
                         incomeUiState.pricePerItem.toDouble(),
                         currencyLocale
                     ),
-                    labelB = "Quantity",
+                    labelB = stringResource(R.string.quantity),
                     titleB = incomeUiState.quantity
                 )
 
@@ -372,7 +330,7 @@ fun IncomeCardItem(
 
                     BaseSingleRowItem(
                         modifier = Modifier.fillMaxWidth(),
-                        label = "Notes",
+                        label = stringResource(R.string.notes),
                         value = incomeUiState.notes,
                         weightA = 0.2f,
                         weightB = 1f,

@@ -1,6 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.planner
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.ContentType
@@ -31,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -72,6 +74,7 @@ fun MainPlannerScreen(
     onClickSettings: () -> Unit,
     contentType: ContentType
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var isCalculateButtonEnabled by remember { mutableStateOf(false) }
@@ -95,7 +98,7 @@ fun MainPlannerScreen(
                     navigateToResultsScreen()
                 } else {
                     coroutineScope.launch {
-                        snackbarHostState.showSnackbar(message = "Please enter a valid number.")
+                        snackbarHostState.showSnackbar(message = context.getString(R.string.please_enter_a_valid_number))
                     }
                 }
             },
@@ -114,6 +117,7 @@ fun PlannerCardEntry(
     plannerUiState: PlannerUiState,
     onValueChanged: (PlannerUiState) -> Unit = {}
 ) {
+    val context = LocalContext.current
     //Define dependent checkboxes states
     val (checkboxState, onStateChange) = rememberSaveable { mutableStateOf(false) }
     val (checkboxState2, onStateChange2) = rememberSaveable { mutableStateOf(false) }
@@ -147,7 +151,7 @@ fun PlannerCardEntry(
             modifier = Modifier.fillMaxWidth(),
             value = plannerUiState.quantityToOrder,
             onValueChange = { onValueChanged(plannerUiState.copy(quantityToOrder = it)) },
-            label = { Text("How many chicks would you like to order?") },
+            label = { Text(stringResource(R.string.how_many_chicks_would_you_like_to_order)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
@@ -157,11 +161,14 @@ fun PlannerCardEntry(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 TriStateCheckbox(
-                    modifier = Modifier.semantics { contentDescription = "Tick all" },
+                    modifier = Modifier.semantics {
+                        contentDescription =
+                            context.getString(R.string.tick_all)
+                    },
                     state = parentState,
                     onClick = onParentClick
                 )
-                Text("Tick what you have")
+                Text(stringResource(R.string.tick_what_you_have))
             }
 
             Spacer(modifier = Modifier.size(16.dp))
@@ -181,7 +188,7 @@ fun PlannerCardEntry(
                             onStateChange(it)
                             onValueChanged(plannerUiState.copy(areFeedersAvailable = it))
                         })
-                    Text("Feeders")
+                    Text(stringResource(R.string.feeders))
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -193,7 +200,7 @@ fun PlannerCardEntry(
                             onValueChanged(plannerUiState.copy(areDrinkersAvailable = it))
                         }
                     )
-                    Text("Drinkers")
+                    Text(stringResource(R.string.drinkers))
                 }
 
             }
@@ -206,7 +213,7 @@ fun PlannerCardEntry(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Calculate",
+                text = stringResource(R.string.calculate),
                 textAlign = TextAlign.Center
             )
         }

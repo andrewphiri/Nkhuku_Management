@@ -92,7 +92,7 @@ fun ExpenseScreen(
     userPrefsViewModel: UserPrefsViewModel,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
+    val accountsIdArg by accountsViewModel.accountsID.collectAsState(initial = 0)
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
@@ -117,7 +117,7 @@ fun ExpenseScreen(
         },
         accountsSummary = accountsWithExpense.accountsSummary,
         expenseList = accountsWithExpense.expenseList,
-        accountsIdArg = accountsViewModel.accountsID.value,
+        accountsIdArg = accountsIdArg,
         updateAccountWhenDeletingExpense = { accountsSummary, expense ->
             coroutineScope.launch {
                 accountsViewModel.updateAccountWhenDeletingExpense(
@@ -128,49 +128,6 @@ fun ExpenseScreen(
         },
         currencyLocale = currency.currencyLocale
     )
-//    Scaffold(
-//        floatingActionButton = {
-//            FloatingActionButton(
-//                shape = ShapeDefaults.Small,
-//                elevation = FloatingActionButtonDefaults.elevation(),
-//                containerColor = MaterialTheme.colorScheme.secondary,
-//                contentColor = contentColorFor(MaterialTheme.colorScheme.secondary),
-//                onClick = { navigateToAddExpenseScreen(0, accountsViewModel.id) }) {
-//                Row(modifier = Modifier.padding(horizontal = 16.dp)) {
-//                    Icon(
-//                        imageVector = Icons.Default.Add,
-//                        contentDescription = null
-//                    )
-//                    AnimatedVisibility(visible = listState.isScrollingUp()) {
-//                        Text(
-//                            text = "Expense",
-//                            modifier = Modifier.padding(start = 8.dp, top = 3.dp)
-//                        )
-//                    }
-//
-//                }
-//            }
-//        }
-//    ) { innerPadding ->
-//        ExpenseList(
-//            modifier = Modifier.padding(innerPadding),
-//            expenseList = accountsWithExpense.expenseList,
-//            onItemClick = { expense ->
-//                navigateToAddExpenseScreen(expense.id, accountsViewModel.id)
-//            },
-//            onDeleteExpense = { expense ->
-//                coroutineScope.launch {
-//                    accountsViewModel.updateAccountWhenDeletingExpense(
-//                        accountsSummary = accountsWithExpense.accountsSummary,
-//                        expense = expense
-//                    )
-//                    expenseViewModel.deleteExpense(expense)
-//                }
-//            },
-//            currencyLocale = currency.currencyLocale
-//        )
-//    }
-
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -184,7 +141,6 @@ fun MainExpenseScreen(
     updateAccountWhenDeletingExpense: (AccountsSummary, Expense) -> Unit,
     currencyLocale: String
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
     Scaffold(
@@ -203,7 +159,7 @@ fun MainExpenseScreen(
                     )
                     AnimatedVisibility(visible = listState.isScrollingUp()) {
                         Text(
-                            text = "Expense",
+                            text = stringResource(R.string.expense),
                             modifier = Modifier.padding(start = 8.dp, top = 3.dp)
                         )
                     }
@@ -340,28 +296,28 @@ fun ExpenseCardItem(
                                 isAlertDialogShowing = false
                                 isMenuShowing = false
                             },
-                            title = "Delete expense?",
-                            message = "This cannot be undone.",
-                            dropDownMenuItemLabel = "Delete expense"
+                            title = stringResource(R.string.delete_expense),
+                            message = stringResource(R.string.this_cannot_be_undone),
+                            dropDownMenuItemLabel = stringResource(R.string.delete_expense_label)
                         )
                     }
                 }
 
                 BaseAccountRow(
-                    labelA = "Date",
+                    labelA = stringResource(R.string.date),
                     weightForLabelA = 0.5f,
                     titleA = expensesUiState.getDate(),
                     weightForTitleA = 1.5f,
-                    labelB = "Supplier",
+                    labelB = stringResource(R.string.supplier),
                     titleB = expensesUiState.supplier
                 )
                  BaseAccountRow(
-                     labelA = "Unit Price",
+                     labelA = stringResource(R.string.unit_price),
                      titleA = currencyFormatter(
                          expensesUiState.costPerItem.toDouble(),
                          currencyLocale
                      ),
-                     labelB = "Quantity",
+                     labelB = stringResource(R.string.quantity),
                      titleB = expensesUiState.quantity
                  )
 
@@ -370,7 +326,7 @@ fun ExpenseCardItem(
 
                     BaseSingleRowItem(
                         modifier = Modifier.fillMaxWidth(),
-                        label = "Notes",
+                        label = stringResource(R.string.notes),
                         value = expensesUiState.notes,
                         weightA = 0.2f,
                         weightB = 1f,

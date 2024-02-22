@@ -255,6 +255,7 @@ fun AddVaccinationsScreen(
                                     flockEntryViewModel.flockUiState.copy(id = flockID),
                                     notificationID = vaccineID
                                 )
+//                                Log.i("UISTATE__", uiState.toString())
                             }
                         }
 
@@ -297,6 +298,7 @@ fun AddVaccinationsScreen(
                                     vaccination = uiState.toVaccination(),
                                     flock = flockEntryViewModel.flockUiState
                                 )
+//                                Log.i("UISTATE", uiState.toString())
                             }
                         }
 
@@ -345,7 +347,7 @@ fun AddVaccinationsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit Vaccinations",
+                        contentDescription = context.resources.getString(R.string.edit_vaccinations),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
@@ -506,7 +508,7 @@ fun MainAddVaccinationsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit Vaccinations",
+                        contentDescription = context.resources.getString(R.string.edit_vaccinations),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
@@ -589,7 +591,7 @@ fun VaccinationCardEntry(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Vaccination #${vaccinationUiState.vaccinationNumber}",
+                    text = "${stringResource(R.string.vaccination)} #${vaccinationUiState.vaccinationNumber}",
                     modifier = modifier.align(Alignment.CenterHorizontally),
                     color = MaterialTheme.colorScheme.secondary,
                     style = MaterialTheme.typography.headlineSmall
@@ -616,7 +618,7 @@ fun VaccinationCardEntry(
                     minLines = 2,
                     label = {
                         Text(
-                            text = "Notes",
+                            text = stringResource(R.string.notes),
                             style = MaterialTheme.typography.bodySmall
                         )
                     },
@@ -633,69 +635,6 @@ fun VaccinationCardEntry(
     }
 }
 
-//@RequiresApi(Build.VERSION_CODES.O)
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun PickDateDialog(
-//    modifier: Modifier = Modifier,
-//    showDialog: Boolean,
-//    onDismissed: () -> Unit,
-//    updateShowDialogOnClick: (Boolean) -> Unit,
-//    vaccinationUiState: VaccinationUiState,
-//    saveDateSelected: (DatePickerState) -> String,
-//    state: DatePickerState,
-//    isEditable: Boolean
-//) {
-//    vaccinationUiState.setDate(saveDateSelected(state))
-//    OutlinedTextField(
-//        modifier = modifier.fillMaxWidth(),
-//        textStyle = MaterialTheme.typography.bodySmall,
-//        value = vaccinationUiState.getDate(),
-//        onValueChange = { vaccinationUiState.setDate(saveDateSelected(state)) },
-//        label = { Text(text = "Vaccination date", style = MaterialTheme.typography.bodySmall) },
-//        singleLine = true,
-//        readOnly = true,
-//        enabled = isEditable,
-//        colors = TextFieldDefaults.colors(
-//            cursorColor = Color.Unspecified,
-//            errorCursorColor = Color.Unspecified,
-//            disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha),
-//            disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(LocalContentColor.current.alpha)
-//        ),
-//        isError = vaccinationUiState.isSingleEntryValid(vaccinationUiState.getDate()),
-//        interactionSource = remember { MutableInteractionSource() }
-//            .also { interactionSource ->
-//                LaunchedEffect(interactionSource) {
-//                    interactionSource.interactions.collect {
-//                        if (it is PressInteraction.Release) {
-//                            updateShowDialogOnClick(showDialog)
-//                        }
-//                    }
-//                }
-//            }
-//    )
-//    if (showDialog) {
-//        DatePickerDialog(
-//            onDismissRequest = onDismissed,
-//            confirmButton = {
-//                Button(
-//                    onClick = onDismissed
-//                ) { Text("OK") }
-//            },
-//            dismissButton = {
-//                Button(onClick = onDismissed) {
-//                    Text("Cancel")
-//                }
-//            }
-//        ) {
-//            DatePicker(
-//                state = state,
-//                modifier = Modifier,
-//                showModeToggle = false,
-//            )
-//        }
-//    }
-//}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)

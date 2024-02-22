@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,11 +61,8 @@ fun VerifyEmailScreen(
     signInViewModel: SignInViewModel,
     contentType: ContentType
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val emailVerified by signInViewModel.emailVerified.collectAsState()
 
-    var isCircularIndicatorShowing by remember { mutableStateOf(false) }
-    var snackbarHostState = remember { SnackbarHostState() }
 //    Log.i("Email_Verified", authUiClient.isEmailVerified().toString())
     LaunchedEffect(key1 = emailVerified) {
         signInViewModel.setEmailVerification(
@@ -97,12 +95,11 @@ fun MainVerifyEmailScreen(
     setEmailVerification: (Boolean) -> Unit,
     contentType: ContentType
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    //val emailVerified by signInViewModel.emailVerified.collectAsState()
 
     var isCircularIndicatorShowing by remember { mutableStateOf(false) }
     var snackbarHostState = remember { SnackbarHostState() }
-//    Log.i("Email_Verified", authUiClient.isEmailVerified().toString())
     LaunchedEffect(key1 = emailVerified) {
         setEmailVerification(
             authUiClient.isEmailVerified()
@@ -141,8 +138,7 @@ fun MainVerifyEmailScreen(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = "An email was sent to your email address. Please check your inbox, " +
-                            "spam or junk folder to verify your email, then press proceed. ",
+                    text = stringResource(R.string.email_verification_sent_prompt),
                     textAlign = TextAlign.Center
                 )
                 Button(
@@ -155,7 +151,7 @@ fun MainVerifyEmailScreen(
                     },
                 ) {
                     Text(
-                        text = "Resend Verification Email"
+                        text = stringResource(R.string.resend_verification_email)
                     )
                 }
             }
@@ -174,7 +170,7 @@ fun MainVerifyEmailScreen(
                         } else {
                             isCircularIndicatorShowing = false
                             snackbarHostState.showSnackbar(
-                                message = "Your email has not yet been verified. Verify your email, then proceed",
+                                message = context.getString(R.string.your_email_has_not_yet_been_verified_verify_your_email_then_proceed),
                                 duration = SnackbarDuration.Long
                             )
                         }
@@ -185,7 +181,7 @@ fun MainVerifyEmailScreen(
                 }
             ) {
                 Text(
-                    text = "Proceed"
+                    text = stringResource(R.string.proceed)
                 )
             }
         }

@@ -150,21 +150,6 @@ fun HomeScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-//    LaunchedEffect(key1 = flockID, key2 = vaccinationList) {
-//        if (flockID > 0) {
-//            val vaccineList= vaccinationList?.vaccinations
-//
-//            if (vaccinationList != null) {
-//                if (vaccineList != null) {
-//                    for (vaccine in vaccineList) {
-//                        Log.i("CANCEL_NOTIFICATION", vaccine.toString())
-//                        vaccinationViewModel.cancelAlarm(vaccine)
-//                    }
-//                }
-//
-//            }
-//        }
-//    }
 
     if (contentType == ContentType.LIST_ONLY) {
         MainHomeScreen(
@@ -185,14 +170,14 @@ fun HomeScreen(
                 vaccinationViewModel.setFlockID(flockID)
             },
             deleteFlock = { index ->
+                if (vaccinationList?.vaccinations != null) {
+                    vaccinationList?.vaccinations?.forEach { vaccine ->
+                        Log.i("CANCEL_NOTIFICATION", vaccine.toString())
+                        vaccinationViewModel.cancelNotification(vaccine)
+                    }
+                }
                 coroutineScope.launch {
                     val uniqueId = homeUiState.flockList[index].uniqueId
-                    if (vaccinationList?.vaccinations != null) {
-                        vaccinationList?.vaccinations?.forEach { vaccine ->
-                            Log.i("CANCEL_NOTIFICATION", vaccine.toString())
-                            vaccinationViewModel.cancelNotification(vaccine)
-                        }
-                    }
                     flockEntryViewModel.deleteFlock(uniqueId)
                     vaccinationViewModel.deleteVaccination(uniqueId)
                     vaccinationViewModel.deleteFeed(uniqueId)
@@ -207,6 +192,7 @@ fun HomeScreen(
                 if (vaccinationList?.vaccinations != null) {
                     vaccinationList?.vaccinations?.forEach { vaccine ->
                         vaccinationViewModel.cancelNotification(vaccine)
+                        Log.i("VACCINE", vaccine.toString())
                     }
                 }
                 accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
@@ -366,12 +352,6 @@ fun HomeScreenListAndDetails(
     onOverflowMenuClicked: (Int) -> Unit
 ) {
     var showDetailsPane by rememberSaveable { mutableStateOf(false) }
-    var showDetailsScreen by rememberSaveable { mutableStateOf(true) }
-    var showHealthScreen by rememberSaveable { mutableStateOf(false) }
-    var showEditFlockScreen by rememberSaveable { mutableStateOf(false) }
-    var showFeedScreen by rememberSaveable { mutableStateOf(false) }
-    var showWeightScreen by rememberSaveable { mutableStateOf(false) }
-    var showVaccinationScreen by rememberSaveable { mutableStateOf(false) }
     var currentScreen by rememberSaveable { mutableStateOf(DETAILS_SCREEN) }
 
     Column(modifier = modifier) {
@@ -551,11 +531,6 @@ fun MainHomeScreen(
     val listState = rememberLazyListState()
     var isFilterMenuShowing by remember { mutableStateOf(false) }
 
-//    DisposableEffect(Unit) {
-//        onDispose {
-//            resetFlock()
-//        }
-//    }
 
     Scaffold(
         modifier = modifier,
@@ -592,7 +567,7 @@ fun MainHomeScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Add flock",
+                        contentDescription = stringResource(R.string.add_flock),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
@@ -765,11 +740,11 @@ fun FlockCard(
             isCloseAlertDialogShowing = false
         },
         isAlertDialogShowing = isCloseAlertDialogShowing,
-        title = if (flock.active) "Close Flock Record" else "Reopen Flock Record",
-        message = if (flock.active) "Are you sure you want to close this flock record?" else
-            "Are you sure you want to reopen this flock record?",
-        confirmButtonText = "Yes",
-        dismissButtonText = "No"
+        title = if (flock.active) stringResource(R.string.close_flock_record) else stringResource(R.string.reopen_flock_record),
+        message = if (flock.active) stringResource(R.string.are_you_sure_you_want_to_close_this_flock_record) else
+            stringResource(R.string.are_you_sure_you_want_to_reopen_this_flock_record),
+        confirmButtonText = stringResource(R.string.yes),
+        dismissButtonText = stringResource(R.string.no)
     )
 
     OutlinedCard(
@@ -789,7 +764,7 @@ fun FlockCard(
                         .rotate(-45f)
                 ) {
                     Text(
-                        text = "Closed",
+                        text = stringResource(R.string.closed),
                         textAlign = TextAlign.Center,
                         color = Color.Red
                     )
@@ -819,9 +794,8 @@ fun FlockCard(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             BaseSingleRowItem(
                                 modifier = Modifier.weight(weight = 1f, fill = true),
-                                label = "Name: ",
+                                label = stringResource(R.string.name),
                                 value = flock.batchName,
-                                styleForLabel = MaterialTheme.typography.titleSmall,
                                 weightA = 0.5f
                             )
                             Column(modifier = Modifier.weight(0.2f)) {
@@ -846,23 +820,23 @@ fun FlockCard(
                                         isFlockItemMenuShowing = false
                                         isCloseAlertDialogShowing = true
                                     },
-                                    title = "Delete flock?",
-                                    message = "This cannot be undone."
+                                    title = stringResource(R.string.delete_flock),
+                                    message = stringResource(R.string.this_cannot_be_undone)
                                 )
                             }
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             BaseSingleRowItem(
-                                label = "Breed: ",
+                                label = stringResource(R.string.breed),
                                 value = flock.breed
                             )
                             BaseSingleRowItem(
-                                label = "Date: ",
+                                label = stringResource(R.string.date),
                                 value = DateUtils().dateToStringLongFormat(flock.datePlaced)
                             )
                             if (flock.active) {
                                 BaseSingleRowItem(
-                                    label = "Age: ",
+                                    label = stringResource(R.string.age),
                                     value = "${
                                         DateUtils().calculateAge(
                                             birthDate = flock.datePlaced
@@ -872,11 +846,11 @@ fun FlockCard(
                             }
 
                             BaseSingleRowItem(
-                                label = "Quantity: ",
+                                label = stringResource(R.string.quantity),
                                 value = (flock.numberOfChicksPlaced + flock.donorFlock).toString()
                             )
                             BaseSingleRowItem(
-                                label = "Mortality: ",
+                                label = stringResource(R.string.mortality),
                                 value = flock.mortality.toString()
                             )
 
@@ -885,7 +859,7 @@ fun FlockCard(
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 Text(
-                                    text = "Stock: ${(flock.stock)}",
+                                    text = "${stringResource(R.string.stock)}: ${(flock.stock)}",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier
@@ -944,11 +918,17 @@ fun ShowOverflowMenu(
             onDismissRequest = onDismiss
         ) {
             DropdownMenuItem(
-                text = { Text("Delete") },
+                text = { Text(stringResource(R.string.delete)) },
                 onClick = onShowAlertDialog
             )
             DropdownMenuItem(
-                text = { Text(text = if (flock.active) "Close" else "Reopen") },
+                text = {
+                    Text(
+                        text = if (flock.active) stringResource(R.string.close) else stringResource(
+                            R.string.reopen
+                        )
+                    )
+                },
                 onClick = onClose
             )
         }

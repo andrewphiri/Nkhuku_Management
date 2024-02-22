@@ -11,4 +11,5 @@ message UserPreferences {
   bool receiveNotifications = 5;
   string currencyLocale = 6;
   bool skipAccountSetup = 7;
+  string languageLocale = 8;
 }

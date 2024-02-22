@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
@@ -112,6 +113,7 @@ fun FlockEditScreen(
         ).toFlock()
     )
     val flockUiState: FlockUiState? = flock?.toFlockUiState()
+    val healthId by editFlockViewModel.healthId.collectAsState(initial = 0)
 
     LaunchedEffect(key1 = flock) {
         flockUiState?.copy(enabled = true)?.let { flockEntryViewModel.updateUiState(it) }
@@ -139,7 +141,7 @@ fun FlockEditScreen(
                 editFlockViewModel.insertHealth(it)
             }
         },
-        healthId = editFlockViewModel.healthId.value,
+        healthId = healthId,
         onNavigateUp = onNavigateUp,
         quantityRemaining = quantityRemaining,
         onQuantityChanged = {
@@ -251,7 +253,7 @@ fun MainFlockEditScreen(
                             PickerDateDialog(
                                 showDialog = showDialog,
                                 onDismissed = { showDialog = false },
-                                label = "Date",
+                                label = stringResource(R.string.date),
                                 date = date,
                                 updateShowDialogOnClick = { showDialog = true },
                                 onValueChanged = {},
@@ -286,7 +288,7 @@ fun MainFlockEditScreen(
                                     Text(
                                         modifier = Modifier.fillMaxWidth(),
                                         textAlign = TextAlign.Center,
-                                        text = "Stock"
+                                        text = stringResource(R.string.stock)
                                     )
                                 },
                                 enabled = true,
@@ -298,7 +300,7 @@ fun MainFlockEditScreen(
                                 descriptionForIncrease = "Increase mortality",
                                 descriptionForDecrease = "Decrease mortality",
                                 value = mortality.toString(),
-                                label = "Mortality",
+                                label = stringResource(R.string.mortality),
                                 onChangedValue = {
                                     // updateFlockUiState(flockUiState.copy(mortality = it))
                                     flockUiState.setStock(
@@ -331,7 +333,7 @@ fun MainFlockEditScreen(
                                 descriptionForDecrease = "Decrease culls",
                                 descriptionForIncrease = "Increase culls",
                                 value = culls.toString(),
-                                label = "Culls",
+                                label = stringResource(R.string.culls),
                                 onChangedValue = {
                                     //flockUiState.setCulls(it)
                                     //    updateFlockUiState(flockUiState.copy(culls = it))
@@ -366,7 +368,7 @@ fun MainFlockEditScreen(
                             onClick = onNavigateUp
                         ) {
                             Text(
-                                text = "Cancel",
+                                text = stringResource(R.string.cancel),
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -430,7 +432,7 @@ fun MainFlockEditScreen(
                             }
                         ) {
                             Text(
-                                text = "Update",
+                                text = stringResource(R.string.update),
                                 textAlign = TextAlign.Center
                             )
                         }

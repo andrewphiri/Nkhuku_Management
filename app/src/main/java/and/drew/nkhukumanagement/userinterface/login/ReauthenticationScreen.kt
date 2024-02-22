@@ -55,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -72,6 +73,10 @@ object ReauthenticationScreenDestination : NkhukuDestinations {
         get() = R.string.confirm_account
 }
 
+/**
+ * Screen used to confirm account before user is allowed to delete his account.
+ * User signs in first before proceeding
+ */
 @Composable
 fun AuthenticateScreen(
     modifier: Modifier = Modifier,
@@ -82,50 +87,15 @@ fun AuthenticateScreen(
     signInViewModel: SignInViewModel,
     contentType: ContentType
 ) {
+
     val state by signInViewModel.state.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
     var isLoadingGoogleButton by remember { mutableStateOf(false) }
     var isLoadingEmailAndPasswordButtonSignIn by remember { mutableStateOf(false) }
-    var snackbarHostState = remember { SnackbarHostState() }
-    var isCircularBarShowing by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
     var isDeleteAlertDialogPromptShowing by remember { mutableStateOf(false) }
     var emailSignedIn by remember { mutableStateOf("") }
     emailSignedIn = authUiClient.signedInUser().email.toString()
-    var signInIntent by rememberSaveable { mutableStateOf(Intent()) }
-    var isAccountDeletedDialogSuccessShowing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = state.signInError) {
-        state.signInError?.let { error ->
-            snackbarHostState.showSnackbar(
-                message = "Invalid email address or password. Try again",
-                duration = SnackbarDuration.Long
-            )
-        }
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                coroutineScope.launch {
-                    val signInResult = googleAuthUiClient.signInWithIntent(
-                        intent = result.data ?: return@launch
-                    )
-                    signInIntent = result.data ?: return@launch
-                    signInViewModel.onSignInResult(signInResult)
-                }
-            }
-        }
-    )
-
-    LaunchedEffect(key1 = state) {
-        if (state.isSignInSuccessful) {
-            isDeleteAlertDialogPromptShowing = true
-        } else {
-            isLoadingGoogleButton = false
-            isLoadingEmailAndPasswordButtonSignIn = false
-        }
-    }
 
     MainAuthenticateScreen(
         modifier = modifier,
@@ -162,7 +132,7 @@ fun MainAuthenticateScreen(
     resetUser: (Boolean) -> Unit,
     contentType: ContentType
 ) {
-//    val state by signInViewModel.state.collectAsState()
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var isLoadingGoogleButton by remember { mutableStateOf(false) }
     var isLoadingEmailAndPasswordButtonSignIn by remember { mutableStateOf(false) }
@@ -177,7 +147,7 @@ fun MainAuthenticateScreen(
     LaunchedEffect(key1 = state.signInError) {
         state.signInError?.let { error ->
             snackbarHostState.showSnackbar(
-                message = "Invalid email address or password. Try again",
+                message = context.getString(R.string.invalid_username_or_password_try_again),
                 duration = SnackbarDuration.Long
             )
         }
@@ -268,7 +238,7 @@ fun MainAuthenticateScreen(
                             isAccountDeletedDialogSuccessShowing = true
                         } else {
                             snackbarHostState.showSnackbar(
-                                message = "Action failed. Please try again.",
+                                message = context.getString(R.string.action_failed_please_try_again),
                                 duration = SnackbarDuration.Long
                             )
                         }
@@ -281,9 +251,6 @@ fun MainAuthenticateScreen(
                 isSuccessAlertDialogShowing = isAccountDeletedDialogSuccessShowing,
                 onDismissSuccessAlertDialog = {
                     resetUser(false)
-//                    signInViewModel.resetState()
-//                    signInViewModel.setUserLoggedIn(false)
-//                    signInViewModel.updateUiStateSignIn(UserUiState(email = "", password = ""))
                     isAccountDeletedDialogSuccessShowing = false
                 }
             )
@@ -295,8 +262,8 @@ fun MainAuthenticateScreen(
 fun AuthenticateCard(
     modifier: Modifier = Modifier,
     onClickSignInWithGoogle: () -> Unit,
-    loadingText: String = "Deleting",
-    defaultText: String = "Sign In",
+    loadingText: String = stringResource(R.string.deleting),
+    defaultText: String = stringResource(R.string.signin),
     onClickSignInWithEmailAndPassword: () -> Unit,
     progressIndicatorColor: Color = MaterialTheme.colorScheme.primary,
     isLoadingSignInButton: Boolean,
@@ -327,7 +294,7 @@ fun AuthenticateCard(
             modifier = Modifier.align(Alignment.Center),
             onDismissSuccessAlertDialog = onDismissSuccessAlertDialog,
             isSuccessAlertDialogShowing = isSuccessAlertDialogShowing,
-            title = "Account Deleted"
+            title = stringResource(R.string.account_deleted)
         )
 
         Column(
@@ -344,16 +311,16 @@ fun AuthenticateCard(
                 ShowAlertDialog(
                     onDismissAlertDialog = onDismiss,
                     onConfirm = onConfirmDelete,
-                    confirmButtonText = "Yes",
-                    dismissButtonText = "No",
+                    confirmButtonText = stringResource(R.string.yes),
+                    dismissButtonText = stringResource(R.string.no),
                     isAlertDialogShowing = isAlertDialogShowing,
-                    message = "Are you sure you want to delete your account?",
-                    title = "Delete Account"
+                    message = stringResource(R.string.are_you_sure_you_want_to_delete_your_account),
+                    title = stringResource(R.string.delete_account)
                 )
 
                 BaseSignInRow(
                     value = userUiState.email,
-                    placeholder = "Email address",
+                    placeholder = stringResource(R.string.email_address),
                     readonly = true,
                     enabled = false,
                     onValueChanged = {
@@ -364,7 +331,7 @@ fun AuthenticateCard(
 
                 BaseSignInPassword(
                     value = userUiState.password,
-                    placeholder = "Password",
+                    placeholder = stringResource(R.string.password),
                     onValueChanged = {
                         onValueChanged(userUiState.copy(password = it))
                     },
@@ -412,14 +379,14 @@ fun AuthenticateCard(
 
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = "or",
+                    text = stringResource(R.string.or),
                     textAlign = TextAlign.Center
                 )
 
                 SignInGoogleButton(
-                    text = "Sign in with Google",
-                    loadingText = "Signing in",
-                    contentDescription = "Sign in with Google",
+                    text = stringResource(R.string.sign_in_with_google),
+                    loadingText = stringResource(R.string.signing_in),
+                    contentDescription = stringResource(R.string.sign_in_with_google),
                     icon = painterResource(R.drawable.ic_google_logo),
                     isLoading = isLoadingGoogleButton,
                     onClick = {
