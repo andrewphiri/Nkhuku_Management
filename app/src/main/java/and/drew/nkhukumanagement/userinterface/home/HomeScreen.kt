@@ -95,6 +95,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -729,6 +730,7 @@ fun FlockCard(
     var isFlockItemMenuShowing by remember { mutableStateOf(false) }
     var isAlertDialogShowing by remember { mutableStateOf(false) }
     var isCloseAlertDialogShowing by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     val color = if (selectedID == flock.id && contentType == ContentType.LIST_AND_DETAIL)
         CardDefaults.outlinedCardColors(containerColor = Color.LightGray) else
@@ -837,11 +839,13 @@ fun FlockCard(
                             if (flock.active) {
                                 BaseSingleRowItem(
                                     label = stringResource(R.string.age),
-                                    value = "${
-                                        DateUtils().calculateAge(
+                                    value = context.resources.getQuantityString(
+                                        R.plurals.day_s, DateUtils().calculateAge(
+                                            birthDate = flock.datePlaced
+                                        ).toInt(), DateUtils().calculateAge(
                                             birthDate = flock.datePlaced
                                         )
-                                    } day/s",
+                                    ),
                                 )
                             }
 

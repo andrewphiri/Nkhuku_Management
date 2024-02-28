@@ -376,7 +376,7 @@ fun FeedCard(
                 BaseSingleRowDetailsItem(
                     label = stringResource(R.string.total_feed_consumed).lowercase()
                         .replaceFirstChar { it.uppercase() },
-                    value = "${String.format("%.2f", quantityConsumed)} Kg"
+                    value = stringResource(R.string.kg, String.format("%.2f", quantityConsumed))
                 )
             }
 
@@ -508,7 +508,7 @@ fun WeightCard(
             Card {
                 BaseSingleRowDetailsItem(
                     label = stringResource(R.string.actual),
-                    value = "${weightUiState.actualWeight} Kg",
+                    value = stringResource(R.string.kg_weight, weightUiState.actualWeight),
                     weightA = 1.5f,
                 )
             }
@@ -516,7 +516,7 @@ fun WeightCard(
             Card {
                 BaseSingleRowDetailsItem(
                     label = stringResource(R.string.standard),
-                    value = "${weightUiState.standard} Kg",
+                    value = stringResource(R.string.kg_weight, weightUiState.standard),
                     weightA = 1.5f
                 )
             }

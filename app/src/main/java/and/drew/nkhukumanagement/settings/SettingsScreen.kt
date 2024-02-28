@@ -16,10 +16,12 @@ import android.Manifest
 import android.app.LocaleManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.icu.util.Currency
 import android.icu.util.ULocale
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -75,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
@@ -112,6 +115,8 @@ fun SettingsScreen(
     val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
+    val allCurrencies = getAllCurrenciesInUse().map { it.value }.toSet().toList()
+        .sortedBy { it?.displayName }
     var restoreBackupUri by remember { mutableStateOf<Uri?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     var isCircularIndicatorShowing by rememberSaveable { mutableStateOf(false) }
@@ -123,28 +128,41 @@ fun SettingsScreen(
             )
         )
     }
-    var allLocale: List<Locale> by rememberSaveable { mutableStateOf(listOf()) }
-    var selectedLocale by remember { mutableStateOf(ULocale(userPreferences.languageLocale)) }
-    selectedLocale = ULocale(userPreferences.languageLocale)
-    val defaultLocale = Locale.getDefault()
+    var allLocale: List<Locale> by remember { mutableStateOf(listOf()) }
+    var selectedLocale by remember { mutableStateOf(Locale(userPreferences.languageLocale)) }
+    selectedLocale = Locale(userPreferences.languageLocale)
+    var defaultLocale by remember { mutableStateOf(Locale.getDefault()) }
+    //Get default system language
+    defaultLocale =
+        Locale("${ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0]?.language}")
+    ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0]
+
+    val appLanguages = context.resources.getStringArray(R.array.app_languages)
 
     LaunchedEffect(key1 = selectedLocale) {
-
-//        Log.i("Default_Language", defaultLanguage.toString())
-        val appLanguages = context.resources.getStringArray(R.array.app_languages)
+        Log.i("Default_Language", selectedLocale.language.toString())
 //        Log.i("Default____ARRAYY", appLanguages.toString())
         val languagesList = mutableListOf<Locale>()
         for (language in appLanguages) {
 //             Log.i("Default____", ULocale(language).displayLanguage)
-            if (defaultLocale == ULocale(language).toLocale() && defaultLocale == selectedLocale.toLocale()) {
+            if (defaultLocale == ULocale(language).toLocale() &&
+                defaultLocale == selectedLocale &&
+                appLanguages.contains(defaultLocale.language)
+            ) {
                 languagesList.add(0, defaultLocale)
-            } else if (defaultLocale == ULocale(language).toLocale() &&
-                defaultLocale != selectedLocale.toLocale() &&
+            } else if (
+                (defaultLocale == ULocale(language).toLocale()) &&
+                (defaultLocale != selectedLocale) &&
+                languagesList.isNotEmpty() &&
+                appLanguages.contains(defaultLocale.language)
+            ) {
+                languagesList.add(1, defaultLocale)
+            } else if (
+                (selectedLocale == ULocale(language).toLocale()) &&
+                defaultLocale != selectedLocale &&
                 languagesList.isNotEmpty()
             ) {
-                languagesList.add(1, selectedLocale.toLocale())
-            } else if (selectedLocale.toLocale() == ULocale(language).toLocale() && languagesList.isNotEmpty()) {
-                languagesList.add(0, ULocale(language).toLocale())
+                languagesList.add(0, selectedLocale)
             } else {
                 languagesList.add(ULocale(language).toLocale())
             }
@@ -152,7 +170,6 @@ fun SettingsScreen(
         }
         allLocale = languagesList
     }
-
 
     var receiveNotifications by remember { mutableStateOf(true) }
     receiveNotifications = userPreferences.receiveNotifications
@@ -214,6 +231,7 @@ fun SettingsScreen(
                     showCurrencyDialog = true
                 },
                 onDismissCurrencyDialog = { showCurrencyDialog = false },
+                allCurrencies = allCurrencies,
                 selectedCurrency = selectedCurrency,
                 onCurrencySelected = { currency ->
 
@@ -223,6 +241,7 @@ fun SettingsScreen(
                             break
                         }
                     }
+                    selectedCurrency = currency
                     userPrefsViewModel.updateCurrency(currency, key)
                     onCurrencySelected(currency)
 
@@ -292,21 +311,23 @@ fun SettingsScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         context.getSystemService(LocaleManager::class.java)
                             .applicationLocales =
-                            android.os.LocaleList.forLanguageTags(locale.toLanguageTag())
+                            android.os.LocaleList.forLanguageTags(locale.language)
                     } else {
                         AppCompatDelegate.setApplicationLocales(
                             LocaleListCompat.forLanguageTags(
                                 locale.toLanguageTag()
                             )
                         )
+
                     }
-                    coroutineScope.launch {
-                        userPrefsViewModel.updateLanguageLocale(locale.toLanguageTag())
-                    }
+                    selectedLocale = locale
+
+                    userPrefsViewModel.updateLanguageLocale(locale.toLanguageTag())
+
                 },
                 onDismissLanguageDialog = { showLanguageDialog = false },
                 allLocale = allLocale,
-                selectedLocale = selectedLocale.toLocale(),
+                selectedLocale = selectedLocale,
                 onShowLanguageDialog = {
                     showLanguageDialog = true
                 },
@@ -323,6 +344,7 @@ fun SettingsCard(
     onShowLanguageDialog: () -> Unit = {},
     onDismissCurrencyDialog: () -> Unit = {},
     showCurrencyDialog: Boolean = false,
+    allCurrencies: List<Currency?>,
     onCurrencySelected: (Currency?) -> Unit,
     selectedCurrency: Currency?,
     onClickBackup: () -> Unit,
@@ -366,9 +388,9 @@ fun SettingsCard(
                 showCurrencyDialog = showCurrencyDialog,
                 onDismiss = onDismissCurrencyDialog,
                 selectedCurrency = selectedCurrency,
-                allCurrencies = getAllCurrenciesInUse().map { it.value }.toSet().toList()
-                    .sortedBy { it?.displayName },
-                onCurrencySelected = onCurrencySelected
+                allCurrencies = allCurrencies,
+                onCurrencySelected = onCurrencySelected,
+                selectedLocale = selectedLocale
             )
             AppLanguagePickerDialog(
                 onLanguageSelected = onLanguageSelected,
@@ -432,7 +454,10 @@ fun SettingsCard(
                     text = stringResource(R.string.default_label)
                 )
                 Text(
-                    text = selectedLocale.displayLanguage,
+                    text = if (selectedLocale == defaultLocale)
+                        "${selectedLocale.getDisplayLanguage(selectedLocale)} ${stringResource(R.string.device_s_language)}" else
+                        selectedLocale.getDisplayLanguage(selectedLocale)
+                            .replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Light
                 )
@@ -462,7 +487,11 @@ fun SettingsCard(
                     text = stringResource(R.string.default_label)
                 )
                 Text(
-                    text = "${selectedCurrency?.symbol} - ${selectedCurrency?.displayName}",
+                    text = "${selectedCurrency?.symbol} - ${
+                        selectedCurrency?.getDisplayName(
+                            selectedLocale
+                        )
+                    }",
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Light
                 )
@@ -544,7 +573,8 @@ fun CurrencyPickerDialog(
     showCurrencyDialog: Boolean,
     allCurrencies: List<Currency?>,
     selectedCurrency: Currency?,
-    onCurrencySelected: (Currency?) -> Unit
+    onCurrencySelected: (Currency?) -> Unit,
+    selectedLocale: Locale
 ) {
     if (showCurrencyDialog) {
         Dialog(
@@ -603,7 +633,11 @@ fun CurrencyPickerDialog(
                                         )
                                         Text(
                                             modifier = Modifier.padding(start = 16.dp),
-                                            text = "${currency?.symbol} - ${currency?.displayName}"
+                                            text = "${currency?.symbol} - ${
+                                                currency?.getDisplayName(
+                                                    selectedLocale
+                                                )
+                                            }"
                                         )
                                     }
                                 }
@@ -667,7 +701,7 @@ fun AppLanguagePickerDialog(
                     ) {
                         Text(
                             modifier = Modifier.align(Alignment.Start),
-                            text = "Choose default language",
+                            text = stringResource(R.string.choose_default_language),
                             style = MaterialTheme.typography.titleSmall
                         )
                         HorizontalDivider(
@@ -706,14 +740,15 @@ fun AppLanguagePickerDialog(
                                     ) {
                                         Text(
                                             modifier = Modifier.padding(start = 16.dp),
-                                            text = locale.displayLanguage
+                                            text = locale.getDisplayLanguage(locale)
+                                                .replaceFirstChar { it.uppercase() }
                                         )
                                         Text(
                                             modifier = Modifier.padding(start = 16.dp),
                                             fontWeight = FontWeight.Light,
-                                            text = if (locale.toLanguageTag() == defaultLocale.toLanguageTag())
-                                                "(device's language)" else
-                                                ULocale(locale.toLanguageTag()).displayLanguageWithDialect
+                                            text = if (locale.language == defaultLocale.language)
+                                                stringResource(R.string.device_s_language) else
+                                                locale.getDisplayLanguage(selectedLocale)
                                         )
                                     }
 

@@ -11,7 +11,7 @@ object UserPreferencesSerializer : Serializer<UserPreferences> {
     override val defaultValue: UserPreferences = UserPreferences
         .getDefaultInstance()
         .toBuilder()
-        .setSymbol("ZK")
+        .setSymbol("ZMW")
         .setDisplayName("Zambian Kwacha")
         .setNumericCode(967)
         .setCurrencyCode("ZMW")

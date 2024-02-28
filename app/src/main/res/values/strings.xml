@@ -186,4 +186,18 @@
     <string name="restore_successful">Restore Successful</string>
     <string name="restore_failed">Restore Failed</string>
     <string name="this_file_is_not_supported_please_choose_a_valid_file">This file is not supported. Please choose a valid file.</string>
+    <plurals name="day_s">>
+        <item quantity="other">%d days</item>
+        <item quantity="one">%d day</item>
+    </plurals>
+    <string name="choose_default_language">Choose default language</string>
+    <string name="device_s_language">(device\'s language)</string>
+    <string name="no_account_added">No account added.</string>
+    <string name="add_email_account">Add email account</string>
+    <string name="current_email">Current email</string>
+    <string name="verified">Verified</string>
+    <string name="unverified">Unverified</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="kg">%1$s Kg</string>
+    <string name="kg_weight">%1$s Kg</string>
 </resources>

@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -160,7 +161,7 @@ fun AccountInfoCard(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "No account added.",
+                text = stringResource(R.string.no_account_added),
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center
             )
@@ -177,7 +178,7 @@ fun AccountInfoCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.PersonAdd,
-                    contentDescription = "Add email account",
+                    contentDescription = stringResource(R.string.add_email_account),
                     tint = MaterialTheme.colorScheme.onSecondary
                 )
             }
@@ -197,12 +198,14 @@ fun AccountInfoCard(
                 ) {
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "Current email",
+                        text = stringResource(R.string.current_email),
                         textAlign = TextAlign.Start
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = if (isEmailVerified) "Verified" else "Unverified",
+                        text = if (isEmailVerified) stringResource(R.string.verified) else stringResource(
+                            R.string.unverified
+                        ),
                         color = if (isEmailVerified) Color.Green else Color.Red,
                         textAlign = TextAlign.End
                     )
@@ -234,7 +237,7 @@ fun AccountInfoCard(
                         enabled = isButtonEnabled
                     ) {
                         Text(
-                            text = "Back",
+                            text = stringResource(R.string.back),
                             style = MaterialTheme.typography.bodyLarge,
                             fontSize = TextUnit(16f, TextUnitType.Sp),
                         )
@@ -247,7 +250,7 @@ fun AccountInfoCard(
                         Text(
                             style = MaterialTheme.typography.bodyLarge,
                             fontSize = TextUnit(16f, TextUnitType.Sp),
-                            text = "Sign Out"
+                            text = stringResource(R.string.sign_out)
                         )
                     }
                 }
@@ -261,7 +264,7 @@ fun AccountInfoCard(
                         )
                         .padding(vertical = 8.dp),
                     textAlign = TextAlign.Center,
-                    text = "Delete",
+                    text = stringResource(R.string.delete),
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Red,
                 )

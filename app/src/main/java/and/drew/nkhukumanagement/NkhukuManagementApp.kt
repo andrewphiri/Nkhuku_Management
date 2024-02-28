@@ -39,7 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -126,14 +129,15 @@ fun BottomNavigationForApp(
             screens.forEach { screen ->
                 NavigationBarItem(
                     modifier = Modifier.semantics { contentDescription = screen.route },
-                    alwaysShowLabel = false,
                     icon = {
                         Icon(screen.icon, contentDescription = "${screen.route} screen")
                     },
                     label = {
                         Text(
                             stringResource(screen.resourceId),
-                            style = MaterialTheme.typography.labelSmall
+                            style = MaterialTheme.typography.titleSmall,
+                            fontSize = TextUnit(value = 10f, TextUnitType.Sp),
+                            textAlign = TextAlign.Center
                         )
                     },
                     selected = navController.currentDestination?.route == screen.route,

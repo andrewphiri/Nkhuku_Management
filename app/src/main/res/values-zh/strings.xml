@@ -185,4 +185,18 @@
     <string name="restore_successful">恢复成功</string>
     <string name="restore_failed">恢复失败</string>
     <string name="this_file_is_not_supported_please_choose_a_valid_file">此文件不受支持。请选择有效文件。</string>
+    <plurals name="day_s">
+        <item quantity="other">%d 天</item>
+        <item quantity="one">%d 天</item>
+    </plurals>
+    <string name="choose_default_language">选择默认语言</string>
+    <string name="device_s_language">(设备语言)</string>
+    <string name="no_account_added">未添加任何帐户。</string>
+    <string name="add_email_account">添加电子邮件帐户</string>
+    <string name="current_email">当前电子邮件</string>
+    <string name="verified">已验证</string>
+    <string name="unverified">未验证</string>
+    <string name="sign_out">注销</string>
+    <string name="kg">%1$s 公斤</string>
+    <string name="kg_weight">%1$s 公斤</string>
 </resources>

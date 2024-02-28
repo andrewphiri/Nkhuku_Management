@@ -11,7 +11,6 @@ import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
-import and.drew.nkhukumanagement.utils.currencySymbol
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -424,12 +423,11 @@ fun AddIncomeCard(
             value = incomeUiState.totalIncome,
             onValueChange = { },
             prefix = {
-                currencySymbol()?.let {
                     Text(
                         modifier = Modifier.padding(end = 4.dp),
-                        text = it
+                        text = currencySymbol
                     )
-                }
+
             },
             label = { Text(stringResource(R.string.total_income)) },
             readOnly = true,

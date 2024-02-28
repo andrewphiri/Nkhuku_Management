@@ -5,7 +5,6 @@ import android.icu.util.ULocale
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Date
-import java.util.Locale
 
 fun formatAmount(amount: Float): String {
     return AmountDecimalFormat.format(amount)
@@ -13,7 +12,7 @@ fun formatAmount(amount: Float): String {
 
 private val AmountDecimalFormat = DecimalFormat("#,###.##")
 
-fun currencySymbol() = NumberFormat.getCurrencyInstance(Locale("en", "ZM")).currency?.symbol
+//fun currencySymbol() = NumberFormat.getCurrencyInstance(Locale("en", "ZM")).currency?.symbol
 fun currencyFormatter(currency: Double, currencyLocale: String): String {
     val formatter = NumberFormat.getCurrencyInstance(ULocale(currencyLocale).toLocale())
     return formatter.format(currency)
