@@ -27,7 +27,7 @@ data class FlockUiState(
     val donorFlock: String = "",
     private var stock: String = "0",
     private var mortality: String = "0",
-    val imageResourceId: Int = R.drawable.icon4,
+    val imageResourceId: Int = R.drawable.add_flock_placeholder,
     private var culls: String = "0",
     val enabled: Boolean = false,
     val active: Boolean = true

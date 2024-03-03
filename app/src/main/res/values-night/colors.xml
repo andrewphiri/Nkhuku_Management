@@ -8,6 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="green">#023020</color>
-    <color name="textColor">#FF000000</color>
-    <color name="tipsListTextColor">#FF0F52BA</color>
+    <color name="textColor">#FFFFFFFF</color>
+    <color name="tipsListTextColor">#FFFFFFFF</color>
 </resources>

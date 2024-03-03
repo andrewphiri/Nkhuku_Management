@@ -26,7 +26,7 @@ data class Flock(
     @ColumnInfo(name = "donor")
     val donorFlock: Int,
     val mortality: Int,
-    val imageResourceId: Int = R.drawable.icon4,
+    val imageResourceId: Int = R.drawable.add_flock_placeholder,
     @ColumnInfo(name = "deformities")
     val culls: Int,
     val active: Boolean = true,

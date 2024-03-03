@@ -122,7 +122,7 @@ class AppFlowTests {
                 quantity = "100",
                 cost = "2.0",
                 donorFlock = "1",
-                imageResourceId = R.drawable.icon4
+                imageResourceId = R.drawable.add_flock_placeholder
             ),
             FlockUiState(
                 id = 2,
@@ -132,7 +132,7 @@ class AppFlowTests {
                 quantity = "200",
                 cost = "3.0",
                 donorFlock = "2",
-                imageResourceId = R.drawable.icon4
+                imageResourceId = R.drawable.add_flock_placeholder
             ),
             FlockUiState(
                 id = 3,
@@ -142,7 +142,7 @@ class AppFlowTests {
                 quantity = "300",
                 cost = "4.0",
                 donorFlock = "3",
-                imageResourceId = R.drawable.icon4
+                imageResourceId = R.drawable.add_flock_placeholder
             ),
             FlockUiState(
                 id = 4,
@@ -152,7 +152,7 @@ class AppFlowTests {
                 quantity = "400",
                 cost = "5.0",
                 donorFlock = "4",
-                imageResourceId = R.drawable.icon4
+                imageResourceId = R.drawable.add_flock_placeholder
             ),
             FlockUiState(
                 id = 5,
@@ -162,7 +162,7 @@ class AppFlowTests {
                 quantity = "500",
                 cost = "6.0",
                 donorFlock = "5",
-                imageResourceId = R.drawable.icon4
+                imageResourceId = R.drawable.add_flock_placeholder
             ),
             FlockUiState(
                 id = 6,
@@ -172,7 +172,7 @@ class AppFlowTests {
                 quantity = "600",
                 cost = "7.0",
                 donorFlock = "6",
-                imageResourceId = R.drawable.icon4
+                imageResourceId = R.drawable.add_flock_placeholder
             )
         )
 

@@ -82,7 +82,7 @@ class FlockEntryViewModel @Inject constructor(
             cost = "",
             stock = "0",
             mortality = "0",
-            imageResourceId = R.drawable.icon4,
+            imageResourceId = R.drawable.add_flock_placeholder,
             culls = "0",
             enabled = false
         )
@@ -95,7 +95,7 @@ class FlockEntryViewModel @Inject constructor(
             donorFlock = "",
             stock = "0",
             mortality = "0",
-            imageResourceId = R.drawable.icon4,
+            imageResourceId = R.drawable.add_flock_placeholder,
             culls = "0",
         )
     }

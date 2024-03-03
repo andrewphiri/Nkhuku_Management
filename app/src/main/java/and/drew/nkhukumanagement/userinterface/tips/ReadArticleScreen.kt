@@ -4,7 +4,15 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ContentType
+import and.drew.nkhukumanagement.utils.HtmlImageGetter
+import android.graphics.Typeface
 import android.os.Build
+import android.text.Editable
+import android.text.Html
+import android.text.Spannable
+import android.text.Spanned
+import android.text.style.StyleSpan
+import android.widget.TextView
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -27,18 +35,26 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.text.HtmlCompat
+import androidx.core.text.method.LinkMovementMethodCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import kotlinx.coroutines.launch
+import org.xml.sax.XMLReader
 
 object ReadArticleDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -111,7 +127,6 @@ fun MainReadArticleScreen(
     contentType: ContentType,
     isCircularIndicatorShowing: Boolean
 ) {
-
     BackHandler {
         onNavigateUp()
     }
@@ -169,6 +184,29 @@ fun ReadArticleCard(
                 model = article.imageUrl,
                 contentDescription = article.title
             )
+            val html = "<!DOCTYPE html>" +
+                    "<html lang=\"en\">" +
+                    "<head>" +
+                    "    <meta charset=\"UTF-8\">" +
+                    "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+                    "</head>" +
+                    "<body>" +
+                    "    <h1>HTML Text Test</h1>" +
+                    "    <p>This is a paragraph of text.</p> <br>" +
+                    "    <p>This is another paragraph of text.</p>" +
+                    "    <br><br>" +
+                    "    <h1>This is a bold title.</h1><br>" +
+                    "    <p>This is another paragraph of text with <em>italic</em> words.</p>" +
+                    "    <img src=\"https://th.bing.com/th/id/OIG4.z9DTZ1VWNtS99mjQ_1qB?pid=ImgGn\" alt=\"Example Image\">" +
+                    "    <p>This is a paragraph of text.</p> <br>" +
+                    "    <p>This is another paragraph of text.</p>" +
+                    "    <img src=\"https://th.bing.com/th/id/OIG4.._49STZ4hT364wtP9B1c?pid=ImgGn\" alt=\"Example Image\">" +
+                    "</body>" +
+                    "</html>"
+            //val myArticle = ArticleDescription(html)
+            val coroutineScope = rememberCoroutineScope()
+            val context = LocalContext.current
+
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -179,12 +217,118 @@ fun ReadArticleCard(
                     style = MaterialTheme.typography.headlineMedium
                 )
 
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = article.body.replace("\\n", "\n"),
-                    style = MaterialTheme.typography.bodyLarge
+                AndroidView(
+                    factory = { context ->
+                        TextView(context).apply {
+                            movementMethod = LinkMovementMethodCompat.getInstance()
+                        }
+                    },
+                    update = {
+                        val imageGetter = HtmlImageGetter(
+                            scope = coroutineScope,
+                            res = context.resources,
+                            coil = ImageRequest.Builder(context),
+                            textView = it
+                        )
+                        val htmlText = HtmlCompat.fromHtml(article.body, HtmlCompat.FROM_HTML_MODE_COMPACT, imageGetter, null)
+                        it.text = htmlText
+                        it.setTextColor(context.resources.getColor(R.color.textColor, null))
+                    }
                 )
+
+//                Text(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    text = article.body.replace("\\n", "\n"),
+//                    style = MaterialTheme.typography.bodyLarge
+//                )
             }
         }
     }
 }
+
+//@Composable
+//fun ArticleDescription(html: String) : Spanned {
+//    val coroutineScope = rememberCoroutineScope()
+//    val context = LocalContext.current
+//    val htmlImageGetter = HtmlImageGetter(
+//        res = context.resources,
+//        scope = coroutineScope,
+//        coil = ImageRequest.Builder(context = context ),
+//
+//    )
+//    return remember(html) {
+//        HtmlCompat.fromHtml(
+//            html,
+//            HtmlCompat.FROM_HTML_MODE_COMPACT,
+//            htmlImageGetter,
+//            //Handle Html tags
+//            object : Html.TagHandler {
+//                override fun handleTag(
+//                    opening: Boolean,
+//                    tag: String,
+//                    output: Editable?,
+//                    xmlReader: XMLReader?
+//                ) {
+//                    when {
+//                        tag.equals("h1", ignoreCase = true) && opening -> {
+//                            // Apply heading 1 style
+//                            output?.setSpan(
+//                                StyleSpan(Typeface.BOLD),
+//                                output.length,
+//                                output.length,
+//                                Spannable.SPAN_MARK_MARK
+//                            )
+//                        }
+//
+//                        tag.equals("h1", ignoreCase = true) && !opening -> {
+//                            // End of heading 1
+//                            val mark = output?.getSpanStart(Spannable.SPAN_MARK_MARK)
+//                            if (mark != null) {
+//                                output?.removeSpan(mark)
+//                            }
+//                        }
+//
+//                        tag.equals("b", ignoreCase = true) && opening -> {
+//                            // Apply bold style
+//                            output?.setSpan(
+//                                StyleSpan(Typeface.BOLD),
+//                                output.length,
+//                                output.length,
+//                                Spannable.SPAN_MARK_MARK
+//                            )
+//                        }
+//
+//                        tag.equals("b", ignoreCase = true) && !opening -> {
+//                            // End of bold
+//                            val mark = output?.getSpanStart(Spannable.SPAN_MARK_MARK)
+//                            if (mark != null) {
+//                                val boldSpans =
+//                                    output.getSpans(mark, output.length, StyleSpan::class.java)
+//                                if (boldSpans.isNotEmpty()) {
+//                                    val lastBoldSpan = boldSpans.last()
+//                                    val boldStart = output.getSpanStart(lastBoldSpan)
+//                                    output.removeSpan(lastBoldSpan)
+//                                    if (boldStart != null && boldStart != output.length) {
+//                                        output.setSpan(
+//                                            StyleSpan(Typeface.BOLD),
+//                                            boldStart,
+//                                            output.length,
+//                                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+//                                        )
+//                                    }
+//                                }
+//                                output?.removeSpan(mark)
+//                            }
+//                        }
+//
+//                        tag.equals("p", ignoreCase = true) && opening -> {
+//                            // Apply paragraph style
+//                            output?.append("\n\n") // Add space before paragraph
+//                        }
+//                    }
+//                }
+//            }
+//        )
+//    }
+//}
+

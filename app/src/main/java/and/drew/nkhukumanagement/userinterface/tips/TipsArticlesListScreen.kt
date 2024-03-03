@@ -34,7 +34,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -199,6 +201,7 @@ fun ArticleCard(
     article: Article,
     onArticleClick: () -> Unit
 ) {
+    val context = LocalContext.current
     Row(
         modifier = modifier.clickable(onClick = onArticleClick).fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -213,7 +216,7 @@ fun ArticleCard(
             modifier = Modifier.padding(8.dp),
             text = article.title,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Light),
-            color = sapphireBlue
+            color = Color(context.resources.getColor(R.color.tipsListTextColor, null))
         )
     }
 }

@@ -65,7 +65,7 @@ class ScreenTests {
                 100,
                 1,
                 0,
-                R.drawable.icon4,
+                R.drawable.add_flock_placeholder,
                 0,
                 true
             ),
@@ -80,7 +80,7 @@ class ScreenTests {
                 200,
                 2,
                 0,
-                R.drawable.icon4,
+                R.drawable.add_flock_placeholder,
                 0,
                 true
             ),
@@ -95,7 +95,7 @@ class ScreenTests {
                 300,
                 3,
                 0,
-                R.drawable.icon4,
+                R.drawable.add_flock_placeholder,
                 0,
                 true
             ),
@@ -110,7 +110,7 @@ class ScreenTests {
                 100,
                 1,
                 0,
-                R.drawable.icon4,
+                R.drawable.add_flock_placeholder,
                 0,
                 true
             ),
@@ -125,7 +125,7 @@ class ScreenTests {
                 200,
                 2,
                 0,
-                R.drawable.icon4,
+                R.drawable.add_flock_placeholder,
                 0,
                 true
             ),
@@ -140,7 +140,7 @@ class ScreenTests {
                 300,
                 3,
                 0,
-                R.drawable.icon4,
+                R.drawable.add_flock_placeholder,
                 0,
                 true
             )

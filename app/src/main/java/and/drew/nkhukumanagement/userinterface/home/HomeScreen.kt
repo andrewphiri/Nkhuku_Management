@@ -784,7 +784,7 @@ fun FlockCard(
                             modifier = Modifier
                                 .size(75.dp)
                                 .align(Alignment.CenterHorizontally),
-                            painter = painterResource(R.drawable.icon4),
+                            painter = painterResource(R.drawable.add_flock_placeholder),
                             contentDescription = ("Breed is ${flock.breed}. Batch number ${flock.id}"),
                             contentScale = ContentScale.Crop
                         )

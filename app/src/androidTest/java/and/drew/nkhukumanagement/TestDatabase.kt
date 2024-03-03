@@ -54,7 +54,7 @@ class TestDatabase {
                 numberOfChicksPlaced = 100,
                 costPerBird = 16.00,
                 donorFlock = 1,
-                imageResourceId = R.drawable.icon4,
+                imageResourceId = R.drawable.add_flock_placeholder,
                 culls = 2,
                 stock = 102,
                 mortality = 0,

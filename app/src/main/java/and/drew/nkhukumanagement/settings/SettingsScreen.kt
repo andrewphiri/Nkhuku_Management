@@ -140,7 +140,7 @@ fun SettingsScreen(
     val appLanguages = context.resources.getStringArray(R.array.app_languages)
 
     LaunchedEffect(key1 = selectedLocale) {
-        Log.i("Default_Language", selectedLocale.language.toString())
+ //       Log.i("Default_Language", selectedLocale.language.toString())
 //        Log.i("Default____ARRAYY", appLanguages.toString())
         val languagesList = mutableListOf<Locale>()
         for (language in appLanguages) {
