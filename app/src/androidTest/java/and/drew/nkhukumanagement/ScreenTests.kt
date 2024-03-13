@@ -155,9 +155,9 @@ class ScreenTests {
                 resetFlock = {},
                 onClose = {},
                 flocks = dummyFlockList,
-                contentType = ContentType.LIST_ONLY
+                contentType = ContentType.LIST_ONLY,
+                onOverflowMenuClicked = {}
             )
-
         }
         composeRule
             .onNodeWithContentDescription("FlockAddition")

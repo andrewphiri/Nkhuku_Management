@@ -2,8 +2,16 @@
 <resources>
     <string-array name="app_languages">
         <item>"en"</item>
+        <item>"ar"</item>
         <item>"zh"</item>
-        <item>"es"</item>
         <item>"fr"</item>
+        <item>"de"</item>
+        <item>"hi"</item>
+        <item>"ja"</item>
+        <item>"ny"</item>
+        <item>"pt"</item>
+        <item>"ru"</item>
+        <item>"es"</item>
+        <item>"sw"</item>
     </string-array>
 </resources>

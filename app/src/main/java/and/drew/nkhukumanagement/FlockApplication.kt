@@ -19,10 +19,10 @@ class FlockApplication : BaseFlockApplication(), Configuration.Provider {
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
-    override fun getWorkManagerConfiguration() =
-        Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
+//    override fun getWorkManagerConfiguration() =
+//        Configuration.Builder()
+//            .setWorkerFactory(workerFactory)
+//            .build()
 
     override fun onCreate() {
         super.onCreate()
@@ -39,5 +39,10 @@ class FlockApplication : BaseFlockApplication(), Configuration.Provider {
             notificationManager.createNotificationChannel(channel)
         }
     }
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 
 }

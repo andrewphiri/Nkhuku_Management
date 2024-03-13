@@ -109,7 +109,7 @@
     <string name="reopen">Réouvrir</string>
     <string name="delete">Supprimer</string>
     <string name="invalid_username_or_password_try_again">Nom d\'utilisateur ou mot de passe invalide. Réessayez</string>
-    <string name="password_invalid_message">"Le mot de passe doit contenir des lettres, des chiffres et des symboles et doit être "</string>
+    <string name="password_invalid_message">Le mot de passe doit contenir des lettres, des chiffres et des symboles et doit comporter au moins 8 caractères.</string>
     <string name="skip">Passer</string>
     <string name="action_failed_please_try_again">Action échouée. Veuillez réessayer.</string>
     <string name="account_deleted">Compte supprimé</string>

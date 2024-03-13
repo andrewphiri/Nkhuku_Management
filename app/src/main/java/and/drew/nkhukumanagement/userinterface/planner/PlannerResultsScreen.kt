@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -126,7 +127,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.fillMaxWidth()
                     .align(Alignment.CenterHorizontally),
                 thickness = 1.dp,
@@ -248,7 +249,7 @@ fun FeedersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.fillMaxWidth()
                     .align(Alignment.CenterHorizontally),
                 thickness = 1.dp,
@@ -370,7 +371,7 @@ fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.fillMaxWidth()
                     .align(Alignment.CenterHorizontally),
                 thickness = 1.dp,

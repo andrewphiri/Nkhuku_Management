@@ -110,13 +110,13 @@ class AuthUiClient(
             if (signInMethod == "google.com") {
                 Log.i("Email", email.toString())
                 val googleCredential = GoogleAuthProvider.getCredential(idToken, null)
-                auth.currentUser?.reauthenticate(googleCredential)?.addOnSuccessListener { task ->
+                auth.currentUser?.reauthenticate(googleCredential)?.addOnSuccessListener { _ ->
                     auth.currentUser?.delete()
                 }
             } else {
                 val credential = email?.let { EmailAuthProvider.getCredential(it, password) }
                 if (credential != null) {
-                    auth.currentUser?.reauthenticate(credential)?.addOnSuccessListener { task ->
+                    auth.currentUser?.reauthenticate(credential)?.addOnSuccessListener { _ ->
                         auth.currentUser?.delete()
                     }
                 }

@@ -109,7 +109,7 @@
     <string name="reopen">Reabrir</string>
     <string name="delete">Eliminar</string>
     <string name="invalid_username_or_password_try_again">Usuario o contraseña no válidos. Inténtelo de nuevo</string>
-    <string name="password_invalid_message">"La contraseña debe contener letras, números y símbolos y debe tener "</string>
+    <string name="password_invalid_message">La contraseña debe contener letras, números y símbolos y debe tener al menos 8 caracteres.</string>
     <string name="skip">Saltar</string>
     <string name="action_failed_please_try_again">La acción falló. Por favor, inténtelo de nuevo.</string>
     <string name="account_deleted">Cuenta Eliminada</string>
