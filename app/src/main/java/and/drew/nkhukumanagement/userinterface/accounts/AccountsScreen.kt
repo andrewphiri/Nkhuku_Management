@@ -125,7 +125,7 @@ fun AccountsAndDetailsScreen(
                     },
                     onClickSettings = onClickSettings,
                     currencyLocale = currency.currencyLocale,
-                    contentType = contentType
+                    contentType = contentType,
                 )
             }
 
@@ -223,13 +223,14 @@ fun MainAccountsScreen(
             )
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .wrapContentSize()
                 .padding(innerPadding)
         ) {
             ShowFilterOverflowMenu(
-                modifier = Modifier.align(Alignment.End),
+                modifier = Modifier
+                    .align(if (contentType == ContentType.LIST_AND_DETAIL)  Alignment.TopCenter.also { Alignment.End }  else Alignment.TopEnd),
                 isOverflowMenuExpanded = isFilterMenuShowing,
                 onDismiss = { isFilterMenuShowing = false },
                 onClickAll = {

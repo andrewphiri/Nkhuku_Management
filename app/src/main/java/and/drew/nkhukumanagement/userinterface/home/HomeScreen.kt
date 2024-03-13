@@ -173,7 +173,7 @@ fun HomeScreen(
             deleteFlock = { index ->
                 if (vaccinationList?.vaccinations != null) {
                     vaccinationList?.vaccinations?.forEach { vaccine ->
-                        Log.i("CANCEL_NOTIFICATION", vaccine.toString())
+                        //Log.i("CANCEL_NOTIFICATION", vaccine.toString())
                         vaccinationViewModel.cancelNotification(vaccine)
                     }
                 }
@@ -193,7 +193,7 @@ fun HomeScreen(
                 if (vaccinationList?.vaccinations != null) {
                     vaccinationList?.vaccinations?.forEach { vaccine ->
                         vaccinationViewModel.cancelNotification(vaccine)
-                        Log.i("VACCINE", vaccine.toString())
+                       // Log.i("VACCINE", vaccine.toString())
                     }
                 }
                 accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
@@ -359,7 +359,7 @@ fun HomeScreenListAndDetails(
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .weight(1f),
             ) {
@@ -376,7 +376,7 @@ fun HomeScreenListAndDetails(
                     deleteFlock = deleteFlock,
                     onClose = onClose,
                     contentType = contentType,
-                    onOverflowMenuClicked = onOverflowMenuClicked
+                    onOverflowMenuClicked = onOverflowMenuClicked,
                 )
             }
 
@@ -526,12 +526,11 @@ fun MainHomeScreen(
     deleteFlock: (Int) -> Unit,
     onClose: (Flock) -> Unit,
     contentType: ContentType,
-    onOverflowMenuClicked: (Int) -> Unit
+    onOverflowMenuClicked: (Int) -> Unit,
 ) {
     var flockList = flocks.filter { it.active }
     val listState = rememberLazyListState()
     var isFilterMenuShowing by remember { mutableStateOf(false) }
-
 
     Scaffold(
         modifier = modifier,
@@ -575,14 +574,14 @@ fun MainHomeScreen(
             }
         },
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .wrapContentSize()
                 .padding(innerPadding)
         ) {
             ShowFilterOverflowMenu(
                 modifier = Modifier
-                    .align(Alignment.End),
+                    .align(if (contentType == ContentType.LIST_AND_DETAIL)  Alignment.TopCenter.also { Alignment.End }  else Alignment.TopEnd),
                 isOverflowMenuExpanded = isFilterMenuShowing,
                 onDismiss = { isFilterMenuShowing = false },
                 onClickAll = {
