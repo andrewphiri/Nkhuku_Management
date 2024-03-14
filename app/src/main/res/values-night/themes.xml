@@ -2,6 +2,7 @@
 <resources>
 
     <style name="Theme.NkhukuManagement" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/statusBarForNight</item>
     </style>
 
     <style name="Theme.NkhukuManagement.SplashScreen" parent="Theme.SplashScreen">

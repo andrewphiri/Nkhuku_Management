@@ -10,4 +10,5 @@
     <color name="green">#023020</color>
     <color name="textColor">#FF000000</color>
     <color name="tipsListTextColor">#FF0F52BA</color>
+    <color name="statusBarForNight">#1c1b1f</color>
 </resources>
