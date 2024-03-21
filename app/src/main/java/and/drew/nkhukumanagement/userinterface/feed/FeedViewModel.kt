@@ -1,5 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.feed
 
+import and.drew.nkhukumanagement.FlockApplication
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithFeed
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
@@ -24,6 +26,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class FeedViewModel @Inject constructor(
+    val application: FlockApplication,
     val savedStateHandle: SavedStateHandle,
     val flockRepository: FlockRepository
 ) : ViewModel() {
@@ -118,7 +121,7 @@ class FeedViewModel @Inject constructor(
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
         return mutableStateListOf(
             FeedUiState(
-                flockUniqueID = flockUiState.getUniqueId(), week = "Week 1",
+                flockUniqueID = flockUiState.getUniqueId(), week = application.applicationContext.getString(R.string.week_1),
                 standardConsumption =
                 String.format(
                     "%.3f", 0.167 *
@@ -138,7 +141,7 @@ class FeedViewModel @Inject constructor(
                 )
             ),
             FeedUiState(
-                flockUniqueID = flockUiState.getUniqueId(), week = "Week 2",
+                flockUniqueID = flockUiState.getUniqueId(), week = application.applicationContext.getString(R.string.week_2),
                 standardConsumption = String.format(
                     "%.3f",
                     0.375 * flockUiState.getStock().toDouble()
@@ -157,7 +160,7 @@ class FeedViewModel @Inject constructor(
                 )
             ),
             FeedUiState(
-                flockUniqueID = flockUiState.getUniqueId(), week = "Week 3",
+                flockUniqueID = flockUiState.getUniqueId(), week = application.applicationContext.getString(R.string.week_3),
                 standardConsumption = String.format(
                     "%.3f",
                     0.60 * flockUiState.getStock().toDouble()
@@ -176,7 +179,7 @@ class FeedViewModel @Inject constructor(
                 )
             ),
             FeedUiState(
-                flockUniqueID = flockUiState.getUniqueId(), week = "Week 4",
+                flockUniqueID = flockUiState.getUniqueId(), week = application.applicationContext.getString(R.string.week_4),
                 standardConsumption = String.format(
                     "%.3f",
                     0.845 * flockUiState.getStock().toDouble()
@@ -195,7 +198,7 @@ class FeedViewModel @Inject constructor(
                 )
             ),
             FeedUiState(
-                flockUniqueID = flockUiState.getUniqueId(), week = "Week 5",
+                flockUniqueID = flockUiState.getUniqueId(), week = application.applicationContext.getString(R.string.week_5),
                 standardConsumption = String.format(
                     "%.3f",
                     1.015 * flockUiState.getStock().toDouble()
@@ -214,7 +217,7 @@ class FeedViewModel @Inject constructor(
                 )
             ),
             FeedUiState(
-                flockUniqueID = flockUiState.getUniqueId(), week = "Week 6",
+                flockUniqueID = flockUiState.getUniqueId(), week = application.applicationContext.getString(R.string.week_6),
                 standardConsumption = String.format(
                     "%.3f",
                     1.234 * flockUiState.getStock().toDouble()
@@ -233,7 +236,7 @@ class FeedViewModel @Inject constructor(
                 )
             ),
             FeedUiState(
-                flockUniqueID = flockUiState.getUniqueId(), week = "Week 7",
+                flockUniqueID = flockUiState.getUniqueId(), week = application.applicationContext.getString(R.string.week_7),
                 standardConsumption = String.format(
                     "%.3f",
                     1.393 * flockUiState.getStock().toDouble()
@@ -252,7 +255,7 @@ class FeedViewModel @Inject constructor(
                 )
             ),
             FeedUiState(
-                flockUniqueID = flockUiState.getUniqueId(), week = "Week 8",
+                flockUniqueID = flockUiState.getUniqueId(), week = application.applicationContext.getString(R.string.week_8),
                 standardConsumption = String.format(
                     "%.3f",
                     1.491 * flockUiState.getStock().toDouble()

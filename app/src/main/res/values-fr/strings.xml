@@ -188,6 +188,7 @@
     <plurals name="day_s">
         <item quantity="other">%d jours</item>
         <item quantity="one">%1$s jour</item>
+        <item quantity="many">%d jours</item>
     </plurals>
     <string name="choose_default_language">Choisir la langue par défaut</string>
     <string name="device_s_language">(langue du dispositif)</string>

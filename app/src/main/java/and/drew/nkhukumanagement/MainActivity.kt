@@ -10,6 +10,7 @@ import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.NavigationType
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +19,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalConfiguration
@@ -66,11 +68,10 @@ class MainActivity : AppCompatActivity() {
         userPreferencesRepository.userSkipAccount.asLiveData().observe(this) { skip ->
             userPrefsViewModel.setSkipAccount(skip)
         }
-
         installSplashScreen()
+        //hideNavigationBar(controller)
         setContent {
 
-            //  navBar(controller) { WindowCompat.setDecorFitsSystemWindows(window,true) }
             val windowSize = calculateWindowSizeClass(this).widthSizeClass
             val emailVerified by signInViewModel.emailVerified.collectAsState()
             val userSignedIn by signInViewModel.userLoggedIn.collectAsState()
@@ -122,16 +123,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun hideNavigationBar() {
-        val controller = WindowCompat.getInsetsController(window, window.decorView)
-        WindowCompat.setDecorFitsSystemWindows(window, true)
-        controller.hide(WindowInsetsCompat.Type.navigationBars())
-        controller.hide(WindowInsetsCompat.Type.statusBars())
-        controller.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-    }
+    fun hideNavigationBar(controller: WindowInsetsControllerCompat) {
+//        // Get the insets controller for the window
+//        val controller = WindowCompat.getInsetsController(window, window.decorView)
 
+        // Set the decor to fit system windows (this helps in properly handling the insets)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+
+        // Hide the navigation bar
+        controller.hide(WindowInsetsCompat.Type.navigationBars())
+
+        // Hide the status bar
+        controller.hide(WindowInsetsCompat.Type.statusBars())
+
+        // Set the behavior of system bars to show transient bars by swipe
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    }
 }
+
+
 
 @Composable
 fun Greeting(name: String) {

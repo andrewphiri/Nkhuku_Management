@@ -2,7 +2,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/white" />
     <item
-        android:drawable="@drawable/chicken_logo_foreground"
+        android:drawable="@drawable/logo_splashscreen_foreground"
         android:gravity="center" />
 
 </layer-list>

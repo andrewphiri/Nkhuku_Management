@@ -20,5 +20,10 @@
         screen. This is required. -->
         <item name="postSplashScreenTheme">@style/Theme.NkhukuManagement</item>
     </style>
-
+    <style name="AppTextAppearance.Body1" parent="TextAppearance.AppCompat.Body1">
+        <!-- Customize text appearance for dark mode -->
+        <item name="android:textSize">18sp</item>
+        <!-- Add any other attributes you want to customize for dark mode -->
+        <item name="android:lineSpacingExtra">8sp</item>
+    </style>
 </resources>

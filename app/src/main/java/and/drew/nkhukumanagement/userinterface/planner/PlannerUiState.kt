@@ -87,26 +87,28 @@ fun checkNumberExceptions(plannerUiState: PlannerUiState): Boolean {
 /**
  * Extension function to convert [PlannerUiState] to [Planner]
  */
-fun PlannerUiState.toPlanner(): Planner = Planner(
-    quantityToOrder = quantityToOrder.toInt(),
-    areFeedersAvailable = areFeedersAvailable,
-    areDrinkersAvailable = areDrinkersAvailable,
-    starterNeeded = calculateStarter(),
-    growerNeeded = calculateGrower(),
-    finisherNeeded = calculateFinisher(),
-    chicksTray = calculateChickTrays(),
-    bigDrinkersNeeded = calculateBigDrinkers(),
-    smallDrinkersNeeded = calculateSmallDrinkers(),
-    bigFeedersNeeded = calculateBigFeeders(),
-    smallFeedersNeeded = calculateSmallFeeders(),
-    automaticDrinkers = calculateAutomaticDrinkers(),
-    nippleDrinkers = calculateNippleDrinkers(),
-    totalBags = totalBags(),
-    totalFeed = totalFeed().toDouble(),
-    totalFinisherBags = calculateFinisherBags(),
-    totalGrowerBags = calculateGrowerBags(),
-    totalStarterBags = calculateStarterBags(),
-)
+fun PlannerUiState.toPlanner(): Planner =
+        Planner(
+            quantityToOrder = quantityToOrder.toInt(),
+            areFeedersAvailable = areFeedersAvailable,
+            areDrinkersAvailable = areDrinkersAvailable,
+            starterNeeded = calculateStarter(),
+            growerNeeded = calculateGrower(),
+            finisherNeeded = calculateFinisher(),
+            chicksTray = calculateChickTrays(),
+            bigDrinkersNeeded = calculateBigDrinkers(),
+            smallDrinkersNeeded = calculateSmallDrinkers(),
+            bigFeedersNeeded = calculateBigFeeders(),
+            smallFeedersNeeded = calculateSmallFeeders(),
+            automaticDrinkers = calculateAutomaticDrinkers(),
+            nippleDrinkers = calculateNippleDrinkers(),
+            totalBags = totalBags(),
+            totalFeed = totalFeed().toDouble(),
+            totalFinisherBags = calculateFinisherBags(),
+            totalGrowerBags = calculateGrowerBags(),
+            totalStarterBags = calculateStarterBags(),
+        )
+
 
 /**
  * Check if quantityToOrder is not blank

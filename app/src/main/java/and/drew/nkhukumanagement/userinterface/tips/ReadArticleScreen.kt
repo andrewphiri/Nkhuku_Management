@@ -9,9 +9,13 @@ import android.graphics.Typeface
 import android.os.Build
 import android.text.Editable
 import android.text.Html
+import android.text.Layout
 import android.text.Spannable
 import android.text.Spanned
+import android.text.style.AlignmentSpan
 import android.text.style.StyleSpan
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.TextView
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -46,6 +50,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.core.text.method.LinkMovementMethodCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -178,45 +183,65 @@ fun ReadArticleCard(
             modifier = modifier.verticalScroll(state = scrollState, enabled = true),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AsyncImage(
-                modifier = Modifier
-                    .fillMaxWidth().defaultMinSize(minHeight = 300.dp),
-                model = article.imageUrl,
-                contentDescription = article.title
-            )
-            val html = "<!DOCTYPE html>" +
-                    "<html lang=\"en\">" +
-                    "<head>" +
-                    "    <meta charset=\"UTF-8\">" +
-                    "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
-                    "</head>" +
-                    "<body>" +
-                    "    <h1>HTML Text Test</h1>" +
-                    "    <p>This is a paragraph of text.</p> <br>" +
-                    "    <p>This is another paragraph of text.</p>" +
-                    "    <br><br>" +
-                    "    <h1>This is a bold title.</h1><br>" +
-                    "    <p>This is another paragraph of text with <em>italic</em> words.</p>" +
-                    "    <img src=\"https://th.bing.com/th/id/OIG4.z9DTZ1VWNtS99mjQ_1qB?pid=ImgGn\" alt=\"Example Image\">" +
-                    "    <p>This is a paragraph of text.</p> <br>" +
-                    "    <p>This is another paragraph of text.</p>" +
-                    "    <img src=\"https://th.bing.com/th/id/OIG4.._49STZ4hT364wtP9B1c?pid=ImgGn\" alt=\"Example Image\">" +
-                    "</body>" +
-                    "</html>"
+//            AsyncImage(
+//                modifier = Modifier
+//                    .fillMaxWidth().defaultMinSize(minHeight = 300.dp),
+//                model = article.imageUrl,
+//                contentDescription = article.title
+//            )
+//            val html = "<!DOCTYPE html>" +
+//                    "<html lang=\"en\">" +
+//                    "<head>" +
+//                    "    <meta charset=\"UTF-8\">" +
+//                    "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+//                    "</head>" +
+//                    "<body>" +
+//                    "    <h1>HTML Text Test</h1>" +
+//                    "    <p>This is a paragraph of text.</p> <br>" +
+//                    "    <p>This is another paragraph of text.</p>" +
+//                    "    <br><br>" +
+//                    "    <h1>This is a bold title.</h1><br>" +
+//                    "    <p>This is another paragraph of text with <em>italic</em> words.</p>" +
+//                    "    <img src=\"https://th.bing.com/th/id/OIG4.z9DTZ1VWNtS99mjQ_1qB?pid=ImgGn\" alt=\"Example Image\">" +
+//                    "    <p>This is a paragraph of text.</p> <br>" +
+//                    "    <p>This is another paragraph of text.</p>" +
+//                    "    <img src=\"https://th.bing.com/th/id/OIG4.._49STZ4hT364wtP9B1c?pid=ImgGn\" alt=\"Example Image\">" +
+//                    "</body>" +
+//                    "</html>"
             //val myArticle = ArticleDescription(html)
             val coroutineScope = rememberCoroutineScope()
             val context = LocalContext.current
 
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp)
             ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = article.title,
-                    style = MaterialTheme.typography.headlineMedium
-                )
+//                Text(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    text = article.title,
+//                    style = MaterialTheme.typography.headlineMedium
+//                )
+                val tagHandler = object :  Html.TagHandler {
+                    private var inTableRow = false
 
+                    override fun handleTag(opening: Boolean, tag: String?, output: Editable?, xmlReader: XMLReader?) {
+                        if (tag.isNullOrEmpty() || output == null) return
+
+                        if (tag.equals("tr", ignoreCase = true)) {
+                            if (opening) {
+                                inTableRow = true
+                            } else {
+                                inTableRow = false
+                                output.append("\n") // Add new line after the table row
+                            }
+                        } else if (tag.equals("td", ignoreCase = true) && inTableRow) {
+                            if (!opening) {
+                                output.append(" ") // Add a space after each cell
+                            }
+                        }
+                    }
+                }
                 AndroidView(
                     factory = { context ->
                         TextView(context).apply {
@@ -233,8 +258,29 @@ fun ReadArticleCard(
                         val htmlText = HtmlCompat.fromHtml(article.body, HtmlCompat.FROM_HTML_MODE_COMPACT, imageGetter, null)
                         it.text = htmlText
                         it.setTextColor(context.resources.getColor(R.color.textColor, null))
+                        it.setTextAppearance(R.style.AppTextAppearance_Body1)
                     }
                 )
+
+
+//                AndroidView(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    factory = { ctx ->
+//                        WebView(ctx).apply {
+//
+//                            settings.javaScriptEnabled = true
+//                            webViewClient = WebViewClient()
+//                            settings.useWideViewPort = true
+//                            settings.loadWithOverviewMode = true
+//                            settings.loadsImagesAutomatically = true
+//                            settings.allowContentAccess = true
+//
+//                        }
+//                    },
+//                    update = {webView ->
+//                        webView.loadDataWithBaseURL(null, article.body, "text/html", "UTF-8", null)
+//                    }
+//                )
 
 //                Text(
 //                    modifier = Modifier.fillMaxWidth(),

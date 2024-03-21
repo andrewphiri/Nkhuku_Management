@@ -52,9 +52,6 @@ fun PlannerResultScreen(
     plannerViewModel: PlannerViewModel,
     contentType: ContentType
 ) {
-    BackHandler {
-        plannerViewModel.resetPlanner()
-    }
     MainPlannerResultScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,

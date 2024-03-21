@@ -13,4 +13,10 @@
         <item name="android:statusBarColor">@color/white</item>
         <item name="postSplashScreenTheme">@style/Theme.NkhukuManagement</item>
     </style>
+    <style name="AppTextAppearance.Body1" parent="TextAppearance.AppCompat.Body1">
+        <!-- Customize text appearance for light mode -->
+        <item name="android:textSize">18sp</item>
+        <item name="android:lineSpacingExtra">8sp</item>
+        <!-- Add any other attributes you want to customize for light mode -->
+    </style>
 </resources>

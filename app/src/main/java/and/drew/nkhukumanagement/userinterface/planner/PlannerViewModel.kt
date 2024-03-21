@@ -18,8 +18,4 @@ class PlannerViewModel @Inject constructor() : ViewModel() {
     fun updateUiState(plannerState: PlannerUiState) {
         plannerUiState = plannerState
     }
-
-    fun resetPlanner() {
-        plannerUiState = PlannerUiState()
-    }
 }

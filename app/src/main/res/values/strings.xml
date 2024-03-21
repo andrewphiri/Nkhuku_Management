@@ -201,4 +201,12 @@
     <string name="sign_out">Sign Out</string>
     <string name="kg">%1$s Kg</string>
     <string name="kg_weight">%1$s Kg</string>
+    <string name="week_1">Week 1</string>
+    <string name="week_2">Week 2</string>
+    <string name="week_3">Week 3</string>
+    <string name="week_4">Week 4</string>
+    <string name="week_5">Week 5</string>
+    <string name="week_6">Week 6</string>
+    <string name="week_7">Week 7</string>
+    <string name="week_8">Week 8</string>
 </resources>
