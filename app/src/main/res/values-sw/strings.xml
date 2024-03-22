@@ -201,4 +201,15 @@
     <string name="sign_out">Toka</string>
     <string name="kg">%1$s Kg</string>
     <string name="kg_weight">%1$s Kg</string>
+    <string name="week_1">Wiki ya 1</string>
+    <string name="week_2">Wiki ya 2</string>
+    <string name="week_3">Wiki ya 3</string>
+    <string name="week_4">Wiki ya 4</string>
+    <string name="week_5">Wiki ya 5</string>
+    <string name="week_6">Wiki ya 6</string>
+    <string name="week_7">Wiki ya 7</string>
+    <string name="week_8">Wiki ya 8</string>
+    <string name="initial">Awali</string>
+    <string name="total_expenses">Gharama Jumla</string>
+    <string name="healthy_birds">Ndege Zenye Afya</string>
 </resources>

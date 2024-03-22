@@ -209,4 +209,7 @@
     <string name="week_6">Week 6</string>
     <string name="week_7">Week 7</string>
     <string name="week_8">Week 8</string>
+    <string name="initial">Initial</string>
+    <string name="total_expenses">Total Expenses</string>
+    <string name="healthy_birds">Healthy Birds</string>
 </resources>

@@ -139,8 +139,8 @@
     <string name="net_profit_margin">Peresenti ya ndalama zotsala</string>
     <string name="total_ordered">Chiwerengero cha nkhuku zonse</string>
     <string name="how_many_chicks_would_you_like_to_order">Kodi mungafune kuyitanitsa nkhuku zingati?</string>
-    <string name="tick_all">chongani zonse zomwe zikugwira ntchito</string>
-    <string name="tick_what_you_have">chongani zonse zomwe muli nazo kale</string>
+    <string name="tick_all">Chongani zonse zomwe zikugwira ntchito</string>
+    <string name="tick_what_you_have">Chongani zonse zomwe muli nazo kale</string>
     <string name="feeders">Modyeramo</string>
     <string name="drinkers">Zomweramo</string>
     <string name="calculate">Werengera</string>
@@ -198,4 +198,15 @@
     <string name="sign_out">Tulukani</string>
     <string name="kg">%1$s Kg</string>
     <string name="kg_weight">%1$s Kg</string>
+    <string name="week_1">Mlungu wa 1</string>
+    <string name="week_2">Mlungu wa 2</string>
+    <string name="week_3">Mlungu wa 3</string>
+    <string name="week_4">Mlungu wa 4</string>
+    <string name="week_5">Mlungu wa 5</string>
+    <string name="week_6">Mlungu wa 6</string>
+    <string name="week_7">Mlungu wa 7</string>
+    <string name="week_8">Mlungu wa 8</string>
+    <string name="initial">Koyamba</string>
+    <string name="total_expenses">Ndalama zonse zawonongedwa</string>
+    <string name="healthy_birds">Nkhuku za thanzi</string>
 </resources>

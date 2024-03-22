@@ -1,5 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.overview
 
+import and.drew.nkhukumanagement.FlockApplication
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Account
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Flock
@@ -17,7 +19,10 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class OverviewViewModel @Inject constructor(val flockRepository: FlockRepository) : ViewModel() {
+class OverviewViewModel @Inject constructor(
+    val application: FlockApplication,
+    val flockRepository: FlockRepository
+) : ViewModel() {
     companion object {
         private const val MILLIS = 5_000L
     }
@@ -35,13 +40,15 @@ class OverviewViewModel @Inject constructor(val flockRepository: FlockRepository
         return listOf(
             Account(
                 color = if (accountsSummary.isNotEmpty()) GreenColor else Color.Gray,
-                description = "Total Income",
+                description = application.applicationContext.getString(
+                    R.string.total_income),
                 amount = accountsSummary.sumOf { it.totalIncome },
                 net = accountsSummary.sumOf { it.variance }
             ),
             Account(
                 color = if (accountsSummary.isNotEmpty()) Color.Red else Color.DarkGray,
-                description = "Total Expenses",
+                description = application.applicationContext.getString(
+                    R.string.total_expenses),
                 amount = accountsSummary.sumOf { it.totalExpenses },
                 net = accountsSummary.sumOf { it.variance }
             )
@@ -52,19 +59,21 @@ class OverviewViewModel @Inject constructor(val flockRepository: FlockRepository
         return listOf(
             Account(
                 color = if (flock.isNotEmpty()) Color.Magenta else Color.Gray,
-                description = "Healthy Birds",
+                description = application.applicationContext.getString(R.string.healthy_birds),
                 amount = (flock.sumOf { it.numberOfChicksPlaced + it.donorFlock } - flock.sumOf { it.mortality + it.culls })
                     .toDouble(),
                 total = flock.sumOf { it.numberOfChicksPlaced + it.donorFlock }.toDouble(),
             ),
             Account(
                 color = if (flock.isNotEmpty()) Color.Cyan else Color.DarkGray,
-                description = "Mortality",
+                description = application.applicationContext.getString(
+                    R.string.mortality),
                 amount = flock.sumOf { it.mortality }.toDouble()
             ),
             Account(
                 color = if (flock.isNotEmpty()) Color.Blue else Color.DarkGray,
-                description = "Culls",
+                description = application.applicationContext.getString(
+                    R.string.culls),
                 amount = flock.sumOf { it.culls }.toDouble(),
                 net = (flock.sumOf { it.numberOfChicksPlaced + it.donorFlock } - flock.sumOf { it.mortality + it.culls }).toDouble()
             )

@@ -199,4 +199,15 @@
     <string name="sign_out">साइन आउट</string>
     <string name="kg">%1$s किलोग्राम</string>
     <string name="kg_weight">%1$s किलोग्राम</string>
+    <string name="week_1">सप्ताह 1</string>
+    <string name="week_2">सप्ताह 2</string>
+    <string name="week_3">सप्ताह 3</string>
+    <string name="week_4">सप्ताह 4</string>
+    <string name="week_5">सप्ताह 5</string>
+    <string name="week_6">सप्ताह 6</string>
+    <string name="week_7">सप्ताह 7</string>
+    <string name="week_8">सप्ताह 8</string>
+    <string name="initial">आरंभिक</string>
+    <string name="total_expenses">कुल व्यय</string>
+    <string name="healthy_birds">स्वस्थ पक्षियों</string>
 </resources>

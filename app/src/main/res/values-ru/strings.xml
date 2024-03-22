@@ -203,4 +203,15 @@
     <string name="sign_out">Выйти</string>
     <string name="kg">%1$s Кг</string>
     <string name="kg_weight">%1$s Кг</string>
+    <string name="week_1">Неделя 1</string>
+    <string name="week_2">Неделя 2</string>
+    <string name="week_3">Неделя 3</string>
+    <string name="week_4">Неделя 4</string>
+    <string name="week_5">Неделя 5</string>
+    <string name="week_6">Неделя 6</string>
+    <string name="week_7">Неделя 7</string>
+    <string name="week_8">Неделя 8</string>
+    <string name="initial">Начальный</string>
+    <string name="total_expenses">Общие расходы</string>
+    <string name="healthy_birds">Здоровые птицы</string>
 </resources>

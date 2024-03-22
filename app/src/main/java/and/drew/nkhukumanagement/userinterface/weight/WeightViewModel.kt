@@ -1,5 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.weight
 
+import and.drew.nkhukumanagement.FlockApplication
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithWeight
 import and.drew.nkhukumanagement.data.Weight
@@ -25,6 +27,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class WeightViewModel @Inject constructor(
+    val application: FlockApplication,
     val savedStateHandle: SavedStateHandle,
     val flockRepository: FlockRepository
 ) : ViewModel() {
@@ -113,14 +116,15 @@ class WeightViewModel @Inject constructor(
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
         return mutableStateListOf(
             WeightUiState(
-                week = "Initial",
+                week = application.applicationContext.getString(R.string.initial),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
                 standard = "0.040",
                 dateMeasured = flockUiState.getDate()
             ),
             WeightUiState(
-                week = "Week 1",
+                week = application.applicationContext.getString(
+                    R.string.week_1),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
                 standard = "0.180",
@@ -131,7 +135,8 @@ class WeightViewModel @Inject constructor(
                 )
             ),
             WeightUiState(
-                week = "Week 2",
+                week = application.applicationContext.getString(
+                    R.string.week_2),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
                 standard = "0.440",
@@ -142,7 +147,8 @@ class WeightViewModel @Inject constructor(
                 )
             ),
             WeightUiState(
-                week = "Week 3",
+                week = application.applicationContext.getString(
+                    R.string.week_3),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
                 standard = "0.850",
@@ -153,7 +159,8 @@ class WeightViewModel @Inject constructor(
                 )
             ),
             WeightUiState(
-                week = "Week 4",
+                week = application.applicationContext.getString(
+                    R.string.week_4),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
                 standard = "1.400",
@@ -164,7 +171,8 @@ class WeightViewModel @Inject constructor(
                 )
             ),
             WeightUiState(
-                week = "Week 5",
+                week = application.applicationContext.getString(
+                    R.string.week_5),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
                 standard = "2.000",
@@ -175,7 +183,8 @@ class WeightViewModel @Inject constructor(
                 )
             ),
             WeightUiState(
-                week = "Week 6",
+                week = application.applicationContext.getString(
+                    R.string.week_6),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
                 standard = "2.600",
@@ -186,7 +195,8 @@ class WeightViewModel @Inject constructor(
                 )
             ),
             WeightUiState(
-                week = "Week 7",
+                week = application.applicationContext.getString(
+                    R.string.week_7),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
                 standard = "3.200",
@@ -197,7 +207,8 @@ class WeightViewModel @Inject constructor(
                 )
             ),
             WeightUiState(
-                week = "Week 8",
+                week = application.applicationContext.getString(
+                    R.string.week_8),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
                 standard = "3.800",

@@ -203,4 +203,15 @@
     <string name="sign_out">تسجيل الخروج</string>
     <string name="kg">%1$s كغ</string>
     <string name="kg_weight">%1$s كغ</string>
+    <string name="week_1">الأسبوع 1</string>
+    <string name="week_2">الأسبوع 2</string>
+    <string name="week_3">الأسبوع 3</string>
+    <string name="week_4">الأسبوع 4</string>
+    <string name="week_5">الأسبوع 5</string>
+    <string name="week_6">الأسبوع 6</string>
+    <string name="week_7">الأسبوع 7</string>
+    <string name="week_8">الأسبوع 8</string>
+    <string name="initial">الابتدائي</string>
+    <string name="total_expenses">المصروفات الإجمالية</string>
+    <string name="healthy_birds">الطيور السليمة</string>
 </resources>

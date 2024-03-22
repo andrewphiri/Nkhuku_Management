@@ -201,4 +201,15 @@
     <string name="sign_out">Abmelden</string>
     <string name="kg">%1$s Kg</string>
     <string name="kg_weight">%1$s Kg</string>
+    <string name="week_1">Woche 1</string>
+    <string name="week_2">Woche 2</string>
+    <string name="week_3">Woche 3</string>
+    <string name="week_4">Woche 4</string>
+    <string name="week_5">Woche 5</string>
+    <string name="week_6">Woche 6</string>
+    <string name="week_7">Woche 7</string>
+    <string name="week_8">Woche 8</string>
+    <string name="initial">Anfang</string>
+    <string name="total_expenses">Gesamtausgaben</string>
+    <string name="healthy_birds">Gesunde Vögel</string>
 </resources>

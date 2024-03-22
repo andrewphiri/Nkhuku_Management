@@ -199,4 +199,15 @@
     <string name="sign_out">注销</string>
     <string name="kg">%1$s 公斤</string>
     <string name="kg_weight">%1$s 公斤</string>
+    <string name="week_1">第1周</string>
+    <string name="week_2">第2周</string>
+    <string name="week_3">第3周</string>
+    <string name="week_4">第4周</string>
+    <string name="week_5">第5周</string>
+    <string name="week_6">第6周</string>
+    <string name="week_7">第7周</string>
+    <string name="week_8">第8周</string>
+    <string name="initial">初始</string>
+    <string name="total_expenses">总支出</string>
+    <string name="healthy_birds">健康的鸟</string>
 </resources>

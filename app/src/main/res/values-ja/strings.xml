@@ -198,4 +198,15 @@
     <string name="sign_out">サインアウト</string>
     <string name="kg">%1$s Kg</string>
     <string name="kg_weight">%1$s Kg</string>
+    <string name="week_1">週1</string>
+    <string name="week_2">週2</string>
+    <string name="week_3">週3</string>
+    <string name="week_4">週4</string>
+    <string name="week_5">週5</string>
+    <string name="week_6">週6</string>
+    <string name="week_7">週7</string>
+    <string name="week_8">週8</string>
+    <string name="initial">初期</string>
+    <string name="total_expenses">総費用</string>
+    <string name="healthy_birds">健康な鳥</string>
 </resources>
