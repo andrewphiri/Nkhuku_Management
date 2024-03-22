@@ -212,4 +212,7 @@
     <string name="initial">Initial</string>
     <string name="total_expenses">Total Expenses</string>
     <string name="healthy_birds">Healthy Birds</string>
+    <string name="vaccination_name">Vaccination Name</string>
+    <string name="add_vaccination">Add Vaccination</string>
+    <string name="vaccination_date">Vaccination Date</string>
 </resources>

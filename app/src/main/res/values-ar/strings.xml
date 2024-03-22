@@ -214,4 +214,7 @@
     <string name="initial">الابتدائي</string>
     <string name="total_expenses">المصروفات الإجمالية</string>
     <string name="healthy_birds">الطيور السليمة</string>
+    <string name="vaccination_name">اسم التطعيم</string>
+    <string name="add_vaccination">إضافة تطعيم</string>
+    <string name="vaccination_date">تاريخ التطعيم</string>
 </resources>

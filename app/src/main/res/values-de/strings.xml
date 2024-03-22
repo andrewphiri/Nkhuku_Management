@@ -212,4 +212,7 @@
     <string name="initial">Anfang</string>
     <string name="total_expenses">Gesamtausgaben</string>
     <string name="healthy_birds">Gesunde Vögel</string>
+    <string name="vaccination_name">Impfstoffname</string>
+    <string name="add_vaccination">Impfung hinzufügen</string>
+    <string name="vaccination_date">Impfdatum</string>
 </resources>

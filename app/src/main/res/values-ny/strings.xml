@@ -209,4 +209,8 @@
     <string name="initial">Koyamba</string>
     <string name="total_expenses">Ndalama zonse zawonongedwa</string>
     <string name="healthy_birds">Nkhuku za thanzi</string>
+    <string name="vaccination_name">Dzina la Katemera</string>
+    <string name="add_vaccination">Ikani Katemera</string>
+    <string name="vaccination_date">Tsiku la Katemera</string>
+
 </resources>

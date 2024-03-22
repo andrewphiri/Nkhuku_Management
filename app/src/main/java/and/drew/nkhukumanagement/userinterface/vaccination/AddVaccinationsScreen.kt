@@ -656,7 +656,7 @@ fun StatefulPickDateDialog(
     var showDialog by remember { mutableStateOf(false) }
 
     PickerDateDialog(
-        label = "Vaccination Date",
+        label = stringResource(R.string.vaccination_date),
         showDialog = showDialog,
         onDismissed = { showDialog = false },
         updateShowDialogOnClick = { showDialog = true },
@@ -714,7 +714,7 @@ fun StatefulDropDownMenu(
             },
             isEditable = isEditable,
             options = options,
-            label = "Vaccination Name"
+            label = stringResource(R.string.vaccination_name)
         )
 
         IconButton(
@@ -741,7 +741,7 @@ fun StatefulDropDownMenu(
             isVaccinationDialogShowing = false
         },
         isEnabled = newVaccinationEntry.isNotBlank(),
-        label = "Add Vaccination"
+        label = stringResource(R.string.add_vaccination)
     )
 
 }

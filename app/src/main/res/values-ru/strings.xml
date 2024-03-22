@@ -214,4 +214,7 @@
     <string name="initial">Начальный</string>
     <string name="total_expenses">Общие расходы</string>
     <string name="healthy_birds">Здоровые птицы</string>
+    <string name="vaccination_name">Название вакцины</string>
+    <string name="add_vaccination">Добавить вакцинацию</string>
+    <string name="vaccination_date">Дата вакцинации</string>
 </resources>

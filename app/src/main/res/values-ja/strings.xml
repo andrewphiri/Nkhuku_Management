@@ -209,4 +209,7 @@
     <string name="initial">初期</string>
     <string name="total_expenses">総費用</string>
     <string name="healthy_birds">健康な鳥</string>
+    <string name="vaccination_name">ワクチン名</string>
+    <string name="add_vaccination">ワクチンを追加</string>
+    <string name="vaccination_date">ワクチン接種日</string>
 </resources>

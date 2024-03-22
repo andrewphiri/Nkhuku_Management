@@ -211,4 +211,7 @@
     <string name="initial">Initial</string>
     <string name="total_expenses">Dépenses Totales</string>
     <string name="healthy_birds">Oiseaux en Bonne Santé</string>
+    <string name="vaccination_name">Nom du Vaccin</string>
+    <string name="add_vaccination">Ajouter un Vaccin</string>
+    <string name="vaccination_date">Date du Vaccin</string>
 </resources>

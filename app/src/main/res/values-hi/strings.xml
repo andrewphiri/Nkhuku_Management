@@ -210,4 +210,7 @@
     <string name="initial">आरंभिक</string>
     <string name="total_expenses">कुल व्यय</string>
     <string name="healthy_birds">स्वस्थ पक्षियों</string>
+    <string name="vaccination_name">टीके का नाम</string>
+    <string name="add_vaccination">टीका जोड़ें</string>
+    <string name="vaccination_date">टीकाकरण की तारीख</string>
 </resources>

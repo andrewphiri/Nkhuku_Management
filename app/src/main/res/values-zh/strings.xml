@@ -210,4 +210,7 @@
     <string name="initial">初始</string>
     <string name="total_expenses">总支出</string>
     <string name="healthy_birds">健康的鸟</string>
+    <string name="vaccination_name">疫苗名称</string>
+    <string name="add_vaccination">添加疫苗</string>
+    <string name="vaccination_date">接种日期</string>
 </resources>

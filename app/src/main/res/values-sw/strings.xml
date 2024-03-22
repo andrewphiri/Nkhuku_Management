@@ -212,4 +212,7 @@
     <string name="initial">Awali</string>
     <string name="total_expenses">Gharama Jumla</string>
     <string name="healthy_birds">Ndege Zenye Afya</string>
+    <string name="vaccination_name">Jina la Chanjo</string>
+    <string name="add_vaccination">Ongeza Chanjo</string>
+    <string name="vaccination_date">Tarehe ya Chanjo</string>
 </resources>
