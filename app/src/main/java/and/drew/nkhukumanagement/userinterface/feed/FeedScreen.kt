@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,6 +51,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,6 +63,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -72,6 +75,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -252,10 +257,12 @@ fun FeedConsumptionList(
     onTypeDialogShowing: () -> Unit
 ) {
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+        Row(modifier = Modifier.height(IntrinsicSize.Max),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically) {
             Text(
                 modifier = Modifier.weight(0.5f),
                 text = ""
@@ -267,8 +274,8 @@ fun FeedConsumptionList(
                 style = MaterialTheme.typography.titleSmall
             )
 
-            HorizontalDivider(
-                modifier = Modifier.weight(0.02f).fillMaxHeight(),
+            VerticalDivider(
+                modifier = Modifier.weight(0.01f).fillMaxHeight(),
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
@@ -280,35 +287,50 @@ fun FeedConsumptionList(
             )
         }
 
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+        Row(modifier = Modifier.height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically) {
             Text(
                 modifier = Modifier.weight(0.5f),
                 text = ""
             )
             Text(
-                modifier = Modifier.weight(0.70f, fill = true),
+                modifier = Modifier.weight(0.7f, fill = true),
                 text = stringResource(R.string.actual_kg),
                 style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                modifier = Modifier.weight(0.71f, fill = true),
-                text = stringResource(R.string.standard_kg),
-                style = MaterialTheme.typography.bodySmall,
+                fontSize = TextUnit(10f, TextUnitType.Sp),
                 textAlign = TextAlign.Center
             )
 
 
+
             Text(
-                modifier = Modifier.weight(0.755f, fill = true),
-                text = stringResource(R.string.actual_kg),
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                modifier = Modifier.weight(0.755f, fill = true),
+                modifier = Modifier.weight(0.7f, fill = true),
                 text = stringResource(R.string.standard_kg),
                 style = MaterialTheme.typography.bodySmall,
+                fontSize = TextUnit(10f, TextUnitType.Sp),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(
+                modifier = Modifier.weight(0.01f)
+            )
+
+            Text(
+                modifier = Modifier.weight(0.75f, fill = true),
+                text = stringResource(R.string.actual_kg),
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = TextUnit(10f, TextUnitType.Sp),
+                textAlign = TextAlign.Center
+            )
+
+
+
+            Text(
+                modifier = Modifier.weight(0.75f, fill = true),
+                text = stringResource(R.string.standard_kg),
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = TextUnit(10f, TextUnitType.Sp),
                 textAlign = TextAlign.Center
             )
         }
@@ -385,7 +407,7 @@ fun FeedCardItem(
     ) {
 
         Text(
-            modifier = Modifier.weight(0.5f),
+            modifier = Modifier.weight(0.5f).padding(end = 4.dp),
             text = feedUiState.week,
             style = MaterialTheme.typography.bodyMedium
         )
@@ -408,7 +430,7 @@ fun FeedCardItem(
             },
         )
 
-        HorizontalDivider(
+        VerticalDivider(
             modifier = Modifier.weight(0.01f).fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
@@ -431,8 +453,8 @@ fun FeedCardItem(
             }
         )
 
-        HorizontalDivider(
-            modifier = Modifier.weight(0.02f).fillMaxHeight(),
+        VerticalDivider(
+            modifier = Modifier.weight(0.01f).fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
 
@@ -453,8 +475,7 @@ fun FeedCardItem(
                 )
             }
         )
-
-        HorizontalDivider(
+        VerticalDivider(
             modifier = Modifier.weight(0.01f).fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )

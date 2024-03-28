@@ -68,6 +68,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -407,7 +408,7 @@ fun BaseAccountRow(
 ) {
     Row(
         modifier = modifier.height(IntrinsicSize.Max),
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -417,10 +418,16 @@ fun BaseAccountRow(
             fontWeight = fontWeightForLabel
         )
 
+        VerticalDivider(
+            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+        )
+
         Text(
             modifier = Modifier.weight(weightForTitleA),
             text = titleA,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.tertiary
         )
 
 
@@ -431,10 +438,16 @@ fun BaseAccountRow(
             fontWeight = fontWeightForLabel
         )
 
+        VerticalDivider(
+            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+        )
+
         Text(
             modifier = Modifier.weight(weightForTitleB),
             text = titleB,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.tertiary
         )
     }
 }
@@ -461,7 +474,7 @@ fun BaseSingleRowDetailsItem(
             textAlign = TextAlign.Start
         )
 
-        HorizontalDivider(
+        VerticalDivider(
             modifier = Modifier.weight(0.01f).fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
@@ -484,20 +497,29 @@ fun BaseSingleRowItem(
     styleForLabel: TextStyle = MaterialTheme.typography.bodySmall,
     styleForTitle: TextStyle = MaterialTheme.typography.bodySmall,
     colorForLabel: Color = LocalContentColor.current,
-    colorForTitle: Color = LocalContentColor.current,
+    colorForTitle: Color = MaterialTheme.colorScheme.tertiary,
     textAlignA: TextAlign = TextAlign.Start,
     textAlignB: TextAlign = TextAlign.Start,
     weightA: Float = 0.4f,
     weightB: Float = 1f
 ) {
-    Row(modifier = modifier) {
+    Row(modifier = modifier.height(IntrinsicSize.Max),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             modifier = Modifier.weight(weight = weightA),
             text = label,
             style = styleForLabel,
+            fontWeight = FontWeight.Bold,
             textAlign = textAlignA,
             color = colorForLabel
         )
+
+        VerticalDivider(
+            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+        )
+
         Text(
             modifier = Modifier.weight(weight = weightB, fill = true),
             text = value,

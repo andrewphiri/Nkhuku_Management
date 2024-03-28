@@ -154,7 +154,7 @@
     <string name="trays">Thireyi</string>
     <string name="_10_21">10 – 21</string>
     <string name="chick_feeders">Zodyetsa anapiye</string>
-    <string name="_21_market">21 - market</string>
+    <string name="_21_market">21 - kugulitsa</string>
     <string name="adult_cone_tube_feeder">Adult Cone/Tube feeder</string>
     <string name="trough">Trough</string>
     <string name="_5_7_cm_space_per_bird">5–7 masentimita danga pa mbalame</string>
@@ -168,7 +168,7 @@
     <string name="to_receive_tips">" kuti muzilandira malangizo."</string>
     <string name="choose_default_currency">Sankhani ndalama zogwiritsila nchito</string>
     <string name="restore">Bwezeretsani</string>
-    <string name="restore_backup">Bwezerani zimene mwaunga</string>
+    <string name="restore_backup">Bwezerani zimene mwasunga</string>
     <string name="data_will_be_overwritten_are_you_sure_you_want_to_proceed">Zomwe muli nazo zidzachotsedwa zonse. Mukutsimikiza kuti mukufuna kupitiriza?</string>
     <string name="account">AKAUNTI</string>
     <string name="currency">NDALAMA</string>
@@ -191,7 +191,7 @@
     <string name="choose_default_language">Sankhani chnenero chosasinthika</string>
     <string name="device_s_language">(chinenero cha chipangizo)</string>
     <string name="no_account_added">Akaunti yayikidwa.</string>
-    <string name="add_email_account">Lowetsa Email Adiresi</string>
+    <string name="add_email_account">Lowetsa Imelo Adiresi</string>
     <string name="current_email">Imelo yamakono</string>
     <string name="verified">Yotsimikizika</string>
     <string name="unverified">Yosatsimikiziridwa</string>

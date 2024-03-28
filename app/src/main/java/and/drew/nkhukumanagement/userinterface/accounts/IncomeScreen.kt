@@ -44,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -270,9 +271,9 @@ fun IncomeCardItem(
     ) {
 
         Row(modifier = Modifier.height(IntrinsicSize.Max)) {
-            Divider(
+            VerticalDivider(
                 modifier = Modifier.weight(0.02f).fillMaxHeight(),
-                thickness = 2.dp,
+                thickness = 4.dp,
                 color = GreenColor
             )
             Column(
@@ -325,9 +326,7 @@ fun IncomeCardItem(
                     titleB = incomeUiState.quantity
                 )
 
-
                 if (incomeUiState.notes.isNotBlank()) {
-
                     BaseSingleRowItem(
                         modifier = Modifier.fillMaxWidth(),
                         label = stringResource(R.string.notes),

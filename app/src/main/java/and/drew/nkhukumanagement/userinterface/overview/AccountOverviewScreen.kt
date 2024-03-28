@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -243,7 +244,7 @@ fun OverviewAccountsCard(
                 )
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
-                    label = totalAccountsList[0].description,
+                    label = stringResource(R.string.total_income),
                     value = currencyFormatter(totalAccountsList[0].amount, currencyLocale),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
@@ -263,7 +264,7 @@ fun OverviewAccountsCard(
                 )
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
-                    label = totalAccountsList[1].description,
+                    label = stringResource(R.string.total_expenses),
                     value = currencyFormatter(totalAccountsList[1].amount, currencyLocale),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
@@ -290,7 +291,10 @@ fun OverviewAccountsCard(
                     styleForTitle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     value = currencyFormatter(totalAccountsList[0].net, currencyLocale),
                     weightA = 1f,
-                    textAlignB = TextAlign.End
+                    textAlignB = TextAlign.End,
+                    colorForTitle =  if (totalAccountsList[0].amount > totalAccountsList[1].amount) Color.Green
+                    else if (totalAccountsList[0].amount == totalAccountsList[1].amount) MaterialTheme.colorScheme.onSurface
+                    else Color.Red
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {

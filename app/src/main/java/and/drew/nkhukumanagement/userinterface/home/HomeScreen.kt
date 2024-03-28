@@ -793,39 +793,41 @@ fun FlockCard(
                         horizontalAlignment = Alignment.Start
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            BaseSingleRowItem(
-                                modifier = Modifier.weight(weight = 1f, fill = true),
-                                label = stringResource(R.string.name),
-                                value = flock.batchName,
-                                weightA = 0.5f
-                            )
-                            Column(modifier = Modifier.weight(0.2f)) {
-                                ShowOverflowMenu(
-                                    modifier = Modifier.align(Alignment.End),
-                                    flock = flock,
-                                    isOverflowMenuExpanded = isFlockItemMenuShowing,
-                                    isAlertDialogShowing = isAlertDialogShowing,
-                                    onDismissAlertDialog = { isAlertDialogShowing = false },
-                                    onShowMenu = {
-                                        onOverflowMenuClicked(it)
-                                        isFlockItemMenuShowing = true
-                                    },
-                                    onShowAlertDialog = { isAlertDialogShowing = true },
-                                    onDismiss = { isFlockItemMenuShowing = false },
-                                    onDelete = {
-                                        onDelete()
-                                        isAlertDialogShowing = false
-                                        isFlockItemMenuShowing = false
-                                    },
-                                    onClose = {
-                                        isFlockItemMenuShowing = false
-                                        isCloseAlertDialogShowing = true
-                                    },
-                                    title = stringResource(R.string.delete_flock),
-                                    message = stringResource(R.string.this_cannot_be_undone)
+                            Box {
+                                BaseSingleRowItem(
+                                    modifier = Modifier.align(Alignment.CenterStart),
+                                    label = stringResource(R.string.name),
+                                    value = flock.batchName,
                                 )
+                                Column(modifier = Modifier.align(Alignment.TopEnd)) {
+                                    ShowOverflowMenu(
+                                        modifier = Modifier.align(Alignment.End),
+                                        flock = flock,
+                                        isOverflowMenuExpanded = isFlockItemMenuShowing,
+                                        isAlertDialogShowing = isAlertDialogShowing,
+                                        onDismissAlertDialog = { isAlertDialogShowing = false },
+                                        onShowMenu = {
+                                            onOverflowMenuClicked(it)
+                                            isFlockItemMenuShowing = true
+                                        },
+                                        onShowAlertDialog = { isAlertDialogShowing = true },
+                                        onDismiss = { isFlockItemMenuShowing = false },
+                                        onDelete = {
+                                            onDelete()
+                                            isAlertDialogShowing = false
+                                            isFlockItemMenuShowing = false
+                                        },
+                                        onClose = {
+                                            isFlockItemMenuShowing = false
+                                            isCloseAlertDialogShowing = true
+                                        },
+                                        title = stringResource(R.string.delete_flock),
+                                        message = stringResource(R.string.this_cannot_be_undone)
+                                    )
+                                }
                             }
-                        }
+                            }
+
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             BaseSingleRowItem(
                                 label = stringResource(R.string.breed),
@@ -864,7 +866,7 @@ fun FlockCard(
                                 Text(
                                     text = "${stringResource(R.string.stock)}: ${(flock.stock)}",
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.secondary,
+                                    color = Color.Green,
                                     modifier = Modifier
                                         .padding(8.dp),
                                     textAlign = TextAlign.Center
@@ -943,5 +945,6 @@ fun ShowOverflowMenu(
 @Composable
 fun ShowPreview() {
     NkhukuManagementTheme {
+
     }
 }

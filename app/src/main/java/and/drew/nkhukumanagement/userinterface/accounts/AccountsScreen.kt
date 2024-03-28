@@ -392,7 +392,7 @@ fun SummaryAccountsCard(
                         styleForTitle = MaterialTheme.typography.bodyMedium,
                         colorForTitle =
                         if (accountsSummary.variance > 0) Color.Green
-                        else if (accountsSummary.variance == 0.0) Color.Black
+                        else if (accountsSummary.variance == 0.0) MaterialTheme.colorScheme.onSurface
                         else Color.Red,
                         textAlignA = TextAlign.Center,
                         textAlignB = TextAlign.Center,

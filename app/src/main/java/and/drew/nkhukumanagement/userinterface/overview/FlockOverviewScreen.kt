@@ -226,7 +226,7 @@ fun OverviewFlockCard(
                 )
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
-                    label = totalFlockList[0].description,
+                    label = stringResource(R.string.healthy_birds),
                     value = totalFlockList[0].amount.toInt().toString(),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
@@ -246,7 +246,7 @@ fun OverviewFlockCard(
                 )
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
-                    label = totalFlockList[1].description,
+                    label = stringResource(R.string.mortality),
                     value = totalFlockList[1].amount.toInt().toString(),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
@@ -266,7 +266,7 @@ fun OverviewFlockCard(
                 )
                 BaseSingleRowItem(
                     modifier = Modifier.padding(start = 8.dp),
-                    label = totalFlockList[2].description,
+                    label = stringResource(R.string.culls),
                     value = totalFlockList[2].amount.toInt().toString(),
                     styleForLabel = MaterialTheme.typography.bodyMedium,
                     styleForTitle = MaterialTheme.typography.bodyMedium,
