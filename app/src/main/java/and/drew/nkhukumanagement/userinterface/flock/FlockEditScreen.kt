@@ -256,7 +256,9 @@ fun MainFlockEditScreen(
                                 label = stringResource(R.string.date),
                                 date = date,
                                 updateShowDialogOnClick = { showDialog = true },
-                                onValueChanged = {},
+                                onValueChanged = {
+                                                 date = it
+                                },
                                 datePickerState = dateState,
                                 saveDateSelected = { dateState ->
                                     val millisToLocalDate =
