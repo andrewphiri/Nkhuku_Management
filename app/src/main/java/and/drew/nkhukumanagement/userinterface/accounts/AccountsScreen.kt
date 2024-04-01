@@ -30,7 +30,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
@@ -314,8 +316,8 @@ fun SummaryAccountsCard(
 ) {
     val color = if (selectedID == accountsSummary.id && contentType == ContentType.LIST_AND_DETAIL)
         CardDefaults.outlinedCardColors(containerColor = Color.LightGray) else
-        CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
-    OutlinedCard(
+        CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ElevatedCard(
         modifier = modifier
             .padding(8.dp)
             .clickable(onClick = { onAccountsClick(accountsSummary) }),
