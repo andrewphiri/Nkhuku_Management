@@ -25,15 +25,15 @@ class SignInViewModel @Inject constructor() : ViewModel() {
     val userLoggedIn = _userLoggedIn.asStateFlow()
 
     private val _emailVerified = MutableStateFlow(false)
-    // val emailVerified = _emailVerified.asStateFlow()
+     val emailVerified = _emailVerified.asStateFlow()
 
-    val emailVerified: StateFlow<Boolean> =
-        _emailVerified
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(),
-                runBlocking { _emailVerified.first() }
-            )
+//    val emailVerified: StateFlow<Boolean> =
+//        _emailVerified
+//            .stateIn(
+//                scope = viewModelScope,
+//                started = SharingStarted.WhileSubscribed(),
+//                runBlocking { _emailVerified.first() }
+//            )
 
     var userUiStateSignIn by mutableStateOf(UserUiState())
         private set

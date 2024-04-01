@@ -217,4 +217,5 @@
     <string name="vaccination_name">Название вакцины</string>
     <string name="add_vaccination">Добавить вакцинацию</string>
     <string name="vaccination_date">Дата вакцинации</string>
+    <string name="no_vaccine_reminders">Вы не сможете получать напоминания о вакцинации.</string>
 </resources>

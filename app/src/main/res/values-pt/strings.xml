@@ -214,4 +214,5 @@
     <string name="vaccination_name">Nome da Vacinação</string>
     <string name="add_vaccination">Adicionar Vacinação</string>
     <string name="vaccination_date">Data da Vacinação</string>
+    <string name="no_vaccine_reminders">Você não poderá receber lembretes de vacinação.</string>
 </resources>

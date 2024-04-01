@@ -1,6 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.flock
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
+import and.drew.nkhukumanagement.MainActivity
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
@@ -11,8 +12,14 @@ import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
+import and.drew.nkhukumanagement.utils.ShowAlertDialog
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -56,9 +64,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.ZoneId
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 
 object AddFlockDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -88,6 +99,27 @@ fun AddFlockScreen(
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val requestPermission = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            navigateToVaccinationsScreen(flockEntryViewModel.flockUiState)
+        } else {
+            coroutineScope.launch {
+                userPrefsViewModel.updateNotifications(isGranted)
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.no_vaccine_reminders),
+                    duration = SnackbarDuration.Long
+                )
+                navigateToVaccinationsScreen(flockEntryViewModel.flockUiState)
+            }
+
+        }
+    }
 
     MainAddFlockScreen(
         modifier = modifier,
@@ -96,7 +128,21 @@ fun AddFlockScreen(
             onNavigateUp()
             flockEntryViewModel.resetAll()
         },
-        navigateToVaccinationsScreen = navigateToVaccinationsScreen,
+        navigateToVaccinationsScreen = {
+            when (PackageManager.PERMISSION_GRANTED) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) -> {
+                    navigateToVaccinationsScreen(flockEntryViewModel.flockUiState)
+                }
+                else -> {
+                    requestPermission.launch(
+                        Manifest.permission.POST_NOTIFICATIONS
+                    )
+                }
+            }
+        },
         flockUiState = flockEntryViewModel.flockUiState,
         onItemValueChange = flockEntryViewModel::updateUiState,
         currencySymbol = currency.symbol,

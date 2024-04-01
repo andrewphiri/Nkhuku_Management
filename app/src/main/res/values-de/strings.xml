@@ -215,4 +215,5 @@
     <string name="vaccination_name">Impfstoffname</string>
     <string name="add_vaccination">Impfung hinzufügen</string>
     <string name="vaccination_date">Impfdatum</string>
+    <string name="no_vaccine_reminders">Sie werden keine Impferinnerungen erhalten können.</string>
 </resources>

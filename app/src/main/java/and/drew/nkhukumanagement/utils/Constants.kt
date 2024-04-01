@@ -1,5 +1,7 @@
 package and.drew.nkhukumanagement.utils
 
+import and.drew.nkhukumanagement.R
+
 
 object Constants {
     const val DATABASE_NAME = "flock_database"

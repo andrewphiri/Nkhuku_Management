@@ -12,6 +12,7 @@ import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.userinterface.navigation.TabScreens
+import and.drew.nkhukumanagement.utils.NotificationService
 import and.drew.nkhukumanagement.utils.Tabs
 import android.app.Activity.RESULT_OK
 import android.os.Build
@@ -38,6 +39,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -139,7 +141,7 @@ fun MainAccountSetupScreen(
     LaunchedEffect(key1 = state.signInError) {
         state.signInError?.let { error ->
             snackbarHostState.showSnackbar(
-                message = context.getString(R.string.invalid_username_or_password_try_again),
+                message = error,
                 duration = SnackbarDuration.Long
             )
         }
@@ -168,11 +170,10 @@ fun MainAccountSetupScreen(
         }
     )
 
-    LaunchedEffect(key1 = state, key2 = isEmailVerified) {
-        setEmailVerification()
+    LaunchedEffect(key1 = state.isSignInSuccessful, key2 = isEmailVerified ) {
         if (state.isSignInSuccessful) {
 //            authUiClient.verifyEmail()
-            authUiClient.refreshEmail()
+           // authUiClient.refreshEmail()
             if (isEmailVerified) {
                 navigateToHome()
             } else {
@@ -185,6 +186,7 @@ fun MainAccountSetupScreen(
             isLoadingEmailAndPasswordButtonSignIn = false
             isLoadingEmailAndPasswordButtonSignUp = false
         }
+        NotificationService().insertTokenOnFirstSignUp()
     }
 
     Scaffold(
@@ -227,7 +229,7 @@ fun MainAccountSetupScreen(
                                 userSignInState.password
                             )
                             onSignInResult(signInResult)
-
+                            setEmailVerification()
                             isLoadingGoogleButton = false
                             isLoadingEmailAndPasswordButtonSignIn = false
                             isLoadingEmailAndPasswordButtonSignUp = false

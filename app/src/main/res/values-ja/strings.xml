@@ -212,4 +212,5 @@
     <string name="vaccination_name">ワクチン名</string>
     <string name="add_vaccination">ワクチンを追加</string>
     <string name="vaccination_date">ワクチン接種日</string>
+    <string name="no_vaccine_reminders">ワクチンのリマインダーを受け取ることはできません。</string>
 </resources>

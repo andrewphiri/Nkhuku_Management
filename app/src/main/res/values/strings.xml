@@ -215,4 +215,5 @@
     <string name="vaccination_name">Vaccination Name</string>
     <string name="add_vaccination">Add Vaccination</string>
     <string name="vaccination_date">Vaccination Date</string>
+    <string name="no_vaccine_reminders">You will not be able to receive vaccination reminders.</string>
 </resources>

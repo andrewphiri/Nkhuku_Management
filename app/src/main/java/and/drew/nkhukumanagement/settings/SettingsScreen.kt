@@ -21,7 +21,6 @@ import android.icu.util.Currency
 import android.icu.util.ULocale
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -188,7 +187,22 @@ fun SettingsScreen(
         }
     }
 
-    val requestPermission = rememberLauncherForActivityResult(
+    val requestVaccineNotificationPermission = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            coroutineScope.launch {
+                userPrefsViewModel.updateNotifications(isGranted)
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.no_vaccine_reminders),
+                    duration = SnackbarDuration.Long
+                )
+            }
+
+        }
+    }
+
+    val requestStoragePermission = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
@@ -263,12 +277,11 @@ fun SettingsScreen(
                         }
 
                         else -> {
-                            requestPermission.launch(
+                            requestStoragePermission.launch(
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE
                             )
                         }
                     }
-
 
                 },
                 isCircularIndicatorShowing = isCircularIndicatorShowing,
@@ -303,6 +316,11 @@ fun SettingsScreen(
                         allVaccinationItems.forEach {
                             vaccinationViewModel.cancelNotification(it)
                         }
+                    } else {
+
+                        requestVaccineNotificationPermission.launch(
+                            Manifest.permission.POST_NOTIFICATIONS
+                        )
                     }
                 },
                 navigateToAccountInfoScreen = navigateToAccountInfoScreen,

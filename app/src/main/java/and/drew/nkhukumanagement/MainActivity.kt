@@ -10,6 +10,7 @@ import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.NavigationType
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -22,6 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -77,6 +81,11 @@ class MainActivity : AppCompatActivity() {
             val userSignedIn by signInViewModel.userLoggedIn.collectAsState()
             val skipAccount by userPrefsViewModel.skipAccount
                 .collectAsState()
+//            var isEmailVerified by remember { mutableStateOf(false) }
+//            emailVerified.observe(this) {
+//                isEmailVerified = it
+//                Log.i("Email_Verified", isEmailVerified.toString())
+//            }
 
             NkhukuManagementTheme {
                 val navigationType: NavigationType
