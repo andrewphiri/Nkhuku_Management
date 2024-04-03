@@ -1,6 +1,5 @@
 package and.drew.nkhukumanagement.auth
 
-import and.drew.nkhukumanagement.R
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
@@ -94,7 +93,7 @@ class GoogleAuthUiClient(
                 GoogleIdTokenRequestOptions.builder()
                     .setSupported(true)
                     .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(context.getString(R.string.web_client_id))
+                    .setServerClientId("Provide web client ID")
                     .build()
             )
             .setAutoSelectEnabled(true)

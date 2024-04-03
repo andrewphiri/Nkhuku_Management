@@ -12,7 +12,6 @@ import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.userinterface.navigation.TabScreens
-import and.drew.nkhukumanagement.utils.NotificationService
 import and.drew.nkhukumanagement.utils.Tabs
 import android.app.Activity.RESULT_OK
 import android.os.Build
@@ -39,7 +38,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -186,7 +184,7 @@ fun MainAccountSetupScreen(
             isLoadingEmailAndPasswordButtonSignIn = false
             isLoadingEmailAndPasswordButtonSignUp = false
         }
-        NotificationService().insertTokenOnFirstSignUp()
+        // NotificationService().insertTokenOnFirstSignUp()
     }
 
     Scaffold(

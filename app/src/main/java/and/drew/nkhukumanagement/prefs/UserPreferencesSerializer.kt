@@ -18,7 +18,7 @@ object UserPreferencesSerializer : Serializer<UserPreferences> {
         .setReceiveNotifications(true)
         .setCurrencyLocale("en_ZM")
         .setSkipAccountSetup(false)
-        .setLanguageLocale("en_US")
+        .setLanguageLocale("en")
         .build()
 
     override suspend fun readFrom(input: InputStream): UserPreferences {
