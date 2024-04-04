@@ -134,7 +134,7 @@ fun SettingsScreen(
     //Get default system language
     defaultLocale =
         Locale("${ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0]?.language}")
-    ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0]
+    //ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0]
 
     val appLanguages = context.resources.getStringArray(R.array.app_languages)
 

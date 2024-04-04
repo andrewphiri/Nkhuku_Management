@@ -5,6 +5,7 @@ import android.icu.util.ULocale
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Date
+import java.util.Locale
 
 fun formatAmount(amount: Float): String {
     return AmountDecimalFormat.format(amount)
@@ -18,9 +19,9 @@ fun currencyFormatter(currency: Double, currencyLocale: String): String {
     return formatter.format(currency)
 }
 
-fun getAllCurrenciesInUse(): Map<ULocale, Currency?> {
-    val allCurrencies: MutableMap<ULocale, Currency?> = mutableMapOf()
-    val localeList = ULocale.getAvailableLocales()
+fun getAllCurrenciesInUse(): Map<Locale, Currency?> {
+    val allCurrencies: MutableMap<Locale, Currency?> = mutableMapOf()
+    val localeList = Locale.getAvailableLocales()
     val date = Date()
     for (locale in localeList) {
         val currencies: Array<out String>? = Currency.getAvailableCurrencyCodes(locale, date)
