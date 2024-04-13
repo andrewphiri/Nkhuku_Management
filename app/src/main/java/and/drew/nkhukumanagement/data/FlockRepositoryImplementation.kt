@@ -31,6 +31,9 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
 
     override fun getVaccinationItem(id: Int): Flow<Vaccination> = flockDao.retrieveVaccination(id)
     override fun getIncomeItem(id: Int) = flockDao.retrieveIncome(id)
+    override fun getWeightItem(id: Int): Flow<Weight> = flockDao.retrieveWeight(id)
+
+    override fun getFeedItem(id: Int): Flow<Feed> = flockDao.retrieveFeed(id)
 
     override fun getExpenseItem(id: Int) = flockDao.retrieveExpense(id)
     override fun getFlockAndAccountSummary(id: Int) =
@@ -91,7 +94,7 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
     override suspend fun updateAccounts(accountsSummary: AccountsSummary) =
         flockDao.updateAccounts(accountsSummary)
 
-    override suspend fun updateWeight(weight: List<Weight>) = flockDao.updateWeight(weight)
+    override suspend fun updateWeight(weight: Weight) = flockDao.updateWeight(weight)
     override suspend fun updateFlockHealth(flockHealth: FlockHealth) =
         flockDao.updateFlockHealth(flockHealth)
 

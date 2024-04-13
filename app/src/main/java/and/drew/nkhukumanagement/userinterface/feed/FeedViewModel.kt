@@ -2,6 +2,7 @@ package and.drew.nkhukumanagement.userinterface.feed
 
 import and.drew.nkhukumanagement.FlockApplication
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.data.Feed
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithFeed
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
@@ -52,16 +53,19 @@ class FeedViewModel @Inject constructor(
                 flockRepository.getAllFlocksWithFeed(it)
             }
 
-//        flockRepository.getAllFlocksWithFeed(flockId)
-//            .map { it }
-//            .stateIn(
-//                scope = viewModelScope,
-//                started = SharingStarted.WhileSubscribed(MILLIS),
-//                initialValue = FlockWithFeed(flock = null, feedList = listOf())
-//            )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val feed: Flow<Feed> =
+        savedStateHandle.getStateFlow(key = FeedScreenDestination.feedIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getFeedItem(it)
+            }
 
     fun setFlockID(id: Int) {
         savedStateHandle[FeedScreenDestination.flockIdArg] = id
+    }
+
+    fun setFeedID(id: Int) {
+        savedStateHandle[FeedScreenDestination.feedIdArg] = id
     }
 
     fun setFeedState(feedState: FeedUiState) {

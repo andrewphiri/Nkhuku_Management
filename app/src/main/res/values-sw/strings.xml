@@ -216,4 +216,5 @@
     <string name="add_vaccination">Ongeza Chanjo</string>
     <string name="vaccination_date">Tarehe ya Chanjo</string>
     <string name="no_vaccine_reminders">Hutaweza kupokea kumbusho za chanjo.</string>
+    <string name="actual_weight">Uzito halisi</string>
 </resources>

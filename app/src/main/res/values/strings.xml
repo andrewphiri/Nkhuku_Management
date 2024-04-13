@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Nkhuku Management</string>
+    <string name="web_client_ID" translatable="false">""</string>
     <string name="home">Home</string>
     <string name="accounts">Accounts</string>
     <string name="tips">Tips</string>
@@ -215,4 +216,5 @@
     <string name="add_vaccination">Add Vaccination</string>
     <string name="vaccination_date">Vaccination Date</string>
     <string name="no_vaccine_reminders">You will not be able to receive vaccination reminders.</string>
+    <string name="actual_weight">Actual weight</string>
 </resources>

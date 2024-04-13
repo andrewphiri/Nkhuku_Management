@@ -90,5 +90,5 @@ fun FeedUiState.isValid(): Boolean {
 }
 
 fun FeedUiState.isSingleEntryValid(value: String): Boolean {
-    return value.isNotBlank()
+    return value.isBlank()
 }

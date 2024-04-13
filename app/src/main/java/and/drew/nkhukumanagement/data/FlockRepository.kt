@@ -73,6 +73,16 @@ interface FlockRepository {
     fun getIncomeItem(id: Int): Flow<Income>
 
     /**
+     * Retrieve weight item from data source
+     */
+    fun getWeightItem(id: Int): Flow<Weight>
+
+    /**
+     * Retrieve feed item from data source
+     */
+    fun getFeedItem(id: Int): Flow<Feed>
+
+    /**
      * Retrieve expense item from data source
      */
     fun getExpenseItem(id: Int): Flow<Expense>
@@ -201,7 +211,7 @@ interface FlockRepository {
     /**
      * Update weight in the database
      */
-    suspend fun updateWeight(weight: List<Weight>)
+    suspend fun updateWeight(weight: Weight)
 
     /**
      * Update flockHealth in the database

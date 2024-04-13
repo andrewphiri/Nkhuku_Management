@@ -214,4 +214,5 @@
     <string name="add_vaccination">टीका जोड़ें</string>
     <string name="vaccination_date">टीकाकरण की तारीख</string>
     <string name="no_vaccine_reminders">आप टीकाकरण की याद नहीं पा सकेंगे।</string>
+    <string name="actual_weight">वास्तविक वजन</string>
 </resources>

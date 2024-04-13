@@ -151,7 +151,6 @@ fun HomeScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-
     if (contentType == ContentType.LIST_ONLY) {
         MainHomeScreen(
             modifier = modifier,
@@ -600,7 +599,7 @@ fun MainHomeScreen(
 
             FlockBodyList(
                 modifier = modifier,
-                flockList = flockList,
+                flockList = flockList.sortedBy { it.datePlaced  },
                 onItemClick = navigateToFlockDetails,
                 listState = listState,
                 onDelete = { index ->

@@ -213,4 +213,5 @@
     <string name="add_vaccination">Ikani Katemera</string>
     <string name="vaccination_date">Tsiku la Katemera</string>
     <string name="no_vaccine_reminders">Simudzatha kulandira zikumbutso za katemera.</string>
+    <string name="actual_weight">Kulemera kwenikweni</string>
 </resources>

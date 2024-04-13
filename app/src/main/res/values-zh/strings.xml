@@ -214,4 +214,5 @@
     <string name="add_vaccination">添加疫苗</string>
     <string name="vaccination_date">接种日期</string>
     <string name="no_vaccine_reminders">您将无法收到疫苗提醒。</string>
+    <string name="actual_weight">实际重量</string>
 </resources>

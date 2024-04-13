@@ -15,6 +15,8 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -27,19 +29,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SnackbarHost
@@ -57,18 +61,25 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.asLiveData
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
@@ -81,6 +92,7 @@ object WeightScreenDestination : NkhukuDestinations {
     override val resourceId: Int
         get() = R.string.weight
     const val flockIdArg = "id"
+    const val weightIdArg = "weightIdArg"
     val routeWithArgs = "$route/{$flockIdArg}"
     val arguments = listOf(navArgument(flockIdArg) {
         defaultValue = 1
@@ -104,23 +116,23 @@ fun WeightScreen(
     val flockWithWeights by weightViewModel.flockWithWeight.collectAsState(
         initial = FlockWithWeight(flock = null, weights = listOf())
     )
-    val scrollState = rememberScrollState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
     val weightList: List<Weight> = flockWithWeights.weights ?: listOf()
     val weightUiStateList: MutableList<WeightUiState> = mutableListOf()
-    var isEditable by remember { mutableStateOf(false) }
-    var isFABVisible by remember { mutableStateOf(true) }
     var title by remember { mutableStateOf("") }
     title = stringResource(WeightScreenDestination.resourceId)
-    val context = LocalContext.current
     val snackBarHostState = remember { SnackbarHostState() }
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    val weight = weightViewModel.weight.asLiveData()
 
     for (item in weightList) {
         weightUiStateList.add(item.toWeightUiState())
     }
+
     weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
 
     var isUpdateEnabled by remember { mutableStateOf(false) }
-
 
     Scaffold(
         modifier = modifier,
@@ -133,36 +145,9 @@ fun WeightScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackBarHostState) },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = isFABVisible,
-                enter = slideIn(tween(200, easing = LinearOutSlowInEasing),
-                    initialOffset = {
-                        IntOffset(180, 90)
-                    }),
-                exit = slideOut(tween(200, easing = FastOutSlowInEasing)) {
-                    IntOffset(180, 90)
-                }) {
-                FloatingActionButton(
-                    onClick = {
-                        title = context.resources.getString(R.string.edit_weights)
-                        isEditable = true
-                        isFABVisible = false
-                    },
-                    shape = ShapeDefaults.Small,
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    elevation = FloatingActionButtonDefaults.elevation()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = stringResource(R.string.edit_weights)
-                    )
-                }
-            }
-        }
     ) { innerPadding ->
         isUpdateEnabled =
-            weightViewModel.getWeightList().zip(weightUiStateList).all { it.first == it.second }
+            weightViewModel.getWeightList().zip(weightUiStateList).all { it.first.actualWeight == it.second.actualWeight }
                 .not()
         Column(
             modifier = Modifier
@@ -173,108 +158,53 @@ fun WeightScreen(
             WeightInputList(
                 weightUiStateList = weightViewModel.getWeightList(),
                 onItemChange = weightViewModel::updateWeightState,
-                isEditable = isEditable,
-                isUpdateEnabled = isUpdateEnabled,
-                onClickCancel = {
-                    title = context.resources.getString(R.string.weight)
-                    isEditable = false
-                    isFABVisible = true
-
-                    weightUiStateList.clear()
-                    for (item in weightList) {
-                        weightUiStateList.add(item.toWeightUiState())
-                    }
-                    weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
-                },
                 onClickUpdate = {
-                    val weight = weightViewModel.getWeightList()
-                    val updatedWeights = mutableListOf<Weight>()
-
-                    if (weight.all { checkNumberExceptions(it) }) {
-                        weight.forEach {
-                            updatedWeights.add(it.toWeight())
-                        }
+                    if (checkNumberExceptions(it)) {
                         coroutineScope.launch {
-                            weightViewModel.updateWeight(updatedWeights)
-                        }.invokeOnCompletion { onNavigateUp() }
+                            weightViewModel.updateWeight(it.toWeight())
+                            showUpdateDialog = false
+                        }
                     } else {
                         coroutineScope.launch {
-                            snackBarHostState.showSnackbar(context.getString(R.string.please_enter_a_valid_number))
+                            snackBarHostState.showSnackbar(
+                                message = context.getString(
+                                    R.string.please_enter_a_valid_number
+                                )
+                            )
                         }
                     }
-                }
+                },
+                onDismiss = { showUpdateDialog = false },
+                showDialog = showUpdateDialog ,
+                setWeightState = {
+                    weightViewModel.setWeightState(it)
+                },
+                onItemClick = {
+                    weightViewModel.setWeightID(it)
+                    weight.observe(lifecycleOwner) {
+                        weightViewModel.setWeightState(it.toWeightUiState())
+                    }
+                    showUpdateDialog = true
+                },
+                weightUiState = weightViewModel.weightUiState
             )
-            if (isEditable) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            title = context.resources.getString(R.string.weight)
-                            isEditable = false
-                            isFABVisible = true
-
-                            weightUiStateList.clear()
-                            for (item in weightList) {
-                                weightUiStateList.add(item.toWeightUiState())
-                            }
-                            weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
-                        }
-                    ) {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.cancel),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        enabled = isUpdateEnabled,
-                        onClick = {
-                            val weight = weightViewModel.getWeightList()
-                            val updatedWeights = mutableListOf<Weight>()
-
-                            if (weight.all { checkNumberExceptions(it) }) {
-                                weight.forEach {
-                                    updatedWeights.add(it.toWeight())
-                                }
-                                coroutineScope.launch {
-                                    weightViewModel.updateWeight(updatedWeights)
-                                }.invokeOnCompletion { onNavigateUp() }
-                            } else {
-                                coroutineScope.launch {
-                                    snackBarHostState.showSnackbar(context.getString(R.string.please_enter_a_valid_number))
-                                }
-                            }
-                        }
-                    ) {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.update),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
         }
     }
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeightInputList(
     modifier: Modifier = Modifier,
     onItemChange: (Int, WeightUiState) -> Unit,
+    weightUiState: WeightUiState,
     weightUiStateList: MutableList<WeightUiState>,
-    onClickCancel: () -> Unit,
-    onClickUpdate: () -> Unit,
-    isUpdateEnabled: Boolean,
-    isEditable: Boolean
+    onClickUpdate: (WeightUiState) -> Unit,
+    onDismiss: () -> Unit,
+    setWeightState: (WeightUiState) -> Unit,
+    showDialog: Boolean,
+    onItemClick: (Int) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -315,48 +245,38 @@ fun WeightInputList(
                     weightUiState = weightItem,
                     onValueChanged = { weight ->
                         onItemChange(index, weight)
-                        //isUpdateButtonEnabled(weightViewModel.isUpdateButtonEnabled(weightUiState))
                     },
-                    isEditable = isEditable,
-                    description = "Weight $index"
+                    description = "Weight $index",
+                    onItemClick = {
+                        onItemClick(it)
+                    }
                 )
             }
-            item {
-                if (isEditable) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        OutlinedButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = onClickCancel
-                        ) {
-                            Text(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = stringResource(R.string.cancel),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            enabled = isUpdateEnabled,
-                            onClick = onClickUpdate
-                        ) {
-                            Text(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = stringResource(R.string.update),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
         }
+        UpdateWeightDialog(
+            onDismiss = onDismiss,
+            onChangedValue = {
+                try {
+                    setWeightState(
+                        weightUiState.copy(
+                            week = it.week,
+                            actualWeight = it.actualWeight,
+                            dateMeasured = it.getDate(),
+                            standard = it.standard
+                        ))
+                } catch (e: NumberFormatException) {
+                    setWeightState(
+                        weightUiState.copy(
+                            week = it.week,
+                            actualWeight = ""
+                        ))
+                }
+            },
+            onUpdateWeight = onClickUpdate,
+            showDialog = showDialog,
+            weightUiState = weightUiState,
+        )
     }
-
 }
 
 @Composable
@@ -364,12 +284,13 @@ fun WeightCard(
     modifier: Modifier = Modifier,
     weightUiState: WeightUiState,
     onValueChanged: (WeightUiState) -> Unit,
-    isEditable: Boolean,
-    description: String
+    description: String,
+    onItemClick: (Int) -> Unit
 ) {
-    val context = LocalContext.current
+
     Row(
-        modifier = modifier,
+        modifier = modifier.height(IntrinsicSize.Max)
+            .clickable { onItemClick(weightUiState.id) },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -378,10 +299,6 @@ fun WeightCard(
             text = weightUiState.week
         )
 
-        Row(
-            modifier = Modifier.weight(3f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
             TextField(
                 modifier = Modifier
                     .weight(1.5f)
@@ -390,14 +307,12 @@ fun WeightCard(
                 onValueChange = {
                     onValueChanged(
                         weightUiState.copy(
-                            actualWeight = if (it == "") context.getString(
-                                R.string._0_0
-                            ) else it
+                            actualWeight =  it
                         )
                     )
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                enabled = isEditable,
+                enabled = false,
                 colors = TextFieldDefaults.colors(
                     disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = LocalContentColor.current.alpha),
                     disabledTextColor = LocalContentColor.current.copy(LocalContentColor.current.alpha)
@@ -405,7 +320,10 @@ fun WeightCard(
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
             )
 
-            Spacer(modifier = modifier.weight(0.1f))
+            VerticalDivider(
+                modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+            )
 
             TextField(
                 modifier = Modifier.weight(1.5f),
@@ -421,6 +339,100 @@ fun WeightCard(
                 ),
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center)
             )
+        }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@Composable
+fun UpdateWeightDialog(
+    modifier: Modifier = Modifier,
+    showDialog: Boolean,
+    weightUiState: WeightUiState,
+    onChangedValue: (WeightUiState) -> Unit = {},
+    onDismiss: () -> Unit,
+    onUpdateWeight: (WeightUiState) -> Unit,
+) {
+    var isSaveButtonEnabled by remember { mutableStateOf(true) }
+    var actualWeight by remember { mutableStateOf("") }
+    isSaveButtonEnabled =
+        weightUiState.actualWeight != "0.0"
+            && weightUiState.actualWeight.isNotBlank()
+            && checkNumberExceptions(weightUiState)
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties()
+        ) {
+            OutlinedCard(
+                modifier = modifier,
+                shape = MaterialTheme.shapes.extraLarge
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = weightUiState.week,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+
+                    TextField(
+                        value = if (weightUiState.actualWeight == stringResource(R.string._0_0)) actualWeight else weightUiState.actualWeight,
+                        onValueChange = {
+                            actualWeight =  it
+                            onChangedValue(weightUiState.copy(actualWeight =  it))
+                        },
+                        label = { Text(text = stringResource(R.string.actual_weight)) },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { keyboardController?.hide() }
+                        )
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedButton(
+                            modifier = Modifier.weight(1f),
+                            border = BorderStroke(
+                                Dp.Hairline,
+                                color = MaterialTheme.colorScheme.primary
+                            ),
+                            onClick = {
+                                onDismiss()
+                                actualWeight = ""
+                            }
+                        ) {
+                            Text(
+                                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                text = stringResource(R.string.cancel),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            enabled = isSaveButtonEnabled,
+                            onClick = { onUpdateWeight(weightUiState.copy( actualWeight = actualWeight)) }
+                        ) {
+                            Text(
+                                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                text = stringResource(R.string.save),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

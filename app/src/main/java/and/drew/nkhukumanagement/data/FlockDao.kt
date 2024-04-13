@@ -48,7 +48,7 @@ interface FlockDao {
     suspend fun updateFeed(feed: Feed)
 
     @Update
-    suspend fun updateWeight(weight: List<Weight>)
+    suspend fun updateWeight(weight: Weight)
 
     @Update
     suspend fun updateFlockHealth(flockHealth: FlockHealth)

@@ -168,14 +168,13 @@ fun MainIncomeScreen(
                             modifier = Modifier.padding(start = 8.dp, top = 3.dp)
                         )
                     }
-
                 }
             }
         }
     ) { innerPadding ->
         IncomeList(
             modifier = modifier.padding(innerPadding),
-            incomeList = incomeList,
+            incomeList = incomeList.sortedBy { it.date },
             onItemClick = { income ->
                 navigateToAddIncomeScreen(income.id, accountsIdArg)
             },
@@ -188,7 +187,8 @@ fun MainIncomeScreen(
                     deleteIncome(income)
                 }
             },
-            currencyLocale = currencyLocale
+            currencyLocale = currencyLocale,
+            listState = listState
         )
     }
 }
@@ -222,7 +222,8 @@ fun IncomeList(
     incomeList: List<Income>,
     onItemClick: (Income) -> Unit,
     onDeleteIncome: (Income) -> Unit,
-    currencyLocale: String
+    currencyLocale: String,
+    listState: LazyListState
 ) {
     if (incomeList.isEmpty()) {
         Box(
@@ -238,7 +239,8 @@ fun IncomeList(
     } else {
         LazyColumn(
             modifier = modifier.padding(top = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            state = listState
         ) {
             itemsIndexed(incomeList) { index, incomeItem ->
                 IncomeCardItem(
@@ -277,7 +279,7 @@ fun IncomeCardItem(
                 color = GreenColor
             )
             Column(
-                modifier = Modifier.weight(1f).padding(16.dp),
+                modifier = Modifier.weight(1f).padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(

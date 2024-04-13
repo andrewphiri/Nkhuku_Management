@@ -218,4 +218,5 @@
     <string name="add_vaccination">Добавить вакцинацию</string>
     <string name="vaccination_date">Дата вакцинации</string>
     <string name="no_vaccine_reminders">Вы не сможете получать напоминания о вакцинации.</string>
+    <string name="actual_weight">Фактический вес</string>
 </resources>

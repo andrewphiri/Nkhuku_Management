@@ -52,6 +52,13 @@ class WeightViewModel @Inject constructor(
             .flatMapLatest {
                 flockRepository.getAllFlocksWithWeight(it)
             }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val weight: Flow<Weight> =
+        savedStateHandle.getStateFlow(key = WeightScreenDestination.weightIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getWeightItem(it)
+            }
 //        flockRepository.getAllFlocksWithWeight(flockID)
 //            .map { it }
 //            .stateIn(
@@ -62,6 +69,10 @@ class WeightViewModel @Inject constructor(
 
     fun setFlockID(id: Int) {
         savedStateHandle[WeightScreenDestination.flockIdArg] = id
+    }
+
+    fun setWeightID(id: Int) {
+        savedStateHandle[WeightScreenDestination.weightIdArg] = id
     }
 
     /**
@@ -75,7 +86,7 @@ class WeightViewModel @Inject constructor(
     /**
      * Update a weight item in the database
      */
-    suspend fun updateWeight(weights: List<Weight>) {
+    suspend fun updateWeight(weights: Weight) {
         flockRepository.updateWeight(weights)
     }
 
@@ -106,6 +117,9 @@ class WeightViewModel @Inject constructor(
      */
     fun updateWeightState(index: Int, uiState: WeightUiState) {
         initialWeightList[index] = uiState
+    }
+    fun setWeightState(weighState: WeightUiState) {
+        weightUiState = weighState
     }
 
     /**

@@ -218,4 +218,5 @@
     <string name="add_vaccination">إضافة تطعيم</string>
     <string name="vaccination_date">تاريخ التطعيم</string>
     <string name="no_vaccine_reminders">لن تتمكن من استلام تذكيرات بالتطعيم.</string>
+    <string name="actual_weight">الوزن الفعلي</string>
 </resources>

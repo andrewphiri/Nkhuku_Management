@@ -215,4 +215,5 @@
     <string name="add_vaccination">Ajouter un Vaccin</string>
     <string name="vaccination_date">Date du Vaccin</string>
     <string name="no_vaccine_reminders">Vous ne pourrez pas recevoir de rappels de vaccination.</string>
+    <string name="actual_weight">Poids réel</string>
 </resources>

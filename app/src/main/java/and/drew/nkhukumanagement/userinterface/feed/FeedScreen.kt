@@ -10,7 +10,9 @@ import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
 import and.drew.nkhukumanagement.utils.ContentType
+import and.drew.nkhukumanagement.utils.DateUtils
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -53,6 +55,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -81,6 +85,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.asLiveData
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
@@ -94,6 +99,7 @@ object FeedScreenDestination : NkhukuDestinations {
     override val resourceId: Int
         get() = R.string.feed
     const val flockIdArg = "id"
+    const val feedIdArg = "feedIdArg"
     val routeWithArgs = "$route/{$flockIdArg}"
     val arguments = listOf(navArgument(flockIdArg) {
         defaultValue = 1
@@ -112,9 +118,13 @@ fun FeedScreen(
     contentType: ContentType
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
     val flockWithFeed by feedViewModel.flockWithFeed.collectAsState(
         initial = FlockWithFeed(flock = null, feedList = listOf())
     )
+
+    val feed = feedViewModel.feed.asLiveData()
+
     val feedList: List<Feed> = flockWithFeed.feedList ?: listOf()
     val feedUiStateList: MutableList<FeedUiState> = mutableListOf()
 
@@ -143,7 +153,15 @@ fun FeedScreen(
         setFeedState = {
             feedViewModel.setFeedState(it)
         },
-        contentType = contentType
+        contentType = contentType,
+        onItemClick = {
+            feedViewModel.setFeedID(it)
+
+            feed.observe(lifecycleOwner) {
+                feedViewModel.setFeedState(it.toFeedUiState())
+            }
+
+        }
     )
 }
 
@@ -161,7 +179,8 @@ fun MainFeedScreen(
     feedUiState: FeedUiState,
     feedStateList: List<FeedUiState>,
     setFeedState: (FeedUiState) -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    onItemClick: (Int) -> Unit
 ) {
     BackHandler {
         onNavigateUp()
@@ -196,6 +215,7 @@ fun MainFeedScreen(
             FeedConsumptionList(
                 onItemChange = onItemChange,
                 onItemClick = {
+                    onItemClick(it)
                     showDialog = true
                 },
                 showDialog = showDialog,
@@ -204,6 +224,7 @@ fun MainFeedScreen(
                 onDismiss = {
                     showDialog = false
                     expanded = false
+                    setFeedState(feedUiState.copy(type = "", actualConsumed = ""))
                 },
                 onTypeDialogShowing = { isAddTypeDialogShowing = true },
                 onInnerDialogDismiss = {
@@ -216,7 +237,6 @@ fun MainFeedScreen(
                     if (checkNumberExceptions(feedUiState)) {
                         coroutineScope.launch {
                             updateFeed(feedUiState)
-                        }.invokeOnCompletion {
                             showDialog = false
                         }
                     } else {
@@ -246,7 +266,7 @@ fun FeedConsumptionList(
     feedList: List<FeedUiState>,
     setFeedState: (FeedUiState) -> Unit,
     onItemChange: (Int, FeedUiState) -> Unit,
-    onItemClick: () -> Unit,
+    onItemClick: (Int) -> Unit,
     showDialog: Boolean,
     expanded: Boolean,
     onExpand: (Boolean) -> Unit,
@@ -302,8 +322,6 @@ fun FeedConsumptionList(
                 textAlign = TextAlign.Center
             )
 
-
-
             Text(
                 modifier = Modifier.weight(0.7f, fill = true),
                 text = stringResource(R.string.standard_kg),
@@ -346,8 +364,7 @@ fun FeedConsumptionList(
                         onItemChange(index, it)
                     },
                     onItemClick = {
-                        onItemClick()
-                        setFeedState(feedItem)
+                        onItemClick(it)
                     }
                 )
             }
@@ -379,7 +396,7 @@ fun FeedConsumptionList(
                     setFeedState(
                         feedUiState.copy(
                             type = it.type,
-                            actualConsumed = it.actualConsumed
+                            actualConsumed = ""
                         )
                     )
                 }
@@ -396,12 +413,12 @@ fun FeedCardItem(
     modifier: Modifier = Modifier,
     feedUiState: FeedUiState,
     onChangedValue: (FeedUiState) -> Unit = {},
-    onItemClick: () -> Unit
+    onItemClick: (Int) -> Unit
 ) {
 
     Row(
         modifier = modifier.height(IntrinsicSize.Max).padding(4.dp)
-            .clickable(onClick = onItemClick),
+            .clickable(onClick = { onItemClick(feedUiState.id) }),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -497,7 +514,6 @@ fun FeedCardItem(
                 )
             }
         )
-
     }
 }
 
@@ -515,15 +531,16 @@ fun UpdateFeedDialog(
     onInnerDialogDismiss: () -> Unit,
     onUpdateFeed: (FeedUiState) -> Unit,
     isAddFeedTypeDialogShowing: Boolean,
-    onTypeDialogShowing: () -> Unit
+    onTypeDialogShowing: () -> Unit,
 ) {
     var newFeedType by remember { mutableStateOf("") }
     var isSaveButtonEnabled by remember { mutableStateOf(true) }
-    isSaveButtonEnabled = feedUiState.isSingleEntryValid(feedUiState.type)
-            && feedUiState.actualConsumed != "0.0"
+    isSaveButtonEnabled = feedUiState.actualConsumed != "0.0"
             && feedUiState.actualConsumed.isNotBlank()
             && checkNumberExceptions(feedUiState)
     val keyboardController = LocalSoftwareKeyboardController.current
+    var actualFeedConsumed by remember { mutableStateOf("") }
+
     if (showDialog) {
         Dialog(
             onDismissRequest = onDismiss,
@@ -601,8 +618,11 @@ fun UpdateFeedDialog(
                     }
 
                     TextField(
-                        value = if (feedUiState.actualConsumed == stringResource(R.string._0_0)) "" else feedUiState.actualConsumed,
-                        onValueChange = { onChangedValue(feedUiState.copy(actualConsumed = it)) },
+                        value = if (feedUiState.actualConsumed == stringResource(R.string._0_0)) actualFeedConsumed else feedUiState.actualConsumed,
+                        onValueChange = {
+                            actualFeedConsumed =  it
+                            onChangedValue(feedUiState.copy(actualConsumed =  it))
+                                        },
                         label = { Text(text = stringResource(R.string.quantity)) },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
@@ -636,7 +656,10 @@ fun UpdateFeedDialog(
                                 Dp.Hairline,
                                 color = MaterialTheme.colorScheme.primary
                             ),
-                            onClick = onDismiss
+                            onClick = {
+                                onDismiss()
+                                actualFeedConsumed = ""
+                            }
                         ) {
                             Text(
                                 modifier = Modifier.fillMaxWidth().padding(8.dp),
@@ -648,7 +671,7 @@ fun UpdateFeedDialog(
                         Button(
                             modifier = Modifier.weight(1f),
                             enabled = isSaveButtonEnabled,
-                            onClick = { onUpdateFeed(feedUiState) }
+                            onClick = { onUpdateFeed(feedUiState.copy( actualConsumed = actualFeedConsumed)) }
                         ) {
                             Text(
                                 modifier = Modifier.fillMaxWidth().padding(8.dp),

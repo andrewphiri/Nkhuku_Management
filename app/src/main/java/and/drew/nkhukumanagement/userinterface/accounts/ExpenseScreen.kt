@@ -165,14 +165,13 @@ fun MainExpenseScreen(
                             modifier = Modifier.padding(start = 8.dp, top = 3.dp)
                         )
                     }
-
                 }
             }
         }
     ) { innerPadding ->
         ExpenseList(
             modifier = Modifier.padding(innerPadding),
-            expenseList = expenseList,
+            expenseList = expenseList.sortedBy { it.date },
             onItemClick = { expense ->
                 navigateToAddExpenseScreen(expense.id, accountsIdArg)
             },
@@ -183,7 +182,8 @@ fun MainExpenseScreen(
                 )
                 deleteExpense(expense)
             },
-            currencyLocale = currencyLocale
+            currencyLocale = currencyLocale,
+            listState = listState
         )
     }
 
@@ -219,7 +219,8 @@ fun ExpenseList(
     expenseList: List<Expense>,
     onItemClick: (Expense) -> Unit,
     onDeleteExpense: (Expense) -> Unit,
-    currencyLocale: String
+    currencyLocale: String,
+    listState: LazyListState
 ) {
     if (expenseList.isEmpty()) {
         Box(
@@ -235,7 +236,8 @@ fun ExpenseList(
     } else {
         LazyColumn(
             modifier = modifier.padding(top = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            state = listState
         ) {
             itemsIndexed(expenseList) { index, expenseItem ->
                 ExpenseCardItem(
@@ -275,7 +277,7 @@ fun ExpenseCardItem(
             )
 
             Column(
-                modifier = Modifier.weight(1f).padding(16.dp),
+                modifier = Modifier.weight(1f).padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
