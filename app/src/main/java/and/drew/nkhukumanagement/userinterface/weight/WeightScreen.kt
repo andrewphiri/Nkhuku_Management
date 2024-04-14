@@ -126,6 +126,14 @@ fun WeightScreen(
     var showUpdateDialog by remember { mutableStateOf(false) }
     val weight = weightViewModel.weight.asLiveData()
 
+    var isSaveButtonEnabled by remember { mutableStateOf(true) }
+    var actualNewWeight by remember { mutableStateOf(-1.0) }
+    isSaveButtonEnabled =
+        weightViewModel.weightUiState.actualWeight != "0.0"
+                && weightViewModel.weightUiState.actualWeight.isNotBlank()
+                && checkNumberExceptions(weightViewModel.weightUiState)
+                && weightViewModel.weightUiState.actualWeight != actualNewWeight.toString()
+
     for (item in weightList) {
         weightUiStateList.add(item.toWeightUiState())
     }
@@ -183,10 +191,12 @@ fun WeightScreen(
                     weightViewModel.setWeightID(it)
                     weight.observe(lifecycleOwner) {
                         weightViewModel.setWeightState(it.toWeightUiState())
+                        actualNewWeight = it.weight
                     }
                     showUpdateDialog = true
                 },
-                weightUiState = weightViewModel.weightUiState
+                weightUiState = weightViewModel.weightUiState,
+                isSaveButtonEnabled = isSaveButtonEnabled
             )
         }
     }
@@ -204,7 +214,8 @@ fun WeightInputList(
     onDismiss: () -> Unit,
     setWeightState: (WeightUiState) -> Unit,
     showDialog: Boolean,
-    onItemClick: (Int) -> Unit
+    onItemClick: (Int) -> Unit,
+    isSaveButtonEnabled: Boolean
 ) {
     Column(
         modifier = modifier
@@ -275,6 +286,7 @@ fun WeightInputList(
             onUpdateWeight = onClickUpdate,
             showDialog = showDialog,
             weightUiState = weightUiState,
+            isSaveButtonEnabled = isSaveButtonEnabled
         )
     }
 }
@@ -352,13 +364,10 @@ fun UpdateWeightDialog(
     onChangedValue: (WeightUiState) -> Unit = {},
     onDismiss: () -> Unit,
     onUpdateWeight: (WeightUiState) -> Unit,
+    isSaveButtonEnabled: Boolean
 ) {
-    var isSaveButtonEnabled by remember { mutableStateOf(true) }
+
     var actualWeight by remember { mutableStateOf("") }
-    isSaveButtonEnabled =
-        weightUiState.actualWeight != "0.0"
-            && weightUiState.actualWeight.isNotBlank()
-            && checkNumberExceptions(weightUiState)
     val keyboardController = LocalSoftwareKeyboardController.current
 
     if (showDialog) {

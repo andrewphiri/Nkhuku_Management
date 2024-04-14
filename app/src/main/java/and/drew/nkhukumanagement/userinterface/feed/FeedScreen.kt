@@ -124,6 +124,13 @@ fun FeedScreen(
     )
 
     val feed = feedViewModel.feed.asLiveData()
+    var actualFeedConsumed by remember { mutableStateOf(-1.0) }
+    var isSaveButtonEnabled by remember { mutableStateOf(true) }
+    isSaveButtonEnabled = feedViewModel.feedUiState.actualConsumed != "0.0"
+            && feedViewModel.feedUiState.actualConsumed.isNotBlank()
+            && checkNumberExceptions(feedViewModel.feedUiState)
+            && feedViewModel.feedUiState.actualConsumed != actualFeedConsumed.toString()
+
 
     val feedList: List<Feed> = flockWithFeed.feedList ?: listOf()
     val feedUiStateList: MutableList<FeedUiState> = mutableListOf()
@@ -159,9 +166,10 @@ fun FeedScreen(
 
             feed.observe(lifecycleOwner) {
                 feedViewModel.setFeedState(it.toFeedUiState())
+                actualFeedConsumed = it.consumed
             }
-
-        }
+        },
+        isSaveButtonEnabled = isSaveButtonEnabled
     )
 }
 
@@ -180,7 +188,8 @@ fun MainFeedScreen(
     feedStateList: List<FeedUiState>,
     setFeedState: (FeedUiState) -> Unit,
     contentType: ContentType,
-    onItemClick: (Int) -> Unit
+    onItemClick: (Int) -> Unit,
+    isSaveButtonEnabled: Boolean
 ) {
     BackHandler {
         onNavigateUp()
@@ -251,7 +260,8 @@ fun MainFeedScreen(
                 },
                 feedList = feedStateList,
                 feedUiState = feedUiState,
-                setFeedState = setFeedState
+                setFeedState = setFeedState,
+                isSaveButtonEnabled = isSaveButtonEnabled
             )
         }
     }
@@ -274,7 +284,8 @@ fun FeedConsumptionList(
     onInnerDialogDismiss: () -> Unit,
     onUpdateFeed: (FeedUiState) -> Unit,
     isAddFeedTypeDialogShowing: Boolean,
-    onTypeDialogShowing: () -> Unit
+    onTypeDialogShowing: () -> Unit,
+    isSaveButtonEnabled: Boolean
 ) {
     Column(
         modifier = modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp),
@@ -402,7 +413,8 @@ fun FeedConsumptionList(
                 }
 
             },
-            onUpdateFeed = onUpdateFeed
+            onUpdateFeed = onUpdateFeed,
+            isSaveButtonEnabled = isSaveButtonEnabled
         )
     }
 }
@@ -532,12 +544,9 @@ fun UpdateFeedDialog(
     onUpdateFeed: (FeedUiState) -> Unit,
     isAddFeedTypeDialogShowing: Boolean,
     onTypeDialogShowing: () -> Unit,
+    isSaveButtonEnabled: Boolean
 ) {
     var newFeedType by remember { mutableStateOf("") }
-    var isSaveButtonEnabled by remember { mutableStateOf(true) }
-    isSaveButtonEnabled = feedUiState.actualConsumed != "0.0"
-            && feedUiState.actualConsumed.isNotBlank()
-            && checkNumberExceptions(feedUiState)
     val keyboardController = LocalSoftwareKeyboardController.current
     var actualFeedConsumed by remember { mutableStateOf("") }
 

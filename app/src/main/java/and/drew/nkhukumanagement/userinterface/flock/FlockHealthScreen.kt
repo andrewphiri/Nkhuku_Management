@@ -111,7 +111,7 @@ fun FlockHealthScreen(
         navigateToFlockEditScreen = { flockId, healthID ->
             navigateToFlockEditScreen(flockID, healthID)
         },
-        flockHealthList = flockWithHealth?.health,
+        flockHealthList = flockWithHealth?.health?.sortedBy { it.date },
         flockId = flockWithHealth?.flock?.id,
         contentType = contentType,
         title = title ?: stringResource(FlockHealthScreenDestination.resourceId)

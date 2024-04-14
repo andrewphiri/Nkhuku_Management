@@ -161,7 +161,7 @@ fun HomeScreen(
             },
             navigateToFlockDetails = navigateToFlockDetails,
             onClickSettings = onClickSettings,
-            flocks = homeUiState.flockList,
+            flocks = homeUiState.flockList.sortedBy { it.datePlaced },
             resetFlock = {
                 flockEntryViewModel.resetAll()
             },
@@ -246,7 +246,7 @@ fun HomeScreen(
 
             },
             onClickSettings = onClickSettings,
-            flocks = homeUiState.flockList,
+            flocks = homeUiState.flockList.sortedBy { it.datePlaced },
             resetFlock = {
                 flockEntryViewModel.resetAll()
             },
