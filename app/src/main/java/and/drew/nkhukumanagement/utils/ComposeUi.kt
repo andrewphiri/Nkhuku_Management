@@ -9,6 +9,7 @@ import and.drew.nkhukumanagement.userinterface.navigation.TabScreens
 import android.content.res.Configuration
 import android.graphics.Paint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -387,6 +388,77 @@ fun DropDownMenuDialog(
                             onExpand(false)
                         }
                     )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropDownMenuAutoCompleteDialog(
+    modifier: Modifier = Modifier,
+    value: String,
+    expanded: Boolean, onExpand: (Boolean) -> Unit,
+    onOptionSelected: (String) -> Unit,
+    onDismissed: () -> Unit,
+    isEditable: Boolean = true,
+    options: List<String>,
+    label: String,
+) {
+    val filterOptions = options.filter { it.contains(value, ignoreCase = true) }
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.TopCenter
+    ) {
+        ExposedDropdownMenuBox(
+            expanded = if (isEditable) expanded else false,
+            onExpandedChange = onExpand
+        ) {
+            TextField(
+                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                textStyle = MaterialTheme.typography.bodySmall,
+                value = value,
+                onValueChange = {
+                    onOptionSelected(it)
+                },
+                label = {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                },
+                isError = value.isBlank(),
+//                trailingIcon = {
+//                    if (isEditable) {
+//                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+//                    }
+//                },
+                colors = ExposedDropdownMenuDefaults.textFieldColors(
+                    disabledTextColor = LocalContentColor.current.copy(alpha = LocalContentColor.current.alpha),
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(
+                        LocalContentColor.current.alpha
+                    )
+                ),
+                enabled = isEditable
+            )
+
+            if (value.isNotBlank() && filterOptions.isNotEmpty()) {
+                ExposedDropdownMenu(
+                    modifier = Modifier.exposedDropdownSize(true),
+                    expanded = if (!isEditable and expanded) false else expanded,
+                    onDismissRequest = onDismissed
+                ) {
+                    filterOptions.forEach { option ->
+                        DropdownMenuItem(
+                            modifier = Modifier.semantics { contentDescription = option },
+                            text = { Text(text = option) },
+                            onClick = {
+                                onOptionSelected(option)
+                                onExpand(false)
+                            }
+                        )
+                    }
                 }
             }
         }

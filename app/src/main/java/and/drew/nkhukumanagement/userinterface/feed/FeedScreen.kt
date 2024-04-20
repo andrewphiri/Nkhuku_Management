@@ -549,7 +549,10 @@ fun UpdateFeedDialog(
     var newFeedType by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
     var actualFeedConsumed by remember { mutableStateOf("") }
+    var selectedOption by remember { mutableStateOf("") }
+    val filterOptions = feedUiState.options.filter { it.contains(selectedOption) }
 
+    selectedOption = feedUiState.type
     if (showDialog) {
         Dialog(
             onDismissRequest = onDismiss,
@@ -581,9 +584,9 @@ fun UpdateFeedDialog(
                             ) {
                                 TextField(
                                     modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                    readOnly = true,
-                                    value = feedUiState.type,
+                                    value = selectedOption,
                                     onValueChange = {
+                                        selectedOption = it
                                         onChangedValue(feedUiState.copy(type = it))
                                     },
                                     label = { Text(stringResource(R.string.feed_type)) },
@@ -593,37 +596,39 @@ fun UpdateFeedDialog(
                                     },
                                     colors = ExposedDropdownMenuDefaults.textFieldColors()
                                 )
-
-                                ExposedDropdownMenu(
-                                    modifier = Modifier.exposedDropdownSize(true),
-                                    expanded = expanded,
-                                    onDismissRequest = onInnerDialogDismiss
-                                ) {
-                                    feedUiState.options.forEach { option ->
-                                        DropdownMenuItem(
-                                            modifier = Modifier.semantics {
-                                                contentDescription = option
-                                            },
-                                            text = { Text(text = option) },
-                                            onClick = {
-                                                onChangedValue(feedUiState.copy(type = option))
-                                                onExpand(expanded)
-                                            }
-                                        )
+                                if (selectedOption.isNotBlank() && filterOptions.isNotEmpty()) {
+                                    ExposedDropdownMenu(
+                                        modifier = Modifier.exposedDropdownSize(true),
+                                        expanded = expanded,
+                                        onDismissRequest = onInnerDialogDismiss
+                                    ) {
+                                        filterOptions.forEach { option ->
+                                            DropdownMenuItem(
+                                                modifier = Modifier.semantics {
+                                                    contentDescription = option
+                                                },
+                                                text = { Text(text = option) },
+                                                onClick = {
+                                                    onChangedValue(feedUiState.copy(type = option))
+                                                    onExpand(expanded)
+                                                }
+                                            )
+                                        }
                                     }
                                 }
+
                             }
                         }
-                        IconButton(
-                            modifier = Modifier.weight(0.2f),
-                            onClick = onTypeDialogShowing
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Add type",
-                                tint = MaterialTheme.colorScheme.secondary
-                            )
-                        }
+//                        IconButton(
+//                            modifier = Modifier.weight(0.2f),
+//                            onClick = onTypeDialogShowing
+//                        ) {
+//                            Icon(
+//                                imageVector = Icons.Default.Add,
+//                                contentDescription = "Add type",
+//                                tint = MaterialTheme.colorScheme.secondary
+//                            )
+//                        }
                     }
 
                     TextField(

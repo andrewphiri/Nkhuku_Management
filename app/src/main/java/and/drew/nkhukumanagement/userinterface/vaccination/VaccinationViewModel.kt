@@ -80,7 +80,7 @@ class VaccinationViewModel @Inject constructor(
         private set
 
     //Dropdown menu items for the vaccination entry
-    val options = mutableListOf("Gumburo", "Lasota")
+    val options = mutableListOf("Gumburo", "Lasota(Newcastle)")
 
     val getAllVaccinationItems: StateFlow<List<Vaccination>> =
         flockRepository.getAllVaccinationItems()

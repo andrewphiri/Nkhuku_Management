@@ -10,13 +10,12 @@ import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
-import and.drew.nkhukumanagement.utils.DropDownMenuDialog
+import and.drew.nkhukumanagement.utils.DropDownMenuAutoCompleteDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
-import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.activity.ComponentActivity
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -247,6 +246,7 @@ fun AddFlockInputForm(
     var expanded by rememberSaveable { mutableStateOf(false) }
     var isBreedDialogShowing by remember { mutableStateOf(false) }
     var newBreedEntry by remember { mutableStateOf("") }
+    var selectedOption by remember { mutableStateOf("") }
 
     val dateState = rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
@@ -267,14 +267,15 @@ fun AddFlockInputForm(
     ) {
 
         Row {
-            DropDownMenuDialog(
-                modifier = Modifier.weight(0.8f).semantics { contentDescription = "breed options" },
-                value = flockUiState.breed,
+            DropDownMenuAutoCompleteDialog(
+                modifier = Modifier.semantics { contentDescription = "breed options" },
+                value = selectedOption,
                 expanded = expanded,
                 onExpand = {
                     expanded = !expanded
                 },
                 onOptionSelected = {
+                    selectedOption = it
                     onValueChanged(flockUiState.copy(breed = it))
                 },
                 onDismissed = {
@@ -283,16 +284,16 @@ fun AddFlockInputForm(
                 options = options,
                 label = stringResource(R.string.breed)
             )
-            IconButton(
-                modifier = Modifier.weight(0.2f),
-                onClick = { isBreedDialogShowing = true }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_breed),
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-            }
+//            IconButton(
+//                modifier = Modifier.weight(0.2f),
+//                onClick = { isBreedDialogShowing = true }
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Default.Add,
+//                    contentDescription = stringResource(R.string.add_breed),
+//                    tint = MaterialTheme.colorScheme.secondary
+//                )
+//            }
         }
 
         AddNewEntryDialog(

@@ -16,6 +16,7 @@ import and.drew.nkhukumanagement.userinterface.weight.WeightViewModel
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
+import and.drew.nkhukumanagement.utils.DropDownMenuAutoCompleteDialog
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.os.Build
@@ -696,9 +697,9 @@ fun StatefulDropDownMenu(
 
     vaccinationUiState.setName(optionSelected)
     Row {
-        DropDownMenuDialog(
-            modifier = modifier.weight(0.8f),
-            value = vaccinationUiState.getName(),
+        DropDownMenuAutoCompleteDialog(
+            modifier = modifier,
+            value = optionSelected,
             expanded = vaccinationUiState.isExpanded,
             onExpand = {
                 expanded = if (editable) !expanded else false
@@ -707,6 +708,7 @@ fun StatefulDropDownMenu(
             },
             onOptionSelected = {
                 optionSelected = it
+                onValueChanged(vaccinationUiState.copy(name = optionSelected))
             },
             onDismissed = {
                 expanded = false
@@ -717,17 +719,17 @@ fun StatefulDropDownMenu(
             label = stringResource(R.string.vaccination_name)
         )
 
-        IconButton(
-            modifier = Modifier.weight(0.2f),
-            enabled = isEditable,
-            onClick = { isVaccinationDialogShowing = true }
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add Vaccination Type",
-                tint = MaterialTheme.colorScheme.secondary
-            )
-        }
+//        IconButton(
+//            modifier = Modifier.weight(0.2f),
+//            enabled = isEditable,
+//            onClick = { isVaccinationDialogShowing = true }
+//        ) {
+//            Icon(
+//                imageVector = Icons.Default.Add,
+//                contentDescription = "Add Vaccination Type",
+//                tint = MaterialTheme.colorScheme.secondary
+//            )
+//        }
     }
     AddNewEntryDialog(
         entry = newVaccinationEntry,
