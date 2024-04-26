@@ -31,12 +31,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -49,6 +51,7 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import junit.framework.TestCase
 import kotlinx.coroutines.test.runTest
+import okhttp3.internal.wait
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -415,13 +418,11 @@ class AppFlowTests {
 
         composeRule
             .onNodeWithText("Breed")
-            .performClick()
+            .performTextInput("Hybrid")
 
-
-        composeRule
-            .onNodeWithContentDescription("Hybrid", useUnmergedTree = true)
-            .performClick()
-
+//        composeRule
+//            .onNodeWithContentDescription("Hybrid", useUnmergedTree = true)
+//            .performClick()
 
         composeRule
             .onNodeWithText("Batch name")
@@ -509,17 +510,16 @@ class AppFlowTests {
             .performScrollToIndex(1)
             .performClick()
 
-        composeRule
-            .onNodeWithContentDescription("feed type")
-            .performClick()
 
         composeRule
-            .onNodeWithContentDescription("Starter", useUnmergedTree = true)
-            .performClick()
+            .onNodeWithText("Feed type")
+            .performTextInput("Starter")
+
 
         composeRule
             .onNodeWithText("Quantity")
             .performTextInput("150")
+
         composeRule
             .onNodeWithText("Save", useUnmergedTree = true)
             .assertIsEnabled()
@@ -538,18 +538,18 @@ class AppFlowTests {
             .performClick()
 
         composeRule
-            .onNodeWithContentDescription("Weight")
+            .onNodeWithContentDescription("Weights")
             .performClick()
 
         composeRule
-            .onNodeWithContentDescription("Edit weights")
+            .onNodeWithContentDescription("Weight 1")
             .performClick()
 
         composeRule
-            .onNodeWithContentDescription("Weight 0")
+            .onNodeWithText("Actual weight")
             .performTextInput("160")
         composeRule
-            .onNodeWithText("Update", useUnmergedTree = true)
+            .onNodeWithText("Save", useUnmergedTree = true)
             .assertIsEnabled()
     }
 

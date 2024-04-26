@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement.userinterface.feed
 
+import and.drew.nkhukumanagement.BaseFlockApplication
 import and.drew.nkhukumanagement.FlockApplication
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Feed
@@ -27,7 +28,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    val application: FlockApplication,
+    val application: BaseFlockApplication,
     val savedStateHandle: SavedStateHandle,
     val flockRepository: FlockRepository
 ) : ViewModel() {

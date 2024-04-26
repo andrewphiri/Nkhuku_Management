@@ -40,7 +40,7 @@ fun checkNumberExceptions(feedUiState: FeedUiState): Boolean {
     return try {
         feedUiState.toFeed()
         true
-    } catch (e: NumberFormatException) {
+    } catch (e: Exception) {
         false
     }
 }

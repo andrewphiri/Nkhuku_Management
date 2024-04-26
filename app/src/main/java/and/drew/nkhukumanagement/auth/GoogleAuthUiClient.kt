@@ -94,6 +94,7 @@ class GoogleAuthUiClient(
                 GoogleIdTokenRequestOptions.builder()
                     .setSupported(true)
                     .setFilterByAuthorizedAccounts(false)
+                    //Provide server client ID
                     .setServerClientId(context.getString(R.string.web_client_ID))
                     .build()
             )

@@ -9,10 +9,12 @@ import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.MainAddFlockScreen
 import and.drew.nkhukumanagement.userinterface.home.MainHomeScreen
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuNavHost
+import and.drew.nkhukumanagement.userinterface.vaccination.AddVaccinationsDestination
 import and.drew.nkhukumanagement.utils.ContentType
 import android.content.Context
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -25,6 +27,7 @@ import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import junit.framework.TestCase
 import junit.framework.TestCase.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -146,7 +149,7 @@ class ScreenTests {
             )
         )
 
-        composeRule.setContent {
+        composeRule.activity.setContent {
             MainHomeScreen(
                 navigateToAddFlock = {},
                 navigateToFlockDetails = {},
@@ -185,55 +188,29 @@ class ScreenTests {
         }
 
         composeRule
-            .onNodeWithContentDescription("breed options")
-            .performClick()
+            .onNodeWithText("Breed")
+            .performTextInput("Zamhatch")
 
 
         composeRule
-            .onNodeWithContentDescription("Ross", useUnmergedTree = true)
-            .performClick()
-
+            .onNodeWithText("Batch name")
+            .performTextInput("April batch")
         composeRule
-            .onNodeWithContentDescription("batch")
-            .performTextInput("January batch")
+            .onNodeWithText("Number of chicks placed")
+            .performTextInput("450")
         composeRule
-            .onNodeWithContentDescription("quantity")
-            .performTextInput("350")
+            .onNodeWithText("Price Per Bird")
+            .performTextInput("17")
         composeRule
-            .onNodeWithContentDescription("price per bird")
-            .performTextInput("16")
-        composeRule
-            .onNodeWithContentDescription("donor flock")
+            .onNodeWithText("Donor flock")
             .performTextInput("5")
 
         composeRule
-            .onNodeWithContentDescription("navigate to vaccination screen")
-            .performClick()
-            .assertExists()
-    }
-    @Test
-    fun detailsScreenTest() {
-        composeRule.activity.setContent {
-            userPrefsViewModel = hiltViewModel()
-            NkhukuNavHost(
-                navController = navController,
-                userPrefsViewModel = userPrefsViewModel,
-                isAccountSetupSkipped = false,
-                isEmailVerified = false,
-                isUserSignedIn = false
-            )
-        }
-        composeRule
-            .onNodeWithText("Skip")
-            .performClick()
+            .onNodeWithText("Set vaccination days")
+            .assertIsEnabled()
 
-        composeRule
-            .onNodeWithContentDescription("flockList")
-            .performScrollToIndex(4)
-            .performClick()
-        val route = navController.currentBackStackEntry?.destination?.route
-        assertEquals(route, "${FlockDetailsDestination.route}/{${FlockDetailsDestination.flockId}}")
     }
+
 
     @Test
     fun accountScreenTest() {

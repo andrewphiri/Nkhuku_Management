@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement.userinterface.overview
 
+import and.drew.nkhukumanagement.BaseFlockApplication
 import and.drew.nkhukumanagement.FlockApplication
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Account
@@ -20,7 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
-    val application: FlockApplication,
+    val application: BaseFlockApplication,
     val flockRepository: FlockRepository
 ) : ViewModel() {
     companion object {

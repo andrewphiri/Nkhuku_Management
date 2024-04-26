@@ -11,6 +11,7 @@ import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.AddNewEntryDialog
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
+import and.drew.nkhukumanagement.utils.DropDownMenuAutoCompleteDialog
 import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -130,6 +131,16 @@ fun FeedScreen(
             && feedViewModel.feedUiState.actualConsumed.isNotBlank()
             && checkNumberExceptions(feedViewModel.feedUiState)
             && feedViewModel.feedUiState.actualConsumed != actualFeedConsumed.toString()
+    var feedIDClicked by remember { mutableStateOf(0) }
+
+    LaunchedEffect(key1 = feedIDClicked) {
+        if (feedIDClicked > 0) {
+            feed.observe(lifecycleOwner) {
+                feedViewModel.setFeedState(it.toFeedUiState())
+                actualFeedConsumed = it.consumed
+            }
+        }
+    }
 
 
     val feedList: List<Feed> = flockWithFeed.feedList ?: listOf()
@@ -162,12 +173,8 @@ fun FeedScreen(
         },
         contentType = contentType,
         onItemClick = {
+            feedIDClicked = it
             feedViewModel.setFeedID(it)
-
-            feed.observe(lifecycleOwner) {
-                feedViewModel.setFeedState(it.toFeedUiState())
-                actualFeedConsumed = it.consumed
-            }
         },
         isSaveButtonEnabled = isSaveButtonEnabled
     )
@@ -224,8 +231,8 @@ fun MainFeedScreen(
             FeedConsumptionList(
                 onItemChange = onItemChange,
                 onItemClick = {
-                    onItemClick(it)
                     showDialog = true
+                    onItemClick(it)
                 },
                 showDialog = showDialog,
                 expanded = expanded,
@@ -353,8 +360,6 @@ fun FeedConsumptionList(
                 textAlign = TextAlign.Center
             )
 
-
-
             Text(
                 modifier = Modifier.weight(0.75f, fill = true),
                 text = stringResource(R.string.standard_kg),
@@ -403,7 +408,7 @@ fun FeedConsumptionList(
                                 )
                         )
                     )
-                } catch (e: NumberFormatException) {
+                } catch (e: Exception) {
                     setFeedState(
                         feedUiState.copy(
                             type = it.type,
@@ -573,62 +578,18 @@ fun UpdateFeedDialog(
                         style = MaterialTheme.typography.headlineMedium
                     )
                     Row {
-                        Box(
-                            modifier = Modifier.weight(0.8f),
-                            contentAlignment = Alignment.TopCenter
-                        ) {
-                            ExposedDropdownMenuBox(
-                                modifier = Modifier.semantics { contentDescription = "feed type" },
-                                expanded = expanded,
-                                onExpandedChange = onExpand
-                            ) {
-                                TextField(
-                                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                    value = selectedOption,
-                                    onValueChange = {
-                                        selectedOption = it
-                                        onChangedValue(feedUiState.copy(type = it))
-                                    },
-                                    label = { Text(stringResource(R.string.feed_type)) },
-                                    isError = feedUiState.isSingleEntryValid(feedUiState.type),
-                                    trailingIcon = {
-                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                                    },
-                                    colors = ExposedDropdownMenuDefaults.textFieldColors()
-                                )
-                                if (selectedOption.isNotBlank() && filterOptions.isNotEmpty()) {
-                                    ExposedDropdownMenu(
-                                        modifier = Modifier.exposedDropdownSize(true),
-                                        expanded = expanded,
-                                        onDismissRequest = onInnerDialogDismiss
-                                    ) {
-                                        filterOptions.forEach { option ->
-                                            DropdownMenuItem(
-                                                modifier = Modifier.semantics {
-                                                    contentDescription = option
-                                                },
-                                                text = { Text(text = option) },
-                                                onClick = {
-                                                    onChangedValue(feedUiState.copy(type = option))
-                                                    onExpand(expanded)
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
-//                        IconButton(
-//                            modifier = Modifier.weight(0.2f),
-//                            onClick = onTypeDialogShowing
-//                        ) {
-//                            Icon(
-//                                imageVector = Icons.Default.Add,
-//                                contentDescription = "Add type",
-//                                tint = MaterialTheme.colorScheme.secondary
-//                            )
-//                        }
+                        DropDownMenuAutoCompleteDialog(
+                            value = selectedOption,
+                            expanded = expanded,
+                            onExpand = onExpand,
+                            onOptionSelected = {
+                                selectedOption = it
+                                onChangedValue(feedUiState.copy(type = it))
+                            },
+                            onDismissed = onDismiss,
+                            options = feedUiState.options,
+                            label = stringResource(R.string.feed_type)
+                        )
                     }
 
                     TextField(
@@ -647,19 +608,19 @@ fun UpdateFeedDialog(
                         )
                     )
 
-                    AddNewEntryDialog(
-                        entry = newFeedType,
-                        showDialog = isAddFeedTypeDialogShowing,
-                        onValueChanged = { newFeedType = it },
-                        onDismissed = onInnerDialogDismiss,
-                        label = stringResource(R.string.feed_type),
-                        onSaveEntry = {
-                            feedUiState.options.add(newFeedType)
-                            onChangedValue(feedUiState.copy(type = newFeedType))
-                            onInnerDialogDismiss()
-                        },
-                        isEnabled = newFeedType.isNotBlank()
-                    )
+//                    AddNewEntryDialog(
+//                        entry = newFeedType,
+//                        showDialog = isAddFeedTypeDialogShowing,
+//                        onValueChanged = { newFeedType = it },
+//                        onDismissed = onInnerDialogDismiss,
+//                        label = stringResource(R.string.feed_type),
+//                        onSaveEntry = {
+//                            feedUiState.options.add(newFeedType)
+//                            onChangedValue(feedUiState.copy(type = newFeedType))
+//                            onInnerDialogDismiss()
+//                        },
+//                        isEnabled = newFeedType.isNotBlank()
+//                    )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)

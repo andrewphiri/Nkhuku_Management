@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement.backup
 
+import and.drew.nkhukumanagement.BaseFlockApplication
 import and.drew.nkhukumanagement.BuildConfig
 import and.drew.nkhukumanagement.FlockApplication
 import and.drew.nkhukumanagement.data.FlockDatabase
@@ -21,7 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class BackupAndRestoreViewModel @Inject constructor(
     private val database: FlockDatabase,
-    private val application: FlockApplication
+    private val application: BaseFlockApplication
 ) : ViewModel() {
 
     fun backupAndShareFile() {

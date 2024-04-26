@@ -14,15 +14,15 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    /**
-     * Provide for instances of FlockApplication that will be used
-     * to inject context in VaccinationViewModel
-     */
-    @Singleton
-    @Provides
-    fun provideApplication(@ApplicationContext context: Context): FlockApplication {
-        return context as FlockApplication
-    }
+//    /**
+//     * Provide for instances of FlockApplication that will be used
+//     * to inject context in VaccinationViewModel
+//     */
+//    @Singleton
+//    @Provides
+//    fun provideApplication(@ApplicationContext context: Context): FlockApplication {
+//        return context as FlockApplication
+//    }
 
     /**
      * Provide for instances of FlockApplication that will be used

@@ -9,43 +9,30 @@ import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -53,6 +40,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -74,7 +62,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -128,6 +115,7 @@ fun WeightScreen(
 
     var isSaveButtonEnabled by remember { mutableStateOf(true) }
     var actualNewWeight by remember { mutableStateOf(-1.0) }
+    var weightIDClicked by remember { mutableStateOf(0) }
     isSaveButtonEnabled =
         weightViewModel.weightUiState.actualWeight != "0.0"
                 && weightViewModel.weightUiState.actualWeight.isNotBlank()
@@ -140,6 +128,14 @@ fun WeightScreen(
 
     weightViewModel.setWeightList(weightUiStateList.toMutableStateList())
 
+    LaunchedEffect(key1 = weightIDClicked) {
+        if (weightIDClicked > 0) {
+            weight.observe(lifecycleOwner) {
+                weightViewModel.setWeightState(it.toWeightUiState())
+                actualNewWeight = it.weight
+            }
+        }
+    }
     var isUpdateEnabled by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -154,9 +150,9 @@ fun WeightScreen(
         },
         snackbarHost = { SnackbarHost(snackBarHostState) },
     ) { innerPadding ->
-        isUpdateEnabled =
-            weightViewModel.getWeightList().zip(weightUiStateList).all { it.first.actualWeight == it.second.actualWeight }
-                .not()
+//        isUpdateEnabled =
+//            weightViewModel.getWeightList().zip(weightUiStateList).all { it.first.actualWeight == it.second.actualWeight }
+//                .not()
         Column(
             modifier = Modifier
                 .padding(innerPadding),
@@ -188,12 +184,9 @@ fun WeightScreen(
                     weightViewModel.setWeightState(it)
                 },
                 onItemClick = {
-                    weightViewModel.setWeightID(it)
-                    weight.observe(lifecycleOwner) {
-                        weightViewModel.setWeightState(it.toWeightUiState())
-                        actualNewWeight = it.weight
-                    }
                     showUpdateDialog = true
+                    weightViewModel.setWeightID(it)
+                    weightIDClicked = it
                 },
                 weightUiState = weightViewModel.weightUiState,
                 isSaveButtonEnabled = isSaveButtonEnabled
@@ -201,7 +194,6 @@ fun WeightScreen(
         }
     }
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -249,6 +241,7 @@ fun WeightInputList(
             )
         }
         LazyColumn(
+            modifier = Modifier.semantics { contentDescription = "weight list" } ,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             itemsIndexed(weightUiStateList) { index, weightItem ->
@@ -355,7 +348,6 @@ fun WeightCard(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun UpdateWeightDialog(
     modifier: Modifier = Modifier,
@@ -376,7 +368,7 @@ fun UpdateWeightDialog(
             properties = DialogProperties()
         ) {
             OutlinedCard(
-                modifier = modifier,
+                modifier = modifier.semantics { contentDescription = "weight dialog" },
                 shape = MaterialTheme.shapes.extraLarge
             ) {
                 Column(
