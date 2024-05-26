@@ -14,6 +14,7 @@ data class Vaccination(
     val id: Int = 0,
     val flockUniqueId: String,
     val name: String,
+    val method: String,
     val date: LocalDate,
     val notes: String,
     val notificationUUID: UUID,

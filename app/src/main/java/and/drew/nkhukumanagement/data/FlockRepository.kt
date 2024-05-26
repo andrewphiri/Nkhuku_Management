@@ -58,6 +58,11 @@ interface FlockRepository {
     fun getFlock(id: Int): Flow<Flock>
 
     /**
+     * Retrieve flock from data source
+     */
+    fun getFlock(uniqueID: String): Flow<Flock>?
+
+    /**
      * Retrieve flock health from data source
      */
     fun getFlockHealthItem(id: Int): Flow<FlockHealth>

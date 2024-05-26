@@ -374,6 +374,7 @@ fun IncomeCardPreview() {
                 flockUniqueID = "",
                 cumulativeTotalIncome = 10000.25,
                 notes = "",
+                incomeType = "Sale",
             ), onDeleteIncome = {},
             currencyLocale = "en_ZM"
         )

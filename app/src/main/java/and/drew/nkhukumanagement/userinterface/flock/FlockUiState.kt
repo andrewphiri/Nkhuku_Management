@@ -4,22 +4,22 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.os.Build
-import android.os.Parcelable
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.derivedStateOf
-import kotlinx.parcelize.Parcelize
 import java.time.LocalDate
 
 
 /**
  * Represents the UI state for [AddFlockScreen] and [FlockDetailsScreen]
  */
-@Parcelize
+
 @RequiresApi(Build.VERSION_CODES.O)
 data class FlockUiState(
     val id: Int = 0,
     private var uniqueId: String = "",
     val batchName: String = "",
+    val flockType: String = "",
+    val layerType: String = "",
     val breed: String = "",
     private var datePlaced: String = DateUtils().dateToStringLongFormat(LocalDate.now()),
     val quantity: String = "",
@@ -31,8 +31,10 @@ data class FlockUiState(
     private var culls: String = "0",
     val enabled: Boolean = false,
     val active: Boolean = true
-) : Parcelable {
-    val options = mutableListOf("Hybrid", "Ross", "Zamhatch", "Tiger")
+) {
+    val options = mutableListOf("Hybrid", "Ross", "Ross 308","Zamhatch", "Tiger")
+    val flockTypeOptions = mutableListOf("Broiler", "Layer", "Village Chicken")
+    val layerTypeOptions = mutableListOf("Hybrid Brown Layer", "Hybrid Zambro", "Lohmann Brown Classic")
 
     fun setDate(date: String) {
         datePlaced = derivedStateOf { date }.value
@@ -102,6 +104,8 @@ fun FlockUiState.toFlock(): Flock = Flock(
     id = id,
     uniqueId = getUniqueId(),
     batchName = batchName,
+    flockType = flockType,
+    layerBreed = layerType,
     breed = breed,
     datePlaced = DateUtils().stringToLocalDate(getDate()),
     numberOfChicksPlaced = quantity.toInt(),
@@ -135,6 +139,8 @@ fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
         id = id,
         uniqueId = uniqueId,
         batchName = batchName,
+        flockType = flockType,
+        layerType = layerBreed,
         breed = breed,
         datePlaced = DateUtils().dateToStringLongFormat(datePlaced),
         quantity = numberOfChicksPlaced.toString(),
@@ -153,11 +159,14 @@ fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
 @RequiresApi(Build.VERSION_CODES.O)
 fun FlockUiState.isValid(): Boolean {
     return breed.isNotBlank() &&
+            flockType.isNotBlank() &&
             getDate().isNotBlank() &&
             quantity.isNotBlank() &&
             cost.isNotBlank() &&
-            donorFlock.isNotBlank()
-            && batchName.isNotBlank()
+            donorFlock.isNotBlank() &&
+            batchName.isNotBlank() &&
+            flockType.isNotBlank()
+
 }
 
 /**

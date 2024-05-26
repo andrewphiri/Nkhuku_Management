@@ -7,9 +7,13 @@ import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.AccountsWithIncome
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
+import and.drew.nkhukumanagement.userinterface.flock.EditFlockViewModel
+import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
+import and.drew.nkhukumanagement.userinterface.flock.toFlock
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
+import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -95,10 +99,13 @@ fun AddIncomeScreen(
     incomeViewModel: IncomeViewModel = hiltViewModel(),
     accountsViewModel: AccountsViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel,
+    editFlockViewModel: EditFlockViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     contentType: ContentType
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
     val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState(
         AccountsWithIncome(
             accountsSummary = AccountsSummary(
@@ -118,7 +125,6 @@ fun AddIncomeScreen(
             cumulativeTotalIncome = "0"
         ).toIncome()
     )
-    val coroutineScope = rememberCoroutineScope()
 
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
@@ -127,6 +133,15 @@ fun AddIncomeScreen(
     var title by remember { mutableStateOf("") }
     title = stringResource(AddIncomeScreenDestination.resourceId)
     val incomeID by incomeViewModel.incomeID.collectAsState(initial = 0)
+    var expanded by remember { mutableStateOf(false) }
+    val flock = editFlockViewModel.getFlock(accountsWithIncome.accountsSummary.flockUniqueID)?.collectAsState(
+        FlockUiState(
+            datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
+            quantity = "0",
+            donorFlock = "0",
+            cost = "0"
+        ).toFlock()
+    )
 
     /**
      * if nav argument IncomeID is greater than zero, update state. LaunchedEffect used because this
@@ -148,11 +163,22 @@ fun AddIncomeScreen(
         insertIncome = {
             coroutineScope.launch {
                 incomeViewModel.insertIncome(it)
+                if (incomeViewModel.incomeUiState.incomeType == context.getString(R.string.chicken_sale)) {
+                    if (flock != null) {
+                        editFlockViewModel.updateFlock(flock.value.copy(stock = (flock.value.stock - incomeViewModel.incomeUiState.quantity.toInt())))
+                    }
+                }
             }
         },
         updateIncome = {
+            val quantity =
             coroutineScope.launch {
                 incomeViewModel.updateIncome(it)
+                if (incomeViewModel.incomeUiState.incomeType == "Chicken Sale") {
+                    if (flock != null) {
+                        editFlockViewModel.updateFlock(flock.value.copy(stock = ((flock.value.stock + income.quantity) - incomeViewModel.incomeUiState.quantity.toInt())))
+                    }
+                }
             }
         },
         updateAccountSummary = { accountSummary, incomeUiState ->
@@ -167,7 +193,15 @@ fun AddIncomeScreen(
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
         currencySymbol = currency.symbol,
-        contentType = contentType
+        contentType = contentType,
+        onDismissIncomeTypeDropDownMenu = {
+                                          expanded = false
+        } ,
+        incomeTypeOptions = incomeViewModel.incomeTypeOptions,
+        onExpand = {
+                   expanded = !expanded
+        },
+        expanded = expanded,
     )
 }
 
@@ -187,7 +221,11 @@ fun MainAddIncomeScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     currencySymbol: String,
-    contentType: ContentType
+    contentType: ContentType,
+    onDismissIncomeTypeDropDownMenu: () -> Unit,
+    onExpand: (Boolean) -> Unit,
+    expanded: Boolean,
+    incomeTypeOptions: List<String>
 ) {
     BackHandler {
         onNavigateUp()
@@ -300,7 +338,7 @@ fun MainAddIncomeScreen(
                     }
                 },
                 showDialog = showDialog,
-                onDismissed = { showDialog = false },
+                onDismissDateDialog = { showDialog = false },
                 updateShowDialogOnClick = { showDialog = true },
                 label = stringResource(R.string.date),
                 state = dateState,
@@ -317,7 +355,11 @@ fun MainAddIncomeScreen(
                     }
                     localDateToString
                 },
-                currencySymbol = currencySymbol
+                currencySymbol = currencySymbol,
+                onDismissIncomeTypeDropDownMenu = onDismissIncomeTypeDropDownMenu,
+                incomeTypeOptions = incomeTypeOptions,
+                onExpand = onExpand,
+                expanded = expanded,
             )
         }
 
@@ -337,11 +379,15 @@ fun AddIncomeCard(
     isUpdateButtonEnabled: Boolean,
     showDialog: Boolean,
     label: String,
-    onDismissed: () -> Unit,
+    onDismissDateDialog: () -> Unit,
+    expanded: Boolean,
+    onExpand: (Boolean) -> Unit,
+    onDismissIncomeTypeDropDownMenu: () -> Unit,
     updateShowDialogOnClick: (Boolean) -> Unit,
     saveDateSelected: (DatePickerState) -> String?,
     state: DatePickerState,
-    currencySymbol: String
+    currencySymbol: String,
+    incomeTypeOptions: List<String>,
 ) {
     Column(
         modifier = modifier.padding(16.dp),
@@ -351,17 +397,32 @@ fun AddIncomeCard(
         PickerDateDialog(
             showDialog = showDialog,
             label = label,
-            onDismissed = onDismissed,
+            onDismissed = onDismissDateDialog,
             updateShowDialogOnClick = updateShowDialogOnClick,
             date = incomeUiState.getDate(),
             saveDateSelected = saveDateSelected,
             datePickerState = state,
             onValueChanged = { onValueChanged(incomeUiState.copy(date = it)) },
         )
+
+        DropDownMenuDialog(
+            value = incomeUiState.incomeType,
+            onDismissed = onDismissIncomeTypeDropDownMenu,
+            options = incomeTypeOptions,
+            onOptionSelected = {
+                               onValueChanged(incomeUiState.copy(incomeType = it, incomeName = it))
+            },
+            onExpand = onExpand,
+            label = stringResource(R.string.income_type),
+            expanded = expanded,
+        )
+
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = incomeUiState.incomeName,
+            value = if(incomeUiState.incomeType == stringResource(R.string.chicken_sale)) incomeUiState.incomeType else incomeUiState.incomeName,
             onValueChange = { onValueChanged(incomeUiState.copy(incomeName = it)) },
+            enabled = incomeUiState.incomeType != stringResource(R.string.chicken_sale),
+            readOnly = incomeUiState.incomeType == stringResource(R.string.chicken_sale),
             label = { Text(text = stringResource(R.string.description)) },
             singleLine = true
         )

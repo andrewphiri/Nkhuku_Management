@@ -11,20 +11,20 @@ import java.util.UUID
 /**
  * Represents the UI state for [AddVaccinationsScreen].
  */
-@Parcelize
 data class VaccinationUiState(
     val id: Int = 0,
     private var flockUniqueId: String = "",
     val vaccinationNumber: Int = 1,
     private var name: String = "",
     private var date: String = "",
+    val method: String = "",
     val notes: String = "",
     val actionEnabled: Boolean = false,
     var isExpanded: Boolean = false,
     val notificationUUID: UUID = UUID.randomUUID(),
     val vaccineAdministered: Boolean = false
-) : Parcelable {
-
+)  {
+val methodsVaccineAdministration = listOf("Drinking water", "Subcutaneous injection(SC)","Intramuscular injection(IM)","Spray vaccination","Ocular instillation")
     fun setDate(mDate: String) {
         date = mDate
     }
@@ -63,7 +63,8 @@ fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
     date = DateUtils().stringToLocalDate(getDate()),
     notes = notes,
     hasVaccineBeenAdministered = vaccineAdministered,
-    notificationUUID = notificationUUID
+    notificationUUID = notificationUUID,
+    method = method
 )
 
 /**

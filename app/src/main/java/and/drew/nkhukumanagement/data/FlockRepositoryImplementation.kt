@@ -27,6 +27,8 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
         flockDao.getAllVaccinationItems()
 
     override fun getFlock(id: Int): Flow<Flock> = flockDao.retrieveFlock(id)
+
+    override fun getFlock(uniqueID: String): Flow<Flock>? = flockDao.retrieveFlock(uniqueID)
     override fun getFlockHealthItem(id: Int): Flow<FlockHealth> = flockDao.retrieveHealth(id)
 
     override fun getVaccinationItem(id: Int): Flow<Vaccination> = flockDao.retrieveVaccination(id)

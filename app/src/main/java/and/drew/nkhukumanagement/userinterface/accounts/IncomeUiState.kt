@@ -14,6 +14,7 @@ data class IncomeUiState(
     private var date: String = "date",
     val customer: String = "",
     val incomeName: String = "",
+    val incomeType: String = "",
     val pricePerItem: String = "",
     val quantity: String = "",
     val initialItemIncome: String = "0",
@@ -45,7 +46,8 @@ fun IncomeUiState.toIncome(): Income = Income(
     quantity = quantity.toInt(),
     totalIncome = calculateTotalIncome(quantity, pricePerItem),
     cumulativeTotalIncome = calculateCumulativeIncome(cumulativeTotalIncome, totalIncome),
-    notes = notes
+    notes = notes,
+    incomeType = incomeType
 )
 
 /**
@@ -64,7 +66,8 @@ fun Income.toIncomeUiState(enabled: Boolean = false): IncomeUiState = IncomeUiSt
     totalIncome = totalIncome.toString(),
     cumulativeTotalIncome = cumulativeTotalIncome.toString(),
     notes = notes,
-    enabled = enabled
+    enabled = enabled,
+    incomeType = incomeType
 )
 
 /**
@@ -105,6 +108,7 @@ fun calculateCumulativeIncomeUpdate(
 fun IncomeUiState.isValid(): Boolean {
     return getDate().isNotBlank() &&
             incomeName.isNotBlank() &&
+            incomeType.isNotBlank() &&
             quantity.isNotBlank() &&
             pricePerItem.isNotBlank()
 }

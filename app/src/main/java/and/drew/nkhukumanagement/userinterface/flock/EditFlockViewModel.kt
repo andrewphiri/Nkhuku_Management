@@ -69,6 +69,13 @@ class EditFlockViewModel @Inject constructor(
     }
 
     /**
+     * Update the FlockHealth into the database
+     */
+    suspend fun updateFlock(flock: Flock) {
+        flockRepository.updateFlock(flock)
+    }
+
+    /**
      * Update the FlockHealth
      */
     suspend fun updateHealth(flockHealth: FlockHealth) {
@@ -85,6 +92,10 @@ class EditFlockViewModel @Inject constructor(
 
     fun setFlockIDForHealthScreen(flockID: Int?) {
         savedStateHandle[FlockHealthScreenDestination.flockIdArg] = flockID
+    }
+
+    fun getFlock(uniqueId: String) : Flow<Flock>? {
+        return flockRepository.getFlock(uniqueID = uniqueId)
     }
 
 }

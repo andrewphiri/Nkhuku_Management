@@ -75,6 +75,7 @@ class FlockEntryViewModel @Inject constructor(
             id = 0,
             uniqueId = "",
             batchName = "",
+            flockType = "",
             breed = "",
             datePlaced = "",
             quantity = "",

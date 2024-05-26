@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Nkhuku Management</string>
-
+    <string name="web_client_ID" translatable="false">407807660652-ht6ir9fh5l2lpvgsi9sq3iste8g3no28.apps.googleusercontent.com</string>
     <string name="home">Home</string>
     <string name="accounts">Accounts</string>
     <string name="tips">Tips</string>
@@ -217,4 +217,19 @@
     <string name="vaccination_date">Vaccination Date</string>
     <string name="no_vaccine_reminders">You will not be able to receive vaccination reminders.</string>
     <string name="actual_weight">Actual weight</string>
+    <string name="chicken_sale">Chicken Sale</string>
+    <string name="income_type">Income type</string>
+    <string name="week_9">Week 9</string>
+    <string name="week_10">Week 10</string>
+    <string name="week_11">Week 11</string>
+    <string name="week_12">Week 12</string>
+    <string name="week_13">Week 13</string>
+    <string name="week_14">Week 14</string>
+    <string name="week_15">Week 15</string>
+    <string name="week_16">Week 16</string>
+    <string name="week_17">Week 17</string>
+    <string name="week_18">Week 18</string>
+    <string name="week_19">Week 19</string>
+    <string name="week_20_to_laying_stage">Week 20 up to laying stage</string>
+    <string name="method">Method</string>
 </resources>

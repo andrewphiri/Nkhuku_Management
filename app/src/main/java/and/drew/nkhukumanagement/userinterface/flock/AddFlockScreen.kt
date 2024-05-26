@@ -1,7 +1,6 @@
 package and.drew.nkhukumanagement.userinterface.flock
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
-import and.drew.nkhukumanagement.MainActivity
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
@@ -11,11 +10,11 @@ import and.drew.nkhukumanagement.utils.AddNewEntryDialog
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.DropDownMenuAutoCompleteDialog
+import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,9 +33,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -64,11 +60,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.ZoneId
-import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 
 object AddFlockDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -221,7 +215,7 @@ fun AddFlockBody(
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             onClick = { onVaccinationsScreen(flockUiState) },
-            enabled = flockUiState.enabled
+            enabled = flockUiState.isValid()
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth().padding(8.dp),
@@ -239,14 +233,16 @@ fun AddFlockInputForm(
     flockUiState: FlockUiState,
     modifier: Modifier = Modifier,
     onValueChanged: (FlockUiState) -> Unit = {},
-    currencySymbol: String
+    currencySymbol: String,
 ) {
-
     val options = flockUiState.options
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var expandFlockType by rememberSaveable { mutableStateOf(false) }
+    var expandLayerType by rememberSaveable { mutableStateOf(false) }
     var isBreedDialogShowing by remember { mutableStateOf(false) }
     var newBreedEntry by remember { mutableStateOf("") }
-    var selectedOption by remember { mutableStateOf("") }
+    var selectedBreedOption by remember { mutableStateOf("") }
+    var selectedLayerOption by remember { mutableStateOf("") }
 
     val dateState = rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
@@ -265,17 +261,52 @@ fun AddFlockInputForm(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp).also { Arrangement.Center }
     ) {
+        DropDownMenuDialog(
+            value = flockUiState.flockType,
+            onDismissed = {
+                          expandFlockType = false
+            },
+            options = flockUiState.flockTypeOptions,
+            onOptionSelected = {
+                onValueChanged(flockUiState.copy(flockType = it))
+            },
+            onExpand = {
+                       expandFlockType = !expandFlockType
+            },
+            label = "Flock type",
+            expanded = expandFlockType,
+        )
+
+        if (flockUiState.flockType == "Layer") {
+            DropDownMenuAutoCompleteDialog(
+                value = flockUiState.layerType,
+                onDismissed = {
+                    expandLayerType = false
+                },
+                options = flockUiState.layerTypeOptions,
+                onOptionSelected = {
+                    selectedBreedOption = if (it == "Hybrid Zambro" || it == "Hybrid Brown Layer") "Hybrid" else ""
+                    selectedLayerOption = it
+                    onValueChanged(flockUiState.copy(layerType = it, breed = selectedBreedOption))
+                },
+                onExpand = {
+                    expandLayerType = !expandLayerType
+                },
+                label = "Layer Breed",
+                expanded = expandLayerType,
+            )
+        }
 
         Row {
             DropDownMenuAutoCompleteDialog(
                 modifier = Modifier.semantics { contentDescription = "breed options" },
-                value = selectedOption,
+                value = flockUiState.breed,
                 expanded = expanded,
                 onExpand = {
                     expanded = !expanded
                 },
                 onOptionSelected = {
-                    selectedOption = it
+                    selectedBreedOption = it
                     onValueChanged(flockUiState.copy(breed = it))
                 },
                 onDismissed = {
@@ -284,16 +315,6 @@ fun AddFlockInputForm(
                 options = options,
                 label = stringResource(R.string.breed)
             )
-//            IconButton(
-//                modifier = Modifier.weight(0.2f),
-//                onClick = { isBreedDialogShowing = true }
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Default.Add,
-//                    contentDescription = stringResource(R.string.add_breed),
-//                    tint = MaterialTheme.colorScheme.secondary
-//                )
-//            }
         }
 
         AddNewEntryDialog(

@@ -95,6 +95,9 @@ interface FlockDao {
     @Query("SELECT * FROM flock WHERE id = :id")
     fun retrieveFlock(id: Int): Flow<Flock>
 
+    @Query("SELECT * FROM flock WHERE uniqueId = :flockUniqueID")
+    fun retrieveFlock(flockUniqueID: String): Flow<Flock>?
+
     @Query("SELECT * FROM income WHERE id = :id")
     fun retrieveIncome(id: Int): Flow<Income>
 

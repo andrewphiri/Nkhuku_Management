@@ -234,7 +234,6 @@ fun MainFlockDetailsScreen(
                             )
                         }
                     }
-
                 }
                 item {
                     val weight = weights?.lastOrNull { it.weight > 0.0 }
@@ -269,6 +268,7 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
             id = flock1.id,
             uniqueId = flock1.uniqueId,
             batchName = flock1.batchName,
+            flockType = flock1.flockType,
             breed = flock1.breed,
             datePlaced = flock1.datePlaced,
             mortality = flock1.mortality,
@@ -276,7 +276,8 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
             costPerBird = flock1.costPerBird,
             culls = flock1.culls,
             stock = flock1.stock,
-            donorFlock = flock1.donorFlock
+            donorFlock = flock1.donorFlock,
+            layerBreed = flock1.layerBreed,
         ).toFlockUiState()
     }
 
@@ -379,7 +380,6 @@ fun FeedCard(
                     value = stringResource(R.string.kg, String.format("%.2f", quantityConsumed))
                 )
             }
-
         }
     }
 }
@@ -431,7 +431,8 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
         name = vaccination.name,
         notes = vaccination.notes,
         notificationUUID = vaccination.notificationUUID,
-        hasVaccineBeenAdministered = vaccination.hasVaccineBeenAdministered
+        hasVaccineBeenAdministered = vaccination.hasVaccineBeenAdministered,
+        method = vaccination.method,
     ).toVaccinationUiState()
 
     Card(modifier = modifier.fillMaxSize()) {

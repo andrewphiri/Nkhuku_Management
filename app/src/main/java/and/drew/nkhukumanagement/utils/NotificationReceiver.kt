@@ -39,6 +39,7 @@ class NotificationReceiver : BroadcastReceiver() {
         val vaccineAdministered =
             intent?.getBooleanExtra(Constants.VACCINATION_ADMINISTERED, false) ?: false
         val notificationUUID = intent?.getStringExtra(Constants.VACCINATION_NOTIFICATION_UUID)
+        val method = intent?.getStringExtra(Constants.VACCINATION_NOTIFICATION_METHOD) ?: ""
         val vaccineNotificationId = intent?.getIntExtra(Constants.VACCINE_NOTIFICATION_ID, -1) ?: -1
 
         if (action == ACTION_YES) {
@@ -51,7 +52,8 @@ class NotificationReceiver : BroadcastReceiver() {
                 date = DateUtils().stringToLocalDate(date),
                 hasVaccineBeenAdministered = true,
                 notes = notes,
-                notificationUUID = uuid
+                notificationUUID = uuid,
+                method = method
             )
 
             CoroutineScope(Dispatchers.IO).launch {

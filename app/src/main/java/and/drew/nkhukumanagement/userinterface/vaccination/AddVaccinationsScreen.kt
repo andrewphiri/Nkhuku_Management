@@ -17,7 +17,6 @@ import and.drew.nkhukumanagement.utils.AddNewEntryDialog
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.DropDownMenuAutoCompleteDialog
-import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -36,7 +35,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material3.CardDefaults
@@ -46,7 +44,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -237,7 +234,7 @@ fun AddVaccinationsScreen(
                         vaccinationViewModel.vaccinationUiState.setUniqueId(uniqueID = uniqueId)
 
                         weightViewModel.setWeightList(
-                            weightViewModel.defaultWeight(
+                            weightViewModel.defaultWeights(
                                 flockEntryViewModel.flockUiState
                             )
                         )
@@ -571,7 +568,8 @@ fun VaccinationCardEntry(
     isEditable: Boolean,
     options: MutableList<String>
 ) {
-    //var expand by remember { mutableStateOf(vaccinationUiState.isExpanded) }
+    var expanded by remember { mutableStateOf(false) }
+    var selectedMethodOption by remember { mutableStateOf(vaccinationUiState.method) }
     OutlinedCard(
         modifier = modifier.padding(8.dp),
         elevation = CardDefaults.cardElevation()
@@ -603,6 +601,24 @@ fun VaccinationCardEntry(
                     onValueChanged = onValueChanged,
                     isEditable = isEditable,
                     options = options
+                )
+
+                DropDownMenuAutoCompleteDialog(
+                    modifier = Modifier.semantics { contentDescription = "method" },
+                    value = selectedMethodOption,
+                    expanded = expanded,
+                    onExpand = {
+                        expanded = !expanded
+                    },
+                    onOptionSelected = {
+                        selectedMethodOption = it
+                        onValueChanged(vaccinationUiState.copy(method = it))
+                    },
+                    onDismissed = {
+                        expanded = false
+                    },
+                    options = vaccinationUiState.methodsVaccineAdministration,
+                    label = stringResource(R.string.method)
                 )
                 StatefulPickDateDialog(
                     modifier = modifier,

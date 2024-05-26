@@ -2,16 +2,22 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="addFlockFlow_fromHomeScreen()">
+      <entry key="AppFlowTests">
+        <State />
+      </entry>
+      <entry key="NavigationTests">
+        <State />
+      </entry>
+      <entry key="ScreenTests">
+        <State />
+      </entry>
+      <entry key="addFlockScreen()">
         <State />
       </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="detailsScreenFlowTest_toFeedScreen()">
-        <State />
-      </entry>
-      <entry key="detailsScreenFlowTest_toWeightScreen()">
+      <entry key="tips_to_articlesList_flowTest()">
         <State />
       </entry>
     </value>

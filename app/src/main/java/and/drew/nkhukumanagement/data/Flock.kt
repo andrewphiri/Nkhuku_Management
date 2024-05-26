@@ -15,19 +15,21 @@ data class Flock(
     val id: Int,
     val uniqueId: String,
     val batchName: String,
+    val flockType: String,
+    val layerBreed: String,
     val breed: String,
-    @ColumnInfo(name = "date_received")
+    @ColumnInfo(name = "Date Received")
     val datePlaced: LocalDate,
-    @ColumnInfo(name = "quantity")
+    @ColumnInfo(name = "Quantity")
     val numberOfChicksPlaced: Int,
     @ColumnInfo(name = "Price/bird")
     val costPerBird: Double,
     val stock: Int,
-    @ColumnInfo(name = "donor")
+    @ColumnInfo(name = "Donor")
     val donorFlock: Int,
     val mortality: Int,
     val imageResourceId: Int = R.drawable.add_flock_placeholder,
-    @ColumnInfo(name = "deformities")
+    @ColumnInfo(name = "Deformities")
     val culls: Int,
     val active: Boolean = true,
 )

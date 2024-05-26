@@ -1,7 +1,6 @@
 package and.drew.nkhukumanagement.userinterface.weight
 
 import and.drew.nkhukumanagement.BaseFlockApplication
-import and.drew.nkhukumanagement.FlockApplication
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithWeight
@@ -123,11 +122,65 @@ class WeightViewModel @Inject constructor(
         weightUiState = weighState
     }
 
+
+    /**
+     * Default layer vaccination dates based on breed and date chicks received
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultWeights(
+        flockUiState: FlockUiState
+    ): SnapshotStateList<WeightUiState> {
+
+        return when (flockUiState.flockType) {
+            "Broiler" -> {
+                defaultWeightBroilers1(
+                    flockUiState = flockUiState
+                )
+            }
+            "Layer" -> {
+                defaultLayersFeed(
+                    flockUiState = flockUiState
+                )
+            }
+            "Village Chicken" -> {
+                defaultWeightHybridVillageChicken(
+                    flockUiState = flockUiState
+                )
+            }
+            else -> {
+                defaultWeights(
+                    flockUiState = flockUiState
+                )
+            }
+        }
+    }
+
+    /**
+     * Default layer vaccination dates based on breed and date chicks received
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultLayersFeed(
+        flockUiState: FlockUiState
+    ): SnapshotStateList<WeightUiState> {
+
+        return when (flockUiState.layerType) {
+            "Hybrid Zambro" -> {
+                defaultWeightHybridZambroLayers(
+                    flockUiState = flockUiState,
+                )
+            }
+            else -> {
+                defaultWeightHybridLayers(
+                    flockUiState = flockUiState
+                )
+            }
+        }
+    }
     /**
      * Standard weekly weights for broilers
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun defaultWeight(flockUiState: FlockUiState): SnapshotStateList<WeightUiState> {
+    fun defaultWeightBroilers1(flockUiState: FlockUiState): SnapshotStateList<WeightUiState> {
         val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
         return mutableStateListOf(
             WeightUiState(
@@ -235,4 +288,573 @@ class WeightViewModel @Inject constructor(
             )
         )
     }
+
+    /**
+     * Standard weekly weights for Hybrid Zambro layers
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultWeightHybridZambroLayers(flockUiState: FlockUiState): SnapshotStateList<WeightUiState> {
+        val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
+        return mutableStateListOf(
+            WeightUiState(
+                week = application.applicationContext.getString(R.string.initial),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.038",
+                dateMeasured = flockUiState.getDate()
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_1),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.101",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 7,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_2),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.221",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 14,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_3),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.422",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 21,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_4),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.709",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 28,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_5),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.058",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 35,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_6),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.449",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 42,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_7),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.834",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 49,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_8),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "2.210",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 56,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_9),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "2.567",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 63,
+                    weightUiState = weightUiState
+                )
+            ),
+                WeightUiState(
+                    week = application.applicationContext.getString(
+                        R.string.week_10),
+                    flockUniqueID = flockUiState.getUniqueId(),
+                    actualWeight = "0",
+                    standard = "2.887",
+                    dateMeasured = DateUtils().weightDate(
+                        date = dateReceived,
+                        day = 70,
+                        weightUiState = weightUiState
+                    )
+                ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_11),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "3.174",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 77,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_12),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "3.448",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 84,
+                    weightUiState = weightUiState
+                )
+            ),
+
+        )
+    }
+
+    /**
+     * Standard weekly weights for Hybrid brown layers
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultWeightHybridLayers(flockUiState: FlockUiState): SnapshotStateList<WeightUiState> {
+        val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
+        return mutableStateListOf(
+            WeightUiState(
+                week = application.applicationContext.getString(R.string.initial),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.038",
+                dateMeasured = flockUiState.getDate()
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_1),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.068-0.072",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 7,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_2),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.121-0.129",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 14,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_3),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.840-0.196",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 21,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_4),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.257-0.273",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 28,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_5),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.349-0.371",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 35,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_6),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.446-0.474",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 42,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_7),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.543-0.577",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 49,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_8),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.650-0.680",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 56,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_9),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.757-0.803",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 63,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_10),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.863-0.917",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 70,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_11),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.960-1.020",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 77,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_12),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.048-1.112",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 84,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_13),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.125-1.196",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 91,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_14),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.261-1.339",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 98,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_15),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.270-1365",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 105,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_16),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.329-1.411",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 112,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_17),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.397-1.483",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 119,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_18),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.470-1.570",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 126,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_20_to_laying_stage),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.630-1.730",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 133,
+                    weightUiState = weightUiState
+                )
+            )
+        )
+    }
+
+    /**
+     * Standard weekly weights for Hybrid Village chicken
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultWeightHybridVillageChicken(flockUiState: FlockUiState): SnapshotStateList<WeightUiState> {
+        val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
+        return mutableStateListOf(
+            WeightUiState(
+                week = application.applicationContext.getString(R.string.initial),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.039",
+                dateMeasured = flockUiState.getDate()
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_1),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.130",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 7,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_2),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.297",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 14,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_3),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.549",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 21,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_4),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "0.872",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 28,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_5),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.245",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 35,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_6),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.660",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 42,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_7),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "2.102",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 49,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_8),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "2.532",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 56,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_9),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "2.941",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 63,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_10),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "3.308",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 70,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_11),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "3.655",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 77,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_12),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "3.952",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 84,
+                    weightUiState = weightUiState
+                )
+            )
+        )
+    }
+
 }

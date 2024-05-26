@@ -80,7 +80,7 @@ class VaccinationViewModel @Inject constructor(
         private set
 
     //Dropdown menu items for the vaccination entry
-    val options = mutableListOf("Gumburo", "Lasota(Newcastle)")
+    val options = mutableListOf("Gumburo", "Lasota")
 
     val getAllVaccinationItems: StateFlow<List<Vaccination>> =
         flockRepository.getAllVaccinationItems()
@@ -185,6 +185,77 @@ class VaccinationViewModel @Inject constructor(
         vaccinationUiState: VaccinationUiState
     ): SnapshotStateList<VaccinationUiState> {
 
+        return when (flockUiState.flockType) {
+            "Broiler" -> {
+                broilerVaccinationDates(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+
+            "Layer" -> {
+                defaultLayerVaccinationDates(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+
+            "Village Chicken" -> {
+                defaultHybridVillageVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+
+            else -> {
+                defaultOtherVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+        }
+    }
+
+    /**
+     * Default vaccination dates based on breed and date chicks received
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultLayerVaccinationDates(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
+
+        return when (flockUiState.layerType) {
+            "Hybrid Brown Layer" -> {
+                defaultHybridBrownLayerVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+            "Hybrid Zambro" -> {
+                defaultHybridZambroLayerVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+            else -> {
+                defaultOtherVaccinations(
+                    flockUiState = flockUiState,
+                    vaccinationUiState = vaccinationUiState
+                )
+            }
+        }
+    }
+
+    /**
+     * Default vaccination dates based on breed and date chicks received
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun broilerVaccinationDates(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
+
         return when (flockUiState.breed) {
             "Hybrid" -> {
                 defaultHybridVaccinations(
@@ -246,28 +317,32 @@ class VaccinationViewModel @Inject constructor(
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 9,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
             VaccinationUiState(
                 vaccinationNumber = 2, name = options[1],
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 13,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
             VaccinationUiState(
                 vaccinationNumber = 3, name = options[0],
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 17,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
             VaccinationUiState(
                 vaccinationNumber = 4, name = options[1],
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 20,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             )
         )
     }
@@ -287,14 +362,16 @@ class VaccinationViewModel @Inject constructor(
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 9,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
             VaccinationUiState(
                 vaccinationNumber = 2, name = options[1],
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 11,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
         )
     }
@@ -314,17 +391,104 @@ class VaccinationViewModel @Inject constructor(
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 9,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
             VaccinationUiState(
                 vaccinationNumber = 2, name = options[1],
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 11,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
+        )
+    }
 
-            )
+    /**
+     * Default hybrid layer vaccination dates
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultHybridZambroLayerVaccinations(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
+        val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
+
+        return mutableStateListOf(
+            VaccinationUiState(
+                vaccinationNumber = 1, name = "Gumboro",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 9,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Drinking water"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 2, name = "ND + IB",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 13,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 3, name = "Gumboro",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 17,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Drinking water"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 4, name = "ND + IB",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 20,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 5, name = "Ma5 + clone 30",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 48,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 6, name = "CEO Pox + Diluent",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 55,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Wing web"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 7, name = "IB + ND",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 69,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Intramuscular injection"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 7, name = "Coryza",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 83,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Subcutaneous injection"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 7, name = "Ma5 + clone 30",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 111,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+        )
     }
 
     /**
@@ -342,17 +506,190 @@ class VaccinationViewModel @Inject constructor(
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 9,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
             VaccinationUiState(
                 vaccinationNumber = 2, name = options[1],
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 11,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
+        )
+    }
 
-            )
+    /**
+     * Default hybrid layer vaccination dates
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultHybridVillageVaccinations(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
+        val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
+
+        return mutableStateListOf(
+            VaccinationUiState(
+                vaccinationNumber = 1, name = "IDB MB",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 9,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Drinking water"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 2, name = "ND + IB",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 13,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 3, name = "IDB MB",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 17,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Drinking water"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 4, name = "ND Lasota",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 20,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 5, name = "Prox AE",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 48,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Wing web"
+            ),
+        )
+    }
+
+    /**
+     * Default hybrid layer vaccination dates
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun defaultHybridBrownLayerVaccinations(
+        flockUiState: FlockUiState,
+        vaccinationUiState: VaccinationUiState
+    ): SnapshotStateList<VaccinationUiState> {
+        val dateReceived = DateUtils().stringToLocalDate(flockUiState.getDate())
+
+        return mutableStateListOf(
+            VaccinationUiState(
+                vaccinationNumber = 1, name = "Gumboro",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 9,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Drinking water"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 2, name = "IB 4/91",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 13,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 3, name = "Gumboro",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 17,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Drinking water"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 4, name = "VH",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 20,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 5, name = "Ma5 + clone 30",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 48,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 6, name = "CEO Pox + Diluent",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 55,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Wing web"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 7, name = "NOBILIS IB + ND",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 69,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Intramuscular injection"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 8, name = "IB 4/91",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 76,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 9, name = "NOBIVAC CORYZA S.C. 0.5ML",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 83,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Subcutaneous injection"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 10, name = "AE +POX + DIL",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 83,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Subcutaneous injection"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 11, name = "NOBIVAC CORYZA S.C. 0.5ML",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 111,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Subcutaneous injection"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 12, name = "NOBILIS IB + ND",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 111,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Intramuscular injection"
+            ),
+            VaccinationUiState(
+                vaccinationNumber = 13, name = "Ma5 + clone 30",
+                date = DateUtils().vaccinationDate(
+                    date = dateReceived, day = 118,
+                    vaccinationUiState = vaccinationUiState
+                ),
+                method = "Spray vaccination"
+            ),
+        )
     }
 
 
@@ -371,7 +708,8 @@ class VaccinationViewModel @Inject constructor(
                 date = DateUtils().vaccinationDate(
                     date = dateReceived, day = 10,
                     vaccinationUiState = vaccinationUiState
-                )
+                ),
+                method = "Drinking water"
             ),
         )
     }

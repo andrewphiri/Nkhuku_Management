@@ -29,6 +29,8 @@ class IncomeViewModel @Inject constructor(
         private const val MILLIS = 5_000L
     }
 
+    val incomeTypeOptions = listOf("Chicken Sale", "Other")
+
     var incomeUiState by mutableStateOf(IncomeUiState())
         private set
     private var incomeListState: SnapshotStateList<IncomeUiState> = mutableStateListOf()
