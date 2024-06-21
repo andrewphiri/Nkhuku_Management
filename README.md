@@ -1,7 +1,7 @@
 # Nkhuku Management - Android App
 
-Welcome to Nkhuku Management, your ultimate broiler management companion, designed to streamline the
-process of rearing broilers efficiently. This README provides an overview of the app's
+Welcome to Nkhuku Management, your ultimate poultry management companion, designed to streamline the
+process of rearing broilers, layers, village chickens efficiently. This README provides an overview of the app's
 functionality, setup instructions, and details regarding unit and instrumented tests.
 
 ## Features
@@ -22,6 +22,35 @@ Package ['app/src/main/java/and/drew/nkhukumanagement/userinterface/flock']
 - View comprehensive details of an individual flock including vaccinations, feed, weight, and health
   status.
   [app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/FlockDetailsScreen.kt](app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/FlockDetailsScreen.kt)
+
+### FlockHealth Screen
+
+Package ['app/src/main/java/and/drew/nkhukumanagement/userinterface/flock']
+
+- View details of an individual flock list of mortalities and culls
+  [app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/FlockHealthScreen](app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/FlockHealthScreen.kt)
+
+### FlockEdit Screen
+
+Package ['app/src/main/java/and/drew/nkhukumanagement/userinterface/flock']
+
+- Edit mortalities and/or culls
+  [app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/FlockEditScreen](app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/FlockEditScreen.kt)
+
+### EggsInventory Screen
+
+Package ['app/src/main/java/and/drew/nkhukumanagement/userinterface/flock']
+
+- View a list of good and bad eggs added related to a flock
+  [app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/EggsInventoryScreen](app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/EggsInventoryScreen.kt)
+
+### EditEggs Screen
+
+Package ['app/src/main/java/and/drew/nkhukumanagement/userinterface/flock']
+
+- Edit eggs in inventory
+  [app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/EditEggsScreen](app/src/main/java/and/drew/nkhukumanagement/userinterface/flock/EditEggsScreen.kt)
+
 
 ### Accounts Screen
 
@@ -97,7 +126,7 @@ Package [app/src/main/java/and/drew/nkhukumanagement/settings]
 
 Package [app/src/main/java/and/drew/nkhukumanagement/userinterface/login]
 
-- This screen has using a horizontal pager to present the user with two screens, a sign up and sign
+- This screen has a horizontal pager to present the user with two screens, a sign up and sign
   in screen
 
 ### Sign In Screen

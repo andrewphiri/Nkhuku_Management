@@ -214,4 +214,39 @@
     <string name="vaccination_date">Tsiku la Katemera</string>
     <string name="no_vaccine_reminders">Simudzatha kulandira zikumbutso za katemera.</string>
     <string name="actual_weight">Kulemera kwenikweni</string>
+
+    <string name="chicken_sale">Kugulitsa nkhuku</string>
+    <string name="income_type">Mtundu wa ndalama</string>
+    <string name="week_9">Mlungu wa 9</string>
+    <string name="week_10">Mlungu wa 10</string>
+    <string name="week_11">Mlungu wa 11</string>
+    <string name="week_12">Mlungu wa 12</string>
+    <string name="week_13">Mlungu wa 13</string>
+    <string name="week_14">Mlungu wa 14</string>
+    <string name="week_15">Mlungu wa 15</string>
+    <string name="week_16">Mlungu wa 16</string>
+    <string name="week_17">Mlungu wa 17</string>
+    <string name="week_18">Mlungu wa 18</string>
+    <string name="week_19">Mlungu wa 19</string>
+    <string name="week_20_to_laying_stage">Mlungu wa 20 mpaka kuyika mazira</string>
+    <string name="method">Njira</string>
+    <string name="egg_inventory">Mazira osonkhetsedwa</string>
+    <string name="Eggs">Mazira</string>
+    <string name="good_eggs">Mazira abwino</string>
+    <string name="bad_eggs">Mazira oyipa</string>
+    <string name="no_records_add_eggs">Palibe zolembedwa. Kuti muwonjezere mazira, dinizani batani pansipa.</string>
+    <string name="total_good_eggs">Zonse: Mazira abwino</string>
+    <string name="total_bad_eggs">Zonse: Mazira oyipa</string>
+    <string name="edit_flock_eggs">Sinthani mazira a gulu</string>
+    <string name="delete_egg">Chotsani mbiri iyi?</string>
+    <string name="total_good_eggs_collected">Mazira</string>
+    <string name="other">ZOSANKHA ZINA</string>
+    <string name="tray_size">Kukula kwa thireyi</string>
+    <string name="broiler_starter">Chakudya choyambira cha broiler</string>
+    <string name="pullet_starter">Chakudya choyambira cha pullet</string>
+    <string name="pullet_grower">Chakudya chokula cha pullet</string>
+    <string name="layers_mash">Chakudya cha nkhuku zowika</string>
+    <string name="pre_layer">Chakudya chokonzekera kuyika</string>
+    <string name="flock_type">Mtundu wa gulu</string>
+
 </resources>
