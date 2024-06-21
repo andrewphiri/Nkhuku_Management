@@ -1,6 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.flock
 
 import and.drew.nkhukumanagement.data.Flock
+import and.drew.nkhukumanagement.data.FlockAndEggsSummary
 import and.drew.nkhukumanagement.data.FlockHealth
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithHealth
@@ -58,6 +59,17 @@ class EditFlockViewModel @Inject constructor(
         savedStateHandle.getStateFlow(key = EditFlockDestination.flockIdArg, initialValue = 0)
             .flatMapLatest {
                 flockRepository.getFlocksWithHealth(it)
+            }
+
+    /**
+     * Get all flock and eggsSummary items
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @RequiresApi(Build.VERSION_CODES.O)
+    val flockAndEggsSummaryStateFlow: Flow<FlockAndEggsSummary?> =
+        savedStateHandle.getStateFlow(key = EditFlockDestination.flockIdArg, initialValue = 0)
+            .flatMapLatest {
+                flockRepository.getFlockAndEggsSummary(it)
             }
 
 

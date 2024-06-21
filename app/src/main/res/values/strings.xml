@@ -232,4 +232,22 @@
     <string name="week_19">Week 19</string>
     <string name="week_20_to_laying_stage">Week 20 up to laying stage</string>
     <string name="method">Method</string>
+    <string name="egg_inventory">Eggs collected</string>
+    <string name="Eggs">Eggs</string>
+    <string name="good_eggs">Good Eggs</string>
+    <string name="bad_eggs">Bad Eggs</string>
+    <string name="no_records_add_eggs">No records. To add eggs, tap on the button below.</string>
+    <string name="total_good_eggs">Total: Good Eggs</string>
+    <string name="total_bad_eggs">Total: Bad Eggs</string>
+    <string name="edit_flock_eggs">Edit Flock Eggs</string>
+    <string name="delete_egg">Delete this entry?</string>
+    <string name="total_good_eggs_collected">Eggs</string>
+    <string name="other">OTHER PREFERENCES</string>
+    <string name="tray_size">Tray size</string>
+    <string name="broiler_starter">Broiler Starter</string>
+    <string name="pullet_starter">Pullet Starter</string>
+    <string name="pullet_grower">Pullet Grower</string>
+    <string name="layers_mash">Layers Mash</string>
+    <string name="pre_layer">Prelayer</string>
+    <string name="flock_type">Flock type</string>
 </resources>

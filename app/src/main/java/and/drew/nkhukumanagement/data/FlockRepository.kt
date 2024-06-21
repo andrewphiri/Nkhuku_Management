@@ -18,9 +18,14 @@ interface FlockRepository {
     fun getAllFeedItems(): Flow<List<Feed>>
 
     /**
-     * Retrieve all flock entries from data source
+     * Retrieve all weight entries from data source
      */
     fun getAllWeightItems(): Flow<List<Weight>>
+
+    /**
+     * Retrieve all egg entries from data source
+     */
+    fun getAllEggItems(): Flow<List<Eggs>>
 
     /**
      * Retrieve all flock entries from data source
@@ -31,6 +36,11 @@ interface FlockRepository {
      * Retrieve all flocksWithVaccinations from data source
      */
     fun getAllFlocksWithVaccinations(id: Int): Flow<FlockWithVaccinations>
+
+    /**
+     * Retrieve all flocksWithEggs from data source
+     */
+    fun getAllFlocksWithEggs(id: Int): Flow<FlockWithEggs>
 
     /**
      * Retrieve all flocksWithFeed from data source
@@ -88,11 +98,23 @@ interface FlockRepository {
     fun getFeedItem(id: Int): Flow<Feed>
 
     /**
+     * Retrieve egg item from data source
+     */
+    fun getEggItem(id: Int): Flow<Eggs>
+
+    /**
+     * Retrieve egg summary item from data source
+     */
+    fun getAllEggsSummaryItems(): Flow<List<EggsSummary>>
+
+    /**
      * Retrieve expense item from data source
      */
     fun getExpenseItem(id: Int): Flow<Expense>
 
     fun getFlockAndAccountSummary(id: Int): LiveData<FlockAndAccountSummary>
+
+    fun getFlockAndEggsSummary(id: Int): Flow<FlockAndEggsSummary>
 
     fun getFlockWithIncome(id: Int): Flow<FlockWithIncome>
 
@@ -108,7 +130,7 @@ interface FlockRepository {
     suspend fun insertFlock(flock: Flock)
 
     /**
-     * Insert flock in the database
+     * Insert accounts in the database
      */
     suspend fun insertAccounts(accountsSummary: AccountsSummary)
 
@@ -143,6 +165,16 @@ interface FlockRepository {
     suspend fun insertFlockHealth(flockHealth: FlockHealth)
 
     /**
+     * Insert eggs in the database
+     */
+    suspend fun insertEgg(eggs: Eggs)
+
+    /**
+     * Insert eggsSummary in the database
+     */
+    suspend fun insertEggsSummary(eggsSummary: EggsSummary)
+
+    /**
      * Delete flock from the database
      */
     suspend fun deleteFlock(flockUniqueID: String)
@@ -161,6 +193,21 @@ interface FlockRepository {
      * Delete accountsSummary from the database
      */
     suspend fun deleteAccounts(flockUniqueID: String)
+
+    /**
+     * Delete eggsSummary from the database
+     */
+    suspend fun deleteEggsSummary(flockUniqueID: String)
+
+    /**
+     * Delete eggs from the database
+     */
+    suspend fun deleteEggs(flockUniqueID: String)
+
+    /**
+     * Delete eggs from the database
+     */
+    suspend fun deleteEggs(eggs: Eggs)
 
     /**
      * Delete weight from the database
@@ -197,6 +244,16 @@ interface FlockRepository {
      * Update flock in the database
      */
     suspend fun updateFlock(flock: Flock)
+
+    /**
+     * Update eggs in the database
+     */
+    suspend fun updateEggs(eggs: Eggs)
+
+    /**
+     * Update eggsSummary in the database
+     */
+    suspend fun updateEggsSummary(eggsSummary: EggsSummary)
 
     /**
      * Update vaccination in the database

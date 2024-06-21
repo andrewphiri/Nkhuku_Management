@@ -5,9 +5,12 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.AccountsWithIncome
+import and.drew.nkhukumanagement.data.EggsSummary
+import and.drew.nkhukumanagement.data.FlockAndEggsSummary
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.flock.EditFlockViewModel
+import and.drew.nkhukumanagement.userinterface.flock.EggsInventoryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.flock.toFlock
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
@@ -100,6 +103,7 @@ fun AddIncomeScreen(
     accountsViewModel: AccountsViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel,
     editFlockViewModel: EditFlockViewModel = hiltViewModel(),
+    eggsInventoryViewModel: EggsInventoryViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     contentType: ContentType
@@ -126,7 +130,20 @@ fun AddIncomeScreen(
         ).toIncome()
     )
 
-    val currency by userPrefsViewModel.initialPreferences.collectAsState(
+    val flockAndEggsSummary by editFlockViewModel
+        .flockAndEggsSummaryStateFlow
+        .collectAsState(
+            initial = FlockAndEggsSummary(flock = null,
+                eggsSummary = EggsSummary(
+                    flockUniqueID = "",
+                    totalGoodEggs = 0,
+                    totalBadEggs = 0,
+                    date = LocalDate.now()
+                )
+            )
+        )
+
+    val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
 
@@ -171,10 +188,9 @@ fun AddIncomeScreen(
             }
         },
         updateIncome = {
-            val quantity =
             coroutineScope.launch {
                 incomeViewModel.updateIncome(it)
-                if (incomeViewModel.incomeUiState.incomeType == "Chicken Sale") {
+                if (incomeViewModel.incomeUiState.incomeType == context.getString(R.string.chicken_sale)) {
                     if (flock != null) {
                         editFlockViewModel.updateFlock(flock.value.copy(stock = ((flock.value.stock + income.quantity) - incomeViewModel.incomeUiState.quantity.toInt())))
                     }
@@ -187,21 +203,35 @@ fun AddIncomeScreen(
                     accountsSummary = accountSummary,
                     incomeUiState = incomeUiState
                 )
+
+                flockAndEggsSummary?.eggsSummary?.let {
+                    EggsSummary(
+                        flockUniqueID = it.flockUniqueID,
+                        totalGoodEggs = it.totalGoodEggs - (incomeUiState.quantity.toInt() * userPreferences.traySize.toInt()),
+                        totalBadEggs = it.totalBadEggs,
+                        date = it.date
+                    )
+                }?.let {
+                    eggsInventoryViewModel.updateEggsSummary(
+                        it
+                    )
+                }
             }
         },
         incomeIDArg = incomeID,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
-        currencySymbol = currency.symbol,
+        currencySymbol = userPreferences.symbol,
         contentType = contentType,
         onDismissIncomeTypeDropDownMenu = {
                                           expanded = false
         } ,
-        incomeTypeOptions = incomeViewModel.incomeTypeOptions,
+        incomeTypeOptions = if (flock?.value?.flockType == "Layer") incomeViewModel.incomeTypeOptionsLayers else incomeViewModel.incomeTypeOptions,
         onExpand = {
                    expanded = !expanded
         },
         expanded = expanded,
+        traySize = userPreferences.traySize
     )
 }
 
@@ -225,7 +255,8 @@ fun MainAddIncomeScreen(
     onDismissIncomeTypeDropDownMenu: () -> Unit,
     onExpand: (Boolean) -> Unit,
     expanded: Boolean,
-    incomeTypeOptions: List<String>
+    incomeTypeOptions: List<String>,
+    traySize: String
 ) {
     BackHandler {
         onNavigateUp()
@@ -360,6 +391,7 @@ fun MainAddIncomeScreen(
                 incomeTypeOptions = incomeTypeOptions,
                 onExpand = onExpand,
                 expanded = expanded,
+                traySize = traySize
             )
         }
 
@@ -388,12 +420,12 @@ fun AddIncomeCard(
     state: DatePickerState,
     currencySymbol: String,
     incomeTypeOptions: List<String>,
+    traySize:String
 ) {
     Column(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
         PickerDateDialog(
             showDialog = showDialog,
             label = label,
@@ -476,7 +508,18 @@ fun AddIncomeCard(
             },
             label = { Text(text = stringResource(R.string.quantity)) },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            suffix = {
+                if (incomeUiState.incomeType == "Eggs") {
+                    OutlinedTextField(
+                        modifier = Modifier.padding(start = 4.dp),
+                        value = traySize,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(text = stringResource(R.string.tray_size)) }
+                    )
+                }
+            }
         )
 
         OutlinedTextField(

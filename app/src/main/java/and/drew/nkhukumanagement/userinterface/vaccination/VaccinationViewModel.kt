@@ -225,7 +225,7 @@ class VaccinationViewModel @Inject constructor(
         vaccinationUiState: VaccinationUiState
     ): SnapshotStateList<VaccinationUiState> {
 
-        return when (flockUiState.layerType) {
+        return when (flockUiState.breed) {
             "Hybrid Brown Layer" -> {
                 defaultHybridBrownLayerVaccinations(
                     flockUiState = flockUiState,

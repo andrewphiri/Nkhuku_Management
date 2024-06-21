@@ -23,6 +23,7 @@ object UserPreferencesSerializer : Serializer<UserPreferences> {
         .setCurrencyLocale(Locale.getDefault().toLanguageTag())
         .setSkipAccountSetup(false)
         .setLanguageLocale(Locale.getDefault().language)
+        .setTraySize("30")
         .build()
 
     override suspend fun readFrom(input: InputStream): UserPreferences {

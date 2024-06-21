@@ -63,6 +63,15 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     /**
+     * Update tray size
+     */
+    suspend fun updateTraySize(size: String) {
+        userPrefsDataStore.updateData { currentPreferences ->
+            currentPreferences.toBuilder().setTraySize(size).build()
+        }
+    }
+
+    /**
      * Update language locale
      */
     suspend fun updateLanguageLocale(languageLocale: String) {

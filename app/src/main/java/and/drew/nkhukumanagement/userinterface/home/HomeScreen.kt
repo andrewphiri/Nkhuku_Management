@@ -3,16 +3,23 @@ package and.drew.nkhukumanagement.userinterface.home
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.data.EggsSummary
 import and.drew.nkhukumanagement.data.Flock
+import and.drew.nkhukumanagement.data.FlockAndEggsSummary
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
+import and.drew.nkhukumanagement.ui.theme.lightBrown
+import and.drew.nkhukumanagement.ui.theme.orange
 import and.drew.nkhukumanagement.userinterface.accounts.AccountsViewModel
 import and.drew.nkhukumanagement.userinterface.accounts.ExpenseViewModel
 import and.drew.nkhukumanagement.userinterface.accounts.IncomeViewModel
 import and.drew.nkhukumanagement.userinterface.feed.FeedScreen
 import and.drew.nkhukumanagement.userinterface.feed.FeedViewModel
+import and.drew.nkhukumanagement.userinterface.flock.EggsInventoryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.EditFlockViewModel
+import and.drew.nkhukumanagement.userinterface.flock.EggsEditScreen
+import and.drew.nkhukumanagement.userinterface.flock.EggsInventoryScreen
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsScreen
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockEditScreen
@@ -28,15 +35,17 @@ import and.drew.nkhukumanagement.utils.BaseSingleRowItem
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.DETAILS_SCREEN
+import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.EDIT_EGGS_SCREEN
 import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.EDIT_FLOCK_SCREEN
+import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.EGG_INVENTORY_SCREEN
 import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.FEED_SCREEN
 import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.FLOCK_HEALTH_SCREEN
 import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.VACCINATION_SCREEN
 import and.drew.nkhukumanagement.utils.FlockDetailsCurrentScreen.WEIGHT_SCREEN
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
+import and.drew.nkhukumanagement.utils.ShowOverflowMenu
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -46,6 +55,7 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -94,6 +104,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -107,7 +118,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -127,6 +140,7 @@ fun HomeScreen(
     expenseViewModel: ExpenseViewModel = hiltViewModel(),
     feedViewModel: FeedViewModel = hiltViewModel(),
     weightViewModel: WeightViewModel = hiltViewModel(),
+    eggsInventoryViewModel: EggsInventoryViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -160,6 +174,7 @@ fun HomeScreen(
                 navigateToAddFlock()
             },
             navigateToFlockDetails = navigateToFlockDetails,
+            eggsInventoryViewModel = eggsInventoryViewModel,
             onClickSettings = onClickSettings,
             flocks = homeUiState.flockList.sortedBy { it.datePlaced },
             resetFlock = {
@@ -320,6 +335,7 @@ fun HomeScreen(
             vaccinationViewModel = vaccinationViewModel,
             feedViewModel = feedViewModel,
             weightViewModel = weightViewModel,
+            eggsInventoryViewModel = eggsInventoryViewModel,
             contentType = contentType,
             onOverflowMenuClicked = {
                 flockID = it
@@ -348,6 +364,7 @@ fun HomeScreenListAndDetails(
     vaccinationViewModel: VaccinationViewModel,
     feedViewModel: FeedViewModel,
     weightViewModel: WeightViewModel,
+    eggsInventoryViewModel: EggsInventoryViewModel,
     contentType: ContentType,
     onOverflowMenuClicked: (Int) -> Unit
 ) {
@@ -376,6 +393,7 @@ fun HomeScreenListAndDetails(
                     onClose = onClose,
                     contentType = contentType,
                     onOverflowMenuClicked = onOverflowMenuClicked,
+                    eggsInventoryViewModel = eggsInventoryViewModel
                 )
             }
 
@@ -416,7 +434,11 @@ fun HomeScreenListAndDetails(
                                     currentScreen = WEIGHT_SCREEN
                                 },
                                 flockEntryViewModel = flockEntryViewModel,
-                                contentType = contentType
+                                contentType = contentType,
+                                navigateToEggsInventoryScreen = {
+                                    eggsInventoryViewModel.setFlockID(it)
+                                    currentScreen = EGG_INVENTORY_SCREEN
+                                }
                             )
                         }
 
@@ -502,6 +524,23 @@ fun HomeScreenListAndDetails(
                                 contentType = contentType
                             )
                         }
+                        EGG_INVENTORY_SCREEN -> {
+                            EggsInventoryScreen(
+                                onNavigateUp = { currentScreen = DETAILS_SCREEN },
+                                navigateToEggsEditScreen = { flockID, eggsID ->
+                                    eggsInventoryViewModel.setFlockID(flockID)
+                                    eggsInventoryViewModel.setEggID(eggsID)
+                                    currentScreen = EDIT_EGGS_SCREEN },
+                                contentType = contentType
+                            )
+                        }
+                        EDIT_EGGS_SCREEN -> {
+                            EggsEditScreen(
+                                onNavigateUp = { currentScreen = EGG_INVENTORY_SCREEN },
+                                flockEntryViewModel = flockEntryViewModel,
+                                contentType = contentType
+                            )
+                        }
                     }
 
                 }
@@ -526,6 +565,7 @@ fun MainHomeScreen(
     onClose: (Flock) -> Unit,
     contentType: ContentType,
     onOverflowMenuClicked: (Int) -> Unit,
+    eggsInventoryViewModel: EggsInventoryViewModel
 ) {
     var flockList = flocks.filter { it.active }
     val listState = rememberLazyListState()
@@ -609,7 +649,8 @@ fun MainHomeScreen(
                     onClose(flock)
                 },
                 contentType = contentType,
-                onOverflowMenuClicked = onOverflowMenuClicked
+                onOverflowMenuClicked = onOverflowMenuClicked,
+                eggsInventoryViewModel = eggsInventoryViewModel
             )
         }
     }
@@ -625,7 +666,8 @@ fun FlockBodyList(
     onDelete: (Int) -> Unit,
     onClose: (Flock) -> Unit,
     contentType: ContentType,
-    onOverflowMenuClicked: (Int) -> Unit
+    onOverflowMenuClicked: (Int) -> Unit,
+    eggsInventoryViewModel: EggsInventoryViewModel
 ) {
     if (flockList.isEmpty()) {
         Box(
@@ -647,7 +689,8 @@ fun FlockBodyList(
             onDelete = onDelete,
             onClose = onClose,
             contentType = contentType,
-            onOverflowMenuClicked = onOverflowMenuClicked
+            onOverflowMenuClicked = onOverflowMenuClicked,
+            eggsInventoryViewModel = eggsInventoryViewModel
         )
     }
 }
@@ -688,7 +731,8 @@ fun FlockList(
     onOverflowMenuClicked: (Int) -> Unit,
     listState: LazyListState,
     onDelete: (Int) -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    eggsInventoryViewModel: EggsInventoryViewModel
 ) {
     var selectedItem by rememberSaveable { mutableStateOf(0) }
     LazyColumn(
@@ -707,7 +751,8 @@ fun FlockList(
                 onDelete = { onDelete(index) },
                 selectedID = selectedItem,
                 contentType = contentType,
-                onOverflowMenuClicked = onOverflowMenuClicked
+                onOverflowMenuClicked = onOverflowMenuClicked,
+                eggsInventoryViewModel = eggsInventoryViewModel
             )
         }
     }
@@ -723,12 +768,24 @@ fun FlockCard(
     onOverflowMenuClicked: (Int) -> Unit,
     onClose: (Flock) -> Unit,
     selectedID: Int,
-    contentType: ContentType
+    contentType: ContentType,
+    eggsInventoryViewModel: EggsInventoryViewModel
 ) {
     var isFlockItemMenuShowing by remember { mutableStateOf(false) }
     var isAlertDialogShowing by remember { mutableStateOf(false) }
     var isCloseAlertDialogShowing by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var totalGoodEggsCollected by remember { mutableStateOf(0) }
+
+    if (flock.flockType == "Layer") {
+        eggsInventoryViewModel.flockRepository.getFlockAndEggsSummary(flock.id).asLiveData()
+            .observe(lifecycleOwner) { flockAndEggsSummary ->
+                if (flockAndEggsSummary.eggsSummary?.totalGoodEggs != null) {
+                    totalGoodEggsCollected = flockAndEggsSummary.eggsSummary.totalGoodEggs
+                }
+            }
+    }
 
     val color = if (selectedID == flock.id && contentType == ContentType.LIST_AND_DETAIL)
         CardDefaults.outlinedCardColors(containerColor = Color.LightGray) else
@@ -748,12 +805,15 @@ fun FlockCard(
     )
 
     OutlinedCard(
-        modifier = modifier.padding(8.dp)
+        modifier = modifier
+            .padding(8.dp)
             .clickable {
                 onItemClick(flock)
             },
         elevation = CardDefaults.cardElevation(),
-        colors = color
+        colors = color,
+        border = BorderStroke(width = Dp.Hairline, color = if (flock.flockType == "Broiler") Color.LightGray
+        else if (flock.flockType == "Layer") lightBrown else orange)
     ) {
         Box {
             if (!flock.active) {
@@ -776,7 +836,9 @@ fun FlockCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(
-                        modifier = Modifier.weight(1f).fillMaxHeight()
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
                     ) {
                         Image(
                             modifier = Modifier
@@ -858,6 +920,13 @@ fun FlockCard(
                                 value = flock.mortality.toString()
                             )
 
+                            if (flock.flockType == "Layer") {
+                                BaseSingleRowItem(
+                                    label = stringResource(R.string.total_good_eggs_collected),
+                                    value = totalGoodEggsCollected.toString()
+                                )
+                            }
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
@@ -882,62 +951,7 @@ fun FlockCard(
 }
 
 
-@Composable
-fun ShowOverflowMenu(
-    modifier: Modifier = Modifier,
-    flock: Flock,
-    isOverflowMenuExpanded: Boolean = false,
-    isAlertDialogShowing: Boolean = false,
-    onDismissAlertDialog: () -> Unit = {},
-    onShowMenu: (Int) -> Unit = {},
-    onShowAlertDialog: () -> Unit,
-    onDismiss: () -> Unit,
-    onDelete: () -> Unit = {},
-    onClose: () -> Unit = {},
-    title: String,
-    message: String
-) {
-    ShowAlertDialog(
-        onDismissAlertDialog = onDismissAlertDialog,
-        onConfirm = onDelete,
-        isAlertDialogShowing = isAlertDialogShowing,
-        title = title,
-        message = message
-    )
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.TopEnd
-    ) {
-        IconButton(
-            onClick = { onShowMenu(flock.id) }
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "Show overflow menu"
-            )
-        }
-        DropdownMenu(
-            modifier = modifier,
-            expanded = isOverflowMenuExpanded,
-            onDismissRequest = onDismiss
-        ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.delete)) },
-                onClick = onShowAlertDialog
-            )
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text = if (flock.active) stringResource(R.string.close) else stringResource(
-                            R.string.reopen
-                        )
-                    )
-                },
-                onClick = onClose
-            )
-        }
-    }
-}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)

@@ -5,6 +5,7 @@ import and.drew.nkhukumanagement.FlockApplication
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Account
 import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.data.EggsSummary
 import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.ui.theme.GreenColor
@@ -35,6 +36,15 @@ class OverviewViewModel @Inject constructor(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(MILLIS),
                 initialValue = OverviewUiState()
+            )
+
+    val eggSummaryList: StateFlow<List<EggsSummary>> =
+        flockRepository.getAllEggsSummaryItems()
+            .map { it }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(MILLIS),
+                initialValue = listOf()
             )
 
     fun accountsTotalsList(accountsSummary: List<AccountsSummary>): List<Account> {

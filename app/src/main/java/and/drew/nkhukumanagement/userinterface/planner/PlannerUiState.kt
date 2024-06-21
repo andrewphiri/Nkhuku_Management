@@ -10,6 +10,7 @@ data class PlannerUiState(
     val areFeedersAvailable: Boolean = false,
     val areDrinkersAvailable: Boolean = false,
     val areHeatersAvailable: Boolean = false,
+    val flockType: String = "",
 ) {
     fun calculateStarter(): Double {
         return quantityToOrder.toDouble() * 1.0
@@ -70,6 +71,54 @@ data class PlannerUiState(
     fun calculateNippleDrinkers(): Int {
         return ((quantityToOrder.toDouble() / 100) * 10).roundToInt()
     }
+
+    fun calculateLayerStarter(): Double {
+        return quantityToOrder.toDouble() * 0.054
+    }
+
+    fun calculatePulletLayerStarter(): Double {
+        return quantityToOrder.toDouble() * 0.190
+    }
+
+    fun calculatePulletGrower(): Double {
+        return quantityToOrder.toDouble() * 0.444
+    }
+
+    fun calculatePreLayer(): Double {
+        return quantityToOrder.toDouble() * 0.330
+    }
+
+    fun calculateLayersMash(): Double {
+        return quantityToOrder.toDouble() * 5.64
+    }
+
+    fun totalFeedLayers(): String {
+        return String.format("%.2f", calculateLayerStarter() + calculatePulletLayerStarter() + calculatePulletGrower() + calculatePreLayer() + calculateLayersMash())
+    }
+
+    fun calculateLayerStarterBags(): Int {
+        return (calculateLayerStarter() / 50).roundToInt()
+    }
+
+    fun calculatePulletLayerStarterBags(): Int {
+        return (calculatePulletLayerStarter() / 50).roundToInt()
+    }
+
+    fun calculatePulletGrowerBags(): Int {
+        return (calculatePulletGrower() / 50).roundToInt()
+    }
+
+    fun calculatePreLayerBags(): Int {
+        return (calculatePreLayer() / 50).roundToInt()
+    }
+
+    fun calculateLayerMashBags(): Int {
+        return (calculateLayersMash() / 50).roundToInt()
+    }
+
+    fun totalLayersBags(): Int {
+        return calculateLayerStarterBags()+ calculatePulletLayerStarterBags()+ calculatePulletGrowerBags() + calculatePreLayerBags() + calculateLayerMashBags()
+    }
 }
 
 /**
@@ -114,5 +163,6 @@ fun PlannerUiState.toPlanner(): Planner =
  * Check if quantityToOrder is not blank
  */
 fun PlannerUiState.isValid(): Boolean {
-    return quantityToOrder.isNotBlank()
+    return quantityToOrder.isNotBlank() &&
+            flockType.isNotBlank()
 }

@@ -152,7 +152,7 @@ class FeedViewModel @Inject constructor(
         flockUiState: FlockUiState
     ): SnapshotStateList<FeedUiState> {
 
-        return when (flockUiState.layerType) {
+        return when (flockUiState.breed) {
             "Hybrid Zambro" -> {
                 defaultHybridZambroLayerFeedInformationList(
                     flockUiState = flockUiState,

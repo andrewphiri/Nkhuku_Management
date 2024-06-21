@@ -51,6 +51,7 @@ class TestDatabase {
                 uniqueId = "ID1",
                 batchName = "Batch1",
                 breed = "Breed1",
+                flockType = "",
                 numberOfChicksPlaced = 100,
                 costPerBird = 16.00,
                 donorFlock = 1,
@@ -73,6 +74,7 @@ class TestDatabase {
             id = 1, name = "Gumburro",
             flockUniqueId = "1",
             notes = "",
+            method = "",
             date = LocalDate.now(),
             hasVaccineBeenAdministered = false,
             notificationUUID = UUID.randomUUID()
@@ -83,12 +85,13 @@ class TestDatabase {
             flockUniqueId = "1",
             notes = "",
             date = LocalDate.now(),
+            method = "",
             hasVaccineBeenAdministered = false,
             notificationUUID = UUID.randomUUID()
         )
         runTest {
             dao.insertVaccination(vaccination)
-            dao.insertVaccination(vaccination)
+            dao.insertVaccination(vaccination1)
 
             val getVaccine = dao.retrieveVaccination(1).first()
             assertEquals(vaccination, getVaccine)

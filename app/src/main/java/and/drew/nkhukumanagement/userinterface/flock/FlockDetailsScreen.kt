@@ -2,7 +2,9 @@ package and.drew.nkhukumanagement.userinterface.flock
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.data.EggsSummary
 import and.drew.nkhukumanagement.data.Flock
+import and.drew.nkhukumanagement.data.FlockAndEggsSummary
 import and.drew.nkhukumanagement.data.FlockWithFeed
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.FlockWithWeight
@@ -17,6 +19,7 @@ import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -24,6 +27,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,6 +36,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Details
+import androidx.compose.material.icons.filled.Egg
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Scale
@@ -96,6 +101,7 @@ fun FlockDetailsScreen(
     navigateToVaccinationScreen: (Int) -> Unit,
     navigateToFeedScreen: (Int) -> Unit = {},
     navigateToWeightScreen: (Int) -> Unit = {},
+    navigateToEggsInventoryScreen: (Int) -> Unit,
     flockEntryViewModel: FlockEntryViewModel,
     detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
     contentType: ContentType
@@ -125,6 +131,19 @@ fun FlockDetailsScreen(
         ).toFlock()
     )
 
+    val flockAndEggsSummary by detailsViewModel
+        .flockAndEggsSummaryStateFlow
+        .collectAsState(
+        initial = FlockAndEggsSummary(flock = null,
+            eggsSummary = EggsSummary(
+                flockUniqueID = "",
+                totalGoodEggs = 0,
+                totalBadEggs = 0,
+                date = LocalDate.now()
+            )
+        )
+    )
+
     MainFlockDetailsScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,
@@ -141,7 +160,9 @@ fun FlockDetailsScreen(
         totalFeedQtyConsumed = flockWithFeed?.feedList?.sumOf { it.consumed },
         vaccinations = flockWithVaccinations?.vaccinations,
         weights = flockWithWeight?.weights,
-        contentType = contentType
+        eggsSummary = flockAndEggsSummary.eggsSummary,
+        contentType = contentType,
+        navigateToEggsInventoryScreen = navigateToEggsInventoryScreen
     )
 
 }
@@ -156,7 +177,9 @@ fun MainFlockDetailsScreen(
     navigateToVaccinationScreen: (Int) -> Unit,
     navigateToFeedScreen: (Int) -> Unit,
     navigateToWeightScreen: (Int) -> Unit,
+    navigateToEggsInventoryScreen: (Int) -> Unit,
     flock: Flock?,
+    eggsSummary: EggsSummary?,
     vaccinations: List<Vaccination>?,
     totalFeedQtyConsumed: Double?,
     weights: List<Weight>?,
@@ -235,6 +258,7 @@ fun MainFlockDetailsScreen(
                         }
                     }
                 }
+
                 item {
                     val weight = weights?.lastOrNull { it.weight > 0.0 }
                         ?: weights?.first()
@@ -253,6 +277,27 @@ fun MainFlockDetailsScreen(
                                 }
                             )
                         }
+                    }
+                }
+
+                if (flock.flockType == "Layer") {
+                    item {
+                            flock.let { flock ->
+                                EggsCard(
+                                    modifier = Modifier.semantics {
+                                        contentDescription = context.getString(R.string.weight)
+                                    },
+                                    eggsSummary = eggsSummary,
+                                    flock = flock,
+                                    onEggsCardClick = { id ->
+                                        if (flock.active) {
+                                            Log.d("TAG", "MainFlockDetailsScreen: $id")
+                                            navigateToEggsInventoryScreen(id)
+                                        }
+                                    }
+                                )
+                            }
+
                     }
                 }
             }
@@ -277,7 +322,6 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
             culls = flock1.culls,
             stock = flock1.stock,
             donorFlock = flock1.donorFlock,
-            layerBreed = flock1.layerBreed,
         ).toFlockUiState()
     }
 
@@ -393,7 +437,9 @@ fun VaccinationList(
 ) {
     ElevatedCard(modifier = modifier) {
         Column(
-            modifier = Modifier.padding(8.dp).clickable { onVaccinationCardClick(flock.id) },
+            modifier = Modifier
+                .padding(8.dp)
+                .clickable { onVaccinationCardClick(flock.id) },
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -436,21 +482,26 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
     ).toVaccinationUiState()
 
     Card(modifier = modifier.fillMaxSize()) {
-        Box(
+
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(
-                modifier = Modifier.align(Alignment.TopEnd),
-                checked = vaccinationUiState.vaccineAdministered,
-                onCheckedChange = null
-            )
             BaseSingleRowDetailsItem(
+                modifier = Modifier.weight(1f, true),
                 label = vaccinationUiState.getDate(),
                 value = vaccinationUiState.getName(),
                 style = MaterialTheme.typography.labelSmall
             )
+            Box(
+                modifier = Modifier.weight(0.25f)
+            ) {
+                Checkbox(
+                    checked = vaccinationUiState.vaccineAdministered,
+                    onCheckedChange = null
+                )
 
+            }
         }
 
     }
@@ -499,7 +550,8 @@ fun WeightCard(
             )
 
             Text(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(2.dp),
                 text = weightUiState.week,
                 style = MaterialTheme.typography.bodyMedium,
@@ -522,6 +574,62 @@ fun WeightCard(
                 )
             }
 
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun EggsCard(
+    modifier: Modifier = Modifier,
+    flock: Flock?,
+    eggsSummary: EggsSummary?,
+    onEggsCardClick: (Int) -> Unit) {
+
+    ElevatedCard(
+        modifier = modifier
+            .clickable {
+                if (flock != null) {
+                    onEggsCardClick(flock.id)
+                }
+            }
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                modifier = Modifier.size(50.dp),
+                imageVector = Icons.Default.Egg,
+                contentDescription = stringResource(R.string.egg_inventory)
+            )
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.Eggs),
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center
+            )
+
+            HorizontalDivider(
+                thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
+            )
+
+                Card {
+                    BaseSingleRowDetailsItem(
+                        label = stringResource(R.string.good_eggs),
+                        value = eggsSummary?.totalGoodEggs.toString(),
+                        weightA = 2f
+                    )
+                }
+
+                Card {
+                    BaseSingleRowDetailsItem(
+                        label = stringResource(R.string.bad_eggs),
+                        value = eggsSummary?.totalBadEggs.toString(),
+                        weightA = 2f
+                    )
+                }
         }
     }
 }

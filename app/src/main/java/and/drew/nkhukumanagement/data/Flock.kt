@@ -16,7 +16,6 @@ data class Flock(
     val uniqueId: String,
     val batchName: String,
     val flockType: String,
-    val layerBreed: String,
     val breed: String,
     @ColumnInfo(name = "Date Received")
     val datePlaced: LocalDate,

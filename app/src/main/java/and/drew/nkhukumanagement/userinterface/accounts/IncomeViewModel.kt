@@ -29,7 +29,8 @@ class IncomeViewModel @Inject constructor(
         private const val MILLIS = 5_000L
     }
 
-    val incomeTypeOptions = listOf("Chicken Sale", "Other")
+    val incomeTypeOptions = listOf("Chicken Sale", "Manure", "Other")
+    val incomeTypeOptionsLayers = listOf("Chicken Sale", "Eggs", "Manure", "Other")
 
     var incomeUiState by mutableStateOf(IncomeUiState())
         private set

@@ -88,18 +88,26 @@ fun MainPlannerResultScreen(
             contentPadding = PaddingValues(16.dp)
         ) {
             item {
-                FeedResultsCard(planner = plannerUiState.toPlanner())
-            }
-            if (!plannerUiState.areFeedersAvailable) {
-                item {
-                    FeedersResultsCard(
-                        planner = plannerUiState.toPlanner()
-                    )
+                if (plannerUiState.flockType == "Broiler") {
+                    FeedResultsCard(planner = plannerUiState.toPlanner())
+                } else {
+                    LayersFeedResultsCard(planner = plannerUiState)
                 }
+
             }
-            if (!plannerUiState.areDrinkersAvailable) {
-                item {
-                    DrinkersResultsCard(planner = plannerUiState.toPlanner())
+
+            if (plannerUiState.flockType == "Broiler") {
+                if (!plannerUiState.areFeedersAvailable) {
+                    item {
+                        FeedersResultsCard(
+                            planner = plannerUiState.toPlanner()
+                        )
+                    }
+                }
+                if (!plannerUiState.areDrinkersAvailable) {
+                    item {
+                        DrinkersResultsCard(planner = plannerUiState.toPlanner())
+                    }
                 }
             }
         }
@@ -221,6 +229,165 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
                         text = planner.totalBags.toString(),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LayersFeedResultsCard(modifier: Modifier = Modifier, planner: PlannerUiState) {
+
+    Card(
+        modifier = modifier,
+        shape = Shapes.large
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.feed),
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center
+            )
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth()
+                    .align(Alignment.CenterHorizontally),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = stringResource(R.string.feed_type),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = stringResource(R.string.quantity),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = stringResource(R.string.bags_50kg),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = stringResource(R.string.broiler_starter),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "${String.format("%.2f", planner.calculateLayerStarter())} Kg",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.calculateLayerStarterBags().toString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = stringResource(R.string.pullet_starter),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "${String.format("%.2f", planner.calculatePulletLayerStarter())} Kg",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.calculatePulletLayerStarterBags().toString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = stringResource(R.string.pullet_grower),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "${String.format("%.2f", planner.calculatePulletGrower())} Kg",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.calculatePulletGrowerBags().toString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = stringResource(R.string.pre_layer),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "${String.format("%.2f", planner.calculatePreLayer())} Kg",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.calculatePreLayerBags().toString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = stringResource(R.string.layers_mash),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = "${String.format("%.2f", planner.calculateLayersMash())} Kg",
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.calculateLayerMashBags().toString(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.weight(weight = 2f, fill = true),
+                        text = stringResource(R.string.total),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.totalFeedLayers().toString(),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        text = planner.totalLayersBags().toString(),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )

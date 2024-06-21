@@ -4,12 +4,10 @@ import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.accounts.MainAccountsScreen
-import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsDestination
+import and.drew.nkhukumanagement.userinterface.flock.EggsInventoryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.MainAddFlockScreen
 import and.drew.nkhukumanagement.userinterface.home.MainHomeScreen
-import and.drew.nkhukumanagement.userinterface.navigation.NkhukuNavHost
-import and.drew.nkhukumanagement.userinterface.vaccination.AddVaccinationsDestination
 import and.drew.nkhukumanagement.utils.ContentType
 import android.content.Context
 import androidx.activity.compose.setContent
@@ -18,7 +16,6 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextInput
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,8 +24,6 @@ import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
-import junit.framework.TestCase
-import junit.framework.TestCase.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -44,6 +39,7 @@ class ScreenTests {
     val context = ApplicationProvider.getApplicationContext<Context>()
     lateinit var navController: TestNavHostController
     lateinit var viewModel: FlockEntryViewModel
+    lateinit var eggsInventoryViewModel: EggsInventoryViewModel
     lateinit var userPrefsViewModel: UserPrefsViewModel
 
     @Before
@@ -62,6 +58,7 @@ class ScreenTests {
                 "ID1",
                 "Batch1",
                 "Breed1",
+                "",
                 LocalDate.now(),
                 100,
                 2.0,
@@ -77,6 +74,7 @@ class ScreenTests {
                 "ID2",
                 "Batch2",
                 "Breed2",
+                "",
                 LocalDate.now(),
                 200,
                 3.0,
@@ -92,6 +90,7 @@ class ScreenTests {
                 "ID3",
                 "Batch3",
                 "Breed3",
+                "",
                 LocalDate.now(),
                 300,
                 4.0,
@@ -107,6 +106,7 @@ class ScreenTests {
                 "ID4",
                 "Batch4",
                 "Breed4",
+                "",
                 LocalDate.now(),
                 100,
                 2.0,
@@ -122,6 +122,7 @@ class ScreenTests {
                 "ID5",
                 "Batch5",
                 "Breed5",
+                "",
                 LocalDate.now(),
                 200,
                 3.0,
@@ -137,6 +138,7 @@ class ScreenTests {
                 "ID6",
                 "Batch6",
                 "Breed6",
+                "",
                 LocalDate.now(),
                 300,
                 4.0,
@@ -159,7 +161,8 @@ class ScreenTests {
                 onClose = {},
                 flocks = dummyFlockList,
                 contentType = ContentType.LIST_ONLY,
-                onOverflowMenuClicked = {}
+                onOverflowMenuClicked = {},
+                eggsInventoryViewModel = eggsInventoryViewModel,
             )
         }
         composeRule

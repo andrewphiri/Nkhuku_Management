@@ -19,7 +19,6 @@ data class FlockUiState(
     private var uniqueId: String = "",
     val batchName: String = "",
     val flockType: String = "",
-    val layerType: String = "",
     val breed: String = "",
     private var datePlaced: String = DateUtils().dateToStringLongFormat(LocalDate.now()),
     val quantity: String = "",
@@ -32,9 +31,10 @@ data class FlockUiState(
     val enabled: Boolean = false,
     val active: Boolean = true
 ) {
-    val options = mutableListOf("Hybrid", "Ross", "Ross 308","Zamhatch", "Tiger")
+    val broilerOptions = mutableListOf("Hybrid", "Ross", "Ross 308","Zamhatch", "Tiger")
     val flockTypeOptions = mutableListOf("Broiler", "Layer", "Village Chicken")
     val layerTypeOptions = mutableListOf("Hybrid Brown Layer", "Hybrid Zambro", "Lohmann Brown Classic")
+    val villageTypeOptions = mutableListOf("Hybrid Zambro")
 
     fun setDate(date: String) {
         datePlaced = derivedStateOf { date }.value
@@ -105,7 +105,6 @@ fun FlockUiState.toFlock(): Flock = Flock(
     uniqueId = getUniqueId(),
     batchName = batchName,
     flockType = flockType,
-    layerBreed = layerType,
     breed = breed,
     datePlaced = DateUtils().stringToLocalDate(getDate()),
     numberOfChicksPlaced = quantity.toInt(),
@@ -140,7 +139,6 @@ fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
         uniqueId = uniqueId,
         batchName = batchName,
         flockType = flockType,
-        layerType = layerBreed,
         breed = breed,
         datePlaced = DateUtils().dateToStringLongFormat(datePlaced),
         quantity = numberOfChicksPlaced.toString(),

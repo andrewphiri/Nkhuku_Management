@@ -5,6 +5,7 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.ContentType
+import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -103,7 +104,9 @@ fun MainPlannerScreen(
                 }
             },
             plannerUiState = plannerUiState,
-            onValueChanged = onValueChanged
+            onValueChanged = onValueChanged,
+            flockOptions = listOf("Broiler", "Layer"),
+            flockType = plannerUiState.flockType
         )
     }
 
@@ -115,13 +118,16 @@ fun PlannerCardEntry(
     onCalculate: () -> Unit = {},
     isCalculateButtonEnabled: Boolean,
     plannerUiState: PlannerUiState,
-    onValueChanged: (PlannerUiState) -> Unit = {}
+    onValueChanged: (PlannerUiState) -> Unit = {},
+    flockType: String,
+    flockOptions: List<String>,
 ) {
     val context = LocalContext.current
     //Define dependent checkboxes states
     val (checkboxState, onStateChange) = rememberSaveable { mutableStateOf(false) }
     val (checkboxState2, onStateChange2) = rememberSaveable { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    var expanded by remember { mutableStateOf(false) }
 
     //TriStateCheckbox state reflects state of dependent checkboxes
     val parentState = remember(checkboxState, checkboxState2) {
@@ -147,6 +153,18 @@ fun PlannerCardEntry(
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+
+        DropDownMenuDialog(
+            value = flockType,
+            onDismissed = { expanded = false },
+            options = flockOptions,
+            onOptionSelected = {
+                onValueChanged(plannerUiState.copy(flockType = it))
+            },
+            onExpand = { expanded = !expanded },
+            label = stringResource(R.string.flock_type),
+            expanded = expanded,
+        )
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = plannerUiState.quantityToOrder,
@@ -225,6 +243,9 @@ fun PlannerCardEntry(
 @Composable
 fun PlannerPreview() {
     NkhukuManagementTheme {
-        PlannerCardEntry(isCalculateButtonEnabled = true, plannerUiState = PlannerUiState())
+        PlannerCardEntry(
+            isCalculateButtonEnabled = true,
+            plannerUiState = PlannerUiState(),
+            flockType = "Broiler", flockOptions = listOf("Broiler", "Layer"))
     }
 }

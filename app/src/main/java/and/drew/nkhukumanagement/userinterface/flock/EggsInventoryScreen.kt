@@ -1,14 +1,18 @@
 package and.drew.nkhukumanagement.userinterface.flock
 
+import and.drew.nkhukumanagement.data.Eggs
+import and.drew.nkhukumanagement.data.FlockWithEggs
+import androidx.compose.material.icons.filled.Egg
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
-import and.drew.nkhukumanagement.data.FlockHealth
-import and.drew.nkhukumanagement.data.FlockWithHealth
+import and.drew.nkhukumanagement.data.EggsSummary
+import and.drew.nkhukumanagement.data.Flock
+import and.drew.nkhukumanagement.data.FlockAndEggsSummary
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
+import and.drew.nkhukumanagement.utils.ShowOverflowMenu
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -34,7 +38,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -50,6 +53,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,19 +68,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 
-object FlockHealthScreenDestination : NkhukuDestinations {
+object EggsInventoryScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
-        get() = Icons.Default.MedicalServices
+        get() = Icons.Default.Egg
     override val route: String
-        get() = "Flock Health"
+        get() = "Eggs Inventory"
     override val resourceId: Int
         get() = R.string.flock
-    const val flockIdArg = "id"
-    val routeWithArgs = "$route/{$flockIdArg}"
-    val arguments = listOf(navArgument(flockIdArg) {
+    const val idArg = "id_egg"
+    val routeWithArgs = "$route/{$idArg}"
+    val arguments = listOf(navArgument(idArg) {
         defaultValue = 0
         type = NavType.IntType
     })
@@ -84,49 +89,90 @@ object FlockHealthScreenDestination : NkhukuDestinations {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FlockHealthScreen(
+fun EggsInventoryScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    navigateToFlockEditScreen: (Int, Int) -> Unit,
-    editFlockViewModel: EditFlockViewModel = hiltViewModel(),
+    navigateToEggsEditScreen: (Int, Int) -> Unit,
+    editEggsViewModel: EggsInventoryViewModel = hiltViewModel(),
     contentType: ContentType
 ) {
-    val flockWithHealth by editFlockViewModel.flockWithHealth.collectAsState(
-        initial = FlockWithHealth(
+    val coroutineScope = rememberCoroutineScope()
+    val flockWithEggs by editEggsViewModel.flockWithEggs.collectAsState(
+        initial = FlockWithEggs(
             flock = FlockUiState(
                 datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
                 quantity = "0",
                 donorFlock = "0",
                 cost = "0"
-            ).toFlock(), health = listOf()
+            ).toFlock(), eggs = listOf()
         )
     )
-    val flockID by editFlockViewModel.flockId.collectAsState(initial = 0)
-    val title = flockWithHealth?.flock?.batchName
 
-    MainFlockHealthScreen(
+    val flockAndEggsSummary by editEggsViewModel
+        .flockAndEggsSummaryStateFlow
+        .collectAsState(
+            initial = FlockAndEggsSummary(flock = null,
+                eggsSummary = EggsSummary(
+                    flockUniqueID = "",
+                    totalGoodEggs = 0,
+                    totalBadEggs = 0,
+                    date = LocalDate.now()
+                )
+            )
+        )
+    val flockID by editEggsViewModel.flockId.collectAsState(initial = 0)
+
+    val title = flockWithEggs?.flock?.batchName
+    MainEggsScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
-        navigateToFlockEditScreen = { flockId, healthID ->
-            navigateToFlockEditScreen(flockID, healthID)
+        navigateToEggsEditScreen = { flockId, eggsID ->
+
+            navigateToEggsEditScreen(flockID, eggsID)
         },
-        flockHealthList = flockWithHealth?.health?.sortedBy { it.date },
-        flockId = flockWithHealth?.flock?.id,
+        eggsList = flockWithEggs?.eggs?.sortedBy { it.date },
+        flockId = flockWithEggs?.flock?.id,
         contentType = contentType,
-        title = title ?: stringResource(FlockHealthScreenDestination.resourceId)
+        title = title ?: stringResource(FlockHealthScreenDestination.resourceId),
+        onDelete = { egg ->
+                coroutineScope.launch {
+                    flockAndEggsSummary?.eggsSummary?.let {
+                        EggsSummary(
+                            id = it.id,
+                            flockUniqueID = it.flockUniqueID,
+                            totalGoodEggs = it.totalGoodEggs - egg.goodEggs,
+                            totalBadEggs = it.totalBadEggs - egg.badEggs,
+                            date = egg.date
+                        )
+                    }?.let {
+                        editEggsViewModel.updateEggsSummary(
+                            it
+                        )
+                    }
+                    editEggsViewModel.deleteEggs(egg)
+                }
+        },
+        flock = flockWithEggs?.flock ?: FlockUiState(
+            datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
+            quantity = "0",
+            donorFlock = "0",
+            cost = "0"
+        ).toFlock()
     )
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MainFlockHealthScreen(
+fun MainEggsScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    navigateToFlockEditScreen: (Int?, Int) -> Unit,
-    flockHealthList: List<FlockHealth>?,
+    navigateToEggsEditScreen: (Int?, Int) -> Unit,
+    eggsList: List<Eggs>?,
+    flock: Flock,
+    onDelete: (Eggs) -> Unit,
     flockId: Int?,
     contentType: ContentType,
     title: String
@@ -155,9 +201,9 @@ fun MainFlockHealthScreen(
                 }
             ) {
                 FloatingActionButton(
-                    onClick = { navigateToFlockEditScreen(flockId, 0) },
+                    onClick = { navigateToEggsEditScreen(flockId, 0) },
                     modifier = Modifier
-                        .semantics { contentDescription = "Edit flock fab" }
+                        .semantics { contentDescription = "Add eggs fab" }
                         .navigationBarsPadding(),
                     shape = ShapeDefaults.Small,
                     containerColor = MaterialTheme.colorScheme.secondary,
@@ -165,7 +211,7 @@ fun MainFlockHealthScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Add mortality and/or cull",
+                        contentDescription = "Add or reduce eggs",
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
@@ -173,31 +219,34 @@ fun MainFlockHealthScreen(
         }
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding)) {
-                FlockHealthList(
-                    onItemClick = { healthId ->
-                        navigateToFlockEditScreen(flockId, healthId)
+                EggsList(
+                    onItemClick = { eggId ->
+                        navigateToEggsEditScreen(flockId, eggId)
                     },
-                    flockHealthList = flockHealthList
+                    eggsList = eggsList,
+                    onDelete = onDelete,
+                    flock = flock
                 )
         }
     }
 }
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FlockHealthList(
+fun EggsList(
     modifier: Modifier = Modifier,
     onItemClick: (Int) -> Unit,
-    flockHealthList: List<FlockHealth>?
+    flock: Flock,
+    eggsList: List<Eggs>?,
+    onDelete: (Eggs) -> Unit
 ) {
-    if (flockHealthList.isNullOrEmpty()) {
+    if (eggsList.isNullOrEmpty()) {
         Box(
             modifier = modifier.fillMaxSize().padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 modifier = Modifier.align(Alignment.Center),
-                text = stringResource(R.string.no_records_add_mort_cull),
+                text = stringResource(R.string.no_records_add_eggs),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
@@ -219,7 +268,7 @@ fun FlockHealthList(
                 )
                 Text(
                     modifier = Modifier.weight(1f, fill = true),
-                    text = stringResource(R.string.mortality),
+                    text = stringResource(R.string.good_eggs),
                     textAlign = TextAlign.Center
                 )
 
@@ -230,15 +279,17 @@ fun FlockHealthList(
 
                 Text(
                     modifier = Modifier.weight(1f, fill = true),
-                    text = stringResource(R.string.culls),
+                    text = stringResource(R.string.bad_eggs),
                     textAlign = TextAlign.Center
                 )
             }
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                itemsIndexed(flockHealthList) { index, flockHealthItem ->
-                    FlockHealthCard(
-                        flockHealth = flockHealthItem,
-                        onItemClick = { onItemClick(flockHealthItem.id) }
+                itemsIndexed(eggsList) { index, eggItem ->
+                    EggsInventoryCard(
+                        eggs = eggItem,
+                        onItemClick = { onItemClick(eggItem.id) },
+                        flock = flock,
+                        onDelete = onDelete
                     )
                 }
             }
@@ -271,23 +322,31 @@ private fun LazyListState.isScrollingUp(): Boolean {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FlockHealthCard(
+fun EggsInventoryCard(
     modifier: Modifier = Modifier,
-    flockHealth: FlockHealth,
+    eggs: Eggs,
+    flock: Flock,
     onItemClick: () -> Unit,
+    onDelete: (Eggs) -> Unit
 ) {
+
+    var isEggItemMenuShowing by remember { mutableStateOf(false) }
+    var isAlertDialogShowing by remember { mutableStateOf(false) }
+    var isCloseAlertDialogShowing by remember { mutableStateOf(false) }
+
     Card(modifier = modifier.clickable(onClick = onItemClick)) {
         Row(
-            modifier = Modifier.padding(16.dp).height(intrinsicSize = IntrinsicSize.Min)
+            modifier = Modifier.padding(16.dp).height(intrinsicSize = IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 modifier = Modifier.weight(weight = 1.5f, fill = true),
-                text = DateUtils().dateToStringShortFormat(flockHealth.date),
+                text = DateUtils().dateToStringShortFormat(eggs.date),
                 textAlign = TextAlign.Center
             )
             Text(
                 modifier = Modifier.weight(1f, fill = true),
-                text = flockHealth.mortality.toString(),
+                text = eggs.goodEggs.toString(),
                 textAlign = TextAlign.Center
             )
 
@@ -298,8 +357,32 @@ fun FlockHealthCard(
 
             Text(
                 modifier = Modifier.weight(1f, fill = true),
-                text = flockHealth.culls.toString(),
+                text = eggs.badEggs.toString(),
                 textAlign = TextAlign.Center
+            )
+
+            ShowOverflowMenu(
+                flock = flock,
+                isOverflowMenuExpanded = isEggItemMenuShowing,
+                isAlertDialogShowing = isAlertDialogShowing,
+                onDismissAlertDialog = { isAlertDialogShowing = false },
+                onShowMenu = {
+                    isEggItemMenuShowing = true
+                },
+                onShowAlertDialog = { isAlertDialogShowing = true },
+                onDismiss = { isEggItemMenuShowing = false },
+                onDelete = {
+                    onDelete(eggs)
+                    isAlertDialogShowing = false
+                    isEggItemMenuShowing = false
+                },
+                onClose = {
+                    isEggItemMenuShowing = false
+                    isCloseAlertDialogShowing = true
+                },
+                title = stringResource(R.string.delete_egg),
+                message = stringResource(R.string.this_cannot_be_undone),
+                showCloseButton = false
             )
         }
     }

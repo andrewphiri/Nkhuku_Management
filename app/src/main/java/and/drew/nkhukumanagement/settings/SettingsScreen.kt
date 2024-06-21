@@ -9,6 +9,7 @@ import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
 import and.drew.nkhukumanagement.utils.ContentType
+import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
 import and.drew.nkhukumanagement.utils.getAllCurrenciesInUse
@@ -111,6 +112,7 @@ fun SettingsScreen(
     var showRestoreDialog by remember { mutableStateOf(false) }
     var showSuccessfulAfterRestoreDialog by remember { mutableStateOf(false) }
     var isFileValid by remember { mutableStateOf(false) }
+
     val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
@@ -137,6 +139,7 @@ fun SettingsScreen(
     //ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0]
 
     val appLanguages = context.resources.getStringArray(R.array.app_languages)
+    var expanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = selectedLocale) {
  //       Log.i("Default_Language", selectedLocale.language.toString())
@@ -349,7 +352,19 @@ fun SettingsScreen(
                 onShowLanguageDialog = {
                     showLanguageDialog = true
                 },
-                defaultLocale = defaultLocale
+                defaultLocale = defaultLocale,
+                onExpand = {
+                    expanded = !expanded
+                },
+                onOptionSelected = {
+                    userPrefsViewModel.updateTraySize(it)
+                },
+                onDismissTraySizeDropDownMenu = {
+                    expanded = false
+                },
+                expanded = expanded,
+                traySize = userPreferences.traySize,
+                traySizeOptions = listOf("6", "12", "18", "24", "30") ,
             )
         }
     }
@@ -382,7 +397,13 @@ fun SettingsCard(
     selectedLocale: Locale,
     defaultLocale: Locale,
     onDismissLanguageDialog: () -> Unit,
-    allLocale: List<Locale>
+    allLocale: List<Locale>,
+    traySize: String,
+    traySizeOptions: List<String>,
+    onOptionSelected: (String) -> Unit,
+    onExpand: (Boolean) -> Unit,
+    expanded: Boolean,
+    onDismissTraySizeDropDownMenu: () -> Unit,
 ) {
     Box(
         modifier = modifier
@@ -514,6 +535,7 @@ fun SettingsCard(
                     fontWeight = FontWeight.Light
                 )
             }
+
             HorizontalDivider(
                 thickness = Dp.Hairline,
                 color = Color.DarkGray
@@ -565,7 +587,8 @@ fun SettingsCard(
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -580,6 +603,30 @@ fun SettingsCard(
                     onCheckedChange = onCheckedChange
                 )
             }
+
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                thickness = Dp.Hairline,
+                color = Color.DarkGray
+            )
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = stringResource(R.string.other),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+
+            DropDownMenuDialog(
+                value = traySize,
+                onDismissed = onDismissTraySizeDropDownMenu,
+                options = traySizeOptions,
+                onOptionSelected = onOptionSelected ,
+                onExpand = onExpand,
+                label = stringResource(R.string.tray_size),
+                expanded = expanded,
+            )
+
         }
     }
 }

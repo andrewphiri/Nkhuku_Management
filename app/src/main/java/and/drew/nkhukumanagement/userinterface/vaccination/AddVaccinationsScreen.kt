@@ -3,11 +3,13 @@ package and.drew.nkhukumanagement.userinterface.vaccination
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.data.EggsSummary
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.userinterface.accounts.AccountsViewModel
 import and.drew.nkhukumanagement.userinterface.feed.FeedViewModel
+import and.drew.nkhukumanagement.userinterface.flock.EggsInventoryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
@@ -112,6 +114,7 @@ fun AddVaccinationsScreen(
     weightViewModel: WeightViewModel = hiltViewModel(),
     feedViewModel: FeedViewModel = hiltViewModel(),
     accountsViewModel: AccountsViewModel = hiltViewModel(),
+    eggsInventoryViewModel: EggsInventoryViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel,
     contentType: ContentType
 ) {
@@ -273,6 +276,18 @@ fun AddVaccinationsScreen(
                             feedViewModel.getFeedList().forEach {
                                 feedViewModel.saveFeed(it)
                             }
+
+                            if (flockEntryViewModel.flockUiState.flockType == "Layer") {
+                                eggsInventoryViewModel.insertEggSummary(
+                                    EggsSummary(
+                                        flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId(),
+                                        totalGoodEggs = 0,
+                                        totalBadEggs = 0,
+                                        date = DateUtils().stringToLocalDate(flockEntryViewModel.flockUiState.getDate())
+                                    )
+                                )
+                            }
+
                             vaccinationViewModel.getInitialVaccinationList().forEach {
                                 vaccinationViewModel.saveVaccination(
                                     it.copy(
@@ -575,7 +590,9 @@ fun VaccinationCardEntry(
         elevation = CardDefaults.cardElevation()
     ) {
         Box(
-            modifier = modifier.fillMaxWidth().padding(8.dp)
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(8.dp)
         ) {
             Checkbox(
                 modifier = Modifier.align(Alignment.TopEnd),

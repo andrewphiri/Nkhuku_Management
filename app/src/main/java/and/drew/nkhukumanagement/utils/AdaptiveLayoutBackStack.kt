@@ -6,7 +6,7 @@ package and.drew.nkhukumanagement.utils
  */
 enum class FlockDetailsCurrentScreen {
     DETAILS_SCREEN, FLOCK_HEALTH_SCREEN, WEIGHT_SCREEN, FEED_SCREEN,
-    VACCINATION_SCREEN, EDIT_FLOCK_SCREEN
+    VACCINATION_SCREEN, EDIT_FLOCK_SCREEN, EGG_INVENTORY_SCREEN, EDIT_EGGS_SCREEN
 }
 
 enum class AccountDetailsCurrentScreen {

@@ -19,7 +19,11 @@ import and.drew.nkhukumanagement.userinterface.feed.FeedScreen
 import and.drew.nkhukumanagement.userinterface.feed.FeedScreenDestination
 import and.drew.nkhukumanagement.userinterface.flock.AddFlockDestination
 import and.drew.nkhukumanagement.userinterface.flock.AddFlockScreen
+import and.drew.nkhukumanagement.userinterface.flock.EditEggsDestination
 import and.drew.nkhukumanagement.userinterface.flock.EditFlockDestination
+import and.drew.nkhukumanagement.userinterface.flock.EggsEditScreen
+import and.drew.nkhukumanagement.userinterface.flock.EggsInventoryScreen
+import and.drew.nkhukumanagement.userinterface.flock.EggsInventoryScreenDestination
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsScreen
 import and.drew.nkhukumanagement.userinterface.flock.FlockEditScreen
@@ -56,6 +60,7 @@ import and.drew.nkhukumanagement.userinterface.weight.WeightScreen
 import and.drew.nkhukumanagement.userinterface.weight.WeightScreenDestination
 import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
@@ -651,6 +656,9 @@ fun NavGraphBuilder.detailsGraph(
                 navigateToFeedScreen = { id ->
                     navController.navigate(route = "${FeedScreenDestination.route}/$id")
                 },
+                navigateToEggsInventoryScreen = { id ->
+                    navController.navigate(route = "${EggsInventoryScreenDestination.route}/$id")
+                },
                 contentType = contentType
             )
         }
@@ -678,6 +686,7 @@ fun NavGraphBuilder.detailsGraph(
                 contentType = contentType
             )
         }
+
         composable(
             route = EditFlockDestination.routeWithArgs,
             arguments = EditFlockDestination.arguments,
@@ -740,6 +749,54 @@ fun NavGraphBuilder.detailsGraph(
             FeedScreen(
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
+                contentType = contentType
+            )
+        }
+
+        composable(
+            route = EditEggsDestination.routeWithArgs,
+            arguments = EditEggsDestination.arguments,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400)
+                )
+            }
+        ) {
+            EggsEditScreen(
+                onNavigateUp = { navController.navigateUp() },
+                flockEntryViewModel = flockEntryViewModel,
+                contentType = contentType
+            )
+        }
+
+        composable(
+            route = EggsInventoryScreenDestination.routeWithArgs,
+            arguments = EggsInventoryScreenDestination.arguments,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400)
+                )
+            }
+        ) {
+            EggsInventoryScreen(
+                onNavigateUp = { navController.navigateUp() },
+                navigateToEggsEditScreen = {flockID, eggsID ->
+                    navController.navigate(route = "${EditEggsDestination.route}/$flockID/$eggsID")
+                },
                 contentType = contentType
             )
         }

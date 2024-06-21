@@ -38,6 +38,12 @@ interface FlockDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertExpense(expense: Expense)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertEggs(eggs: Eggs)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertEggsSummary(eggs: EggsSummary)
+
     @Update
     suspend fun updateFlock(flock: Flock)
 
@@ -61,6 +67,12 @@ interface FlockDao {
 
     @Update
     suspend fun updateExpense(expense: Expense)
+
+    @Update
+    suspend fun updateEggs(eggs: Eggs)
+
+    @Update
+    suspend fun updateEggsSummary(eggsSummary: EggsSummary)
 
     @Query("DELETE FROM flock WHERE uniqueId = :flockUniqueID")
     suspend fun deleteFlock(flockUniqueID: String)
@@ -92,6 +104,18 @@ interface FlockDao {
     @Delete
     suspend fun deleteExpense(expense: Expense)
 
+    @Query("DELETE FROM eggs WHERE flockUniqueId = :flockUniqueID")
+    suspend fun deleteEggs(flockUniqueID: String)
+
+    @Delete
+    suspend fun deleteEggs(eggs: Eggs)
+
+    @Delete
+    suspend fun deleteEggsSummary(eggsSummary: EggsSummary)
+
+    @Query("DELETE FROM eggs_summary WHERE flockUniqueID = :flockUniqueID")
+    suspend fun deleteEggsSummary(flockUniqueID: String)
+
     @Query("SELECT * FROM flock WHERE id = :id")
     fun retrieveFlock(id: Int): Flow<Flock>
 
@@ -116,6 +140,9 @@ interface FlockDao {
     @Query("SELECT * FROM feed WHERE id = :id")
     fun retrieveFeed(id: Int): Flow<Feed>
 
+    @Query("SELECT * FROM eggs WHERE id = :id")
+    fun retrieveEggs(id: Int): Flow<Eggs>
+
     @Query("SELECT * FROM flock")
     fun getAllFlockItems(): Flow<List<Flock>>
 
@@ -128,8 +155,14 @@ interface FlockDao {
     @Query("SELECT * FROM weight")
     fun getAllWeightItems(): Flow<List<Weight>>
 
+    @Query("SELECT * FROM eggs")
+    fun getAllEggItems(): Flow<List<Eggs>>
+
     @Query("SELECT * FROM accounts_summary")
     fun getAllAccountItems(): Flow<List<AccountsSummary>>
+
+    @Query("SELECT * FROM eggs_summary")
+    fun getAllEggsSummaryItems(): Flow<List<EggsSummary>>
 
 
     @Transaction
@@ -150,7 +183,14 @@ interface FlockDao {
 
     @Transaction
     @Query("SELECT * FROM flock WHERE id = :id")
+    fun getFlocksWithEggs(id: Int): Flow<FlockWithEggs>
+    @Transaction
+    @Query("SELECT * FROM flock WHERE id = :id")
     fun getFlocksAndAccountSummary(id: Int): Flow<FlockAndAccountSummary>
+
+    @Transaction
+    @Query("SELECT * FROM flock WHERE id = :id")
+    fun getFlocksAndEggsSummary(id: Int): Flow<FlockAndEggsSummary>
 
     @Transaction
     @Query("SELECT * FROM flock WHERE id = :id")

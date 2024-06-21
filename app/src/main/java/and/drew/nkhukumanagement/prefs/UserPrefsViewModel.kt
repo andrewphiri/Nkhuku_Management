@@ -62,6 +62,12 @@ class UserPrefsViewModel @Inject constructor(
         }
     }
 
+    fun updateTraySize(traySize: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateTraySize(traySize)
+        }
+    }
+
     fun updateCurrency(currency: Currency?, uLocale: String) {
         viewModelScope.launch {
             if (currency != null) {

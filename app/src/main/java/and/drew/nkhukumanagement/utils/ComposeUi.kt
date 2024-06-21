@@ -3,6 +3,7 @@ package and.drew.nkhukumanagement.utils
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.Account
 import and.drew.nkhukumanagement.data.AccountsSummary
+import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.ui.theme.Shapes
 import and.drew.nkhukumanagement.userinterface.navigation.TabScreens
@@ -637,6 +638,66 @@ fun ShowFilterOverflowMenu(
                 text = { Text(text = stringResource(R.string.closed)) },
                 onClick = onClickInactive
             )
+        }
+    }
+}
+
+@Composable
+fun ShowOverflowMenu(
+    modifier: Modifier = Modifier,
+    flock: Flock,
+    isOverflowMenuExpanded: Boolean = false,
+    isAlertDialogShowing: Boolean = false,
+    onDismissAlertDialog: () -> Unit = {},
+    onShowMenu: (Int) -> Unit = {},
+    onShowAlertDialog: () -> Unit,
+    onDismiss: () -> Unit,
+    onDelete: () -> Unit = {},
+    onClose: () -> Unit = {},
+    title: String,
+    message: String,
+    showCloseButton: Boolean = true
+) {
+    ShowAlertDialog(
+        onDismissAlertDialog = onDismissAlertDialog,
+        onConfirm = onDelete,
+        isAlertDialogShowing = isAlertDialogShowing,
+        title = title,
+        message = message
+    )
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.TopEnd
+    ) {
+        IconButton(
+            onClick = { onShowMenu(flock.id) }
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "Show overflow menu"
+            )
+        }
+        DropdownMenu(
+            modifier = modifier,
+            expanded = isOverflowMenuExpanded,
+            onDismissRequest = onDismiss
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.delete)) },
+                onClick = onShowAlertDialog
+            )
+            if (showCloseButton) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = if (flock.active) stringResource(R.string.close) else stringResource(
+                                R.string.reopen
+                            )
+                        )
+                    },
+                    onClick = onClose
+                )
+            }
         }
     }
 }

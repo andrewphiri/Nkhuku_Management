@@ -12,4 +12,5 @@ message UserPreferences {
   string currencyLocale = 6;
   bool skipAccountSetup = 7;
   string languageLocale = 8;
+  string traySize = 9;
 }

@@ -163,7 +163,7 @@ class WeightViewModel @Inject constructor(
         flockUiState: FlockUiState
     ): SnapshotStateList<WeightUiState> {
 
-        return when (flockUiState.layerType) {
+        return when (flockUiState.breed) {
             "Hybrid Zambro" -> {
                 defaultWeightHybridZambroLayers(
                     flockUiState = flockUiState,
@@ -470,7 +470,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_1),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.068-0.072",
+                standard = "0.072",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 7,
@@ -482,7 +482,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_2),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.121-0.129",
+                standard = "0.129",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 14,
@@ -494,7 +494,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_3),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.840-0.196",
+                standard = "0.196",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 21,
@@ -506,7 +506,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_4),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.257-0.273",
+                standard = "0.273",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 28,
@@ -518,7 +518,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_5),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.349-0.371",
+                standard = "0.371",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 35,
@@ -530,7 +530,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_6),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.446-0.474",
+                standard = "0.474",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 42,
@@ -542,7 +542,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_7),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.543-0.577",
+                standard = "0.577",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 49,
@@ -554,7 +554,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_8),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.650-0.680",
+                standard = "0.680",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 56,
@@ -566,7 +566,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_9),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.757-0.803",
+                standard = "0.803",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 63,
@@ -578,7 +578,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_10),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.863-0.917",
+                standard = "0.917",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 70,
@@ -590,7 +590,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_11),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "0.960-1.020",
+                standard = "1.020",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 77,
@@ -602,7 +602,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_12),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "1.048-1.112",
+                standard = "1.112",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 84,
@@ -614,7 +614,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_13),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "1.125-1.196",
+                standard = "1.195",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 91,
@@ -626,7 +626,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_14),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "1.261-1.339",
+                standard = "1.339",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 98,
@@ -638,7 +638,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_15),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "1.270-1365",
+                standard = "1365",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 105,
@@ -650,7 +650,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_16),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "1.329-1.411",
+                standard = "1.411",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 112,
@@ -662,7 +662,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_17),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "1.397-1.483",
+                standard = "1.483",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 119,
@@ -674,7 +674,19 @@ class WeightViewModel @Inject constructor(
                     R.string.week_18),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "1.470-1.570",
+                standard = "1.570",
+                dateMeasured = DateUtils().weightDate(
+                    date = dateReceived,
+                    day = 126,
+                    weightUiState = weightUiState
+                )
+            ),
+            WeightUiState(
+                week = application.applicationContext.getString(
+                    R.string.week_19),
+                flockUniqueID = flockUiState.getUniqueId(),
+                actualWeight = "0",
+                standard = "1.670",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 126,
@@ -686,7 +698,7 @@ class WeightViewModel @Inject constructor(
                     R.string.week_20_to_laying_stage),
                 flockUniqueID = flockUiState.getUniqueId(),
                 actualWeight = "0",
-                standard = "1.630-1.730",
+                standard = "1.730",
                 dateMeasured = DateUtils().weightDate(
                     date = dateReceived,
                     day = 133,

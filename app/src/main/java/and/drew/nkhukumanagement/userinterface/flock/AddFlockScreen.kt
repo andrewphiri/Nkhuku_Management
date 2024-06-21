@@ -171,7 +171,9 @@ fun MainAddFlockScreen(
         },
         snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { innerPadding ->
-        Column(modifier = modifier.padding(innerPadding).verticalScroll(scrollState)) {
+        Column(modifier = modifier
+            .padding(innerPadding)
+            .verticalScroll(scrollState)) {
             AddFlockBody(
                 flockUiState = flockUiState,
                 onItemValueChange = onItemValueChange,
@@ -201,7 +203,8 @@ fun AddFlockBody(
     currencySymbol: String
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(16.dp)
     ) {
         AddFlockInputForm(
@@ -218,7 +221,9 @@ fun AddFlockBody(
             enabled = flockUiState.isValid()
         ) {
             Text(
-                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
                 textAlign = TextAlign.Center,
                 text = stringResource(R.string.set_vaccination_days),
             )
@@ -235,7 +240,8 @@ fun AddFlockInputForm(
     onValueChanged: (FlockUiState) -> Unit = {},
     currencySymbol: String,
 ) {
-    val options = flockUiState.options
+    val options = if(flockUiState.flockType == "Broiler") flockUiState.broilerOptions
+    else if(flockUiState.flockType == "Layer") flockUiState.layerTypeOptions else flockUiState.villageTypeOptions
     var expanded by rememberSaveable { mutableStateOf(false) }
     var expandFlockType by rememberSaveable { mutableStateOf(false) }
     var expandLayerType by rememberSaveable { mutableStateOf(false) }
@@ -273,29 +279,9 @@ fun AddFlockInputForm(
             onExpand = {
                        expandFlockType = !expandFlockType
             },
-            label = "Flock type",
+            label = stringResource(R.string.flock_type),
             expanded = expandFlockType,
         )
-
-        if (flockUiState.flockType == "Layer") {
-            DropDownMenuAutoCompleteDialog(
-                value = flockUiState.layerType,
-                onDismissed = {
-                    expandLayerType = false
-                },
-                options = flockUiState.layerTypeOptions,
-                onOptionSelected = {
-                    selectedBreedOption = if (it == "Hybrid Zambro" || it == "Hybrid Brown Layer") "Hybrid" else ""
-                    selectedLayerOption = it
-                    onValueChanged(flockUiState.copy(layerType = it, breed = selectedBreedOption))
-                },
-                onExpand = {
-                    expandLayerType = !expandLayerType
-                },
-                label = "Layer Breed",
-                expanded = expandLayerType,
-            )
-        }
 
         Row {
             DropDownMenuAutoCompleteDialog(
@@ -317,13 +303,14 @@ fun AddFlockInputForm(
             )
         }
 
+
         AddNewEntryDialog(
             entry = newBreedEntry,
             showDialog = isBreedDialogShowing,
             onValueChanged = { newBreedEntry = it },
             onDismissed = { isBreedDialogShowing = false },
             onSaveEntry = {
-                flockUiState.options.add(newBreedEntry)
+                flockUiState.broilerOptions.add(newBreedEntry)
                 onValueChanged(flockUiState.copy(breed = newBreedEntry))
                 isBreedDialogShowing = false
             },
