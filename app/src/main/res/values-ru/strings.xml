@@ -252,4 +252,22 @@
     <string name="layers_mash">Корм для несушек</string>
     <string name="pre_layer">Преднесушка</string>
     <string name="flock_type">Тип стаи</string>
+    <string-array name="types_of_flocks">
+        <item>Бройлер</item>
+        <item>Несушка</item>
+        <item>Деревенская курица</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>Продажа кур</item>
+        <item>Навоз</item>
+        <item>Другое</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>Продажа кур</item>
+        <item>Навоз</item>
+        <item>Яйца</item>
+        <item>Другое</item>
+    </string-array>
+
 </resources>

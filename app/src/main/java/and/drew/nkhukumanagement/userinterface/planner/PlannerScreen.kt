@@ -76,6 +76,7 @@ fun MainPlannerScreen(
     contentType: ContentType
 ) {
     val context = LocalContext.current
+    val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var isCalculateButtonEnabled by remember { mutableStateOf(false) }
@@ -105,7 +106,7 @@ fun MainPlannerScreen(
             },
             plannerUiState = plannerUiState,
             onValueChanged = onValueChanged,
-            flockOptions = listOf("Broiler", "Layer"),
+            flockOptions = flockTypeOptions.take(2),
             flockType = plannerUiState.flockType
         )
     }

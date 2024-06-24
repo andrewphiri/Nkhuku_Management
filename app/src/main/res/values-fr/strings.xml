@@ -249,5 +249,22 @@
     <string name="layers_mash">Mélange pour Poules Pondeuses</string>
     <string name="pre_layer">Prélayeur</string>
     <string name="flock_type">Type de Troupeau</string>
+    <string-array name="types_of_flocks">
+        <item>Poulet de chair</item>
+        <item>Poule pondeuse</item>
+        <item>Poule villageoise</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>Vente de poulet</item>
+        <item>Fumier</item>
+        <item>Autre</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>Vente de poulet</item>
+        <item>Fumier</item>
+        <item>Œufs</item>
+        <item>Autre</item>
+    </string-array>
 
 </resources>

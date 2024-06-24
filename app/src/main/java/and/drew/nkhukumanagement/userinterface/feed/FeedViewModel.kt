@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -120,19 +121,20 @@ class FeedViewModel @Inject constructor(
     fun defaultFeedInformationList(
         flockUiState: FlockUiState
     ): SnapshotStateList<FeedUiState> {
-
+        val context = application.applicationContext
+        val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks)
         return when (flockUiState.flockType) {
-            "Broiler" -> {
+            flockTypeOptions[0] -> {
                 defaultBroilerFeedList(
                     flockUiState = flockUiState
                 )
             }
-            "Layer" -> {
+            flockTypeOptions[1] -> {
                 defaultLayerFeed(
                     flockUiState = flockUiState
                 )
             }
-            "Village Chicken" -> {
+            flockTypeOptions[2] -> {
                 defaultHybridVillageFeedInformationList(
                     flockUiState = flockUiState
                 )

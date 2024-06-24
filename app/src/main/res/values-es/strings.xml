@@ -249,4 +249,22 @@
     <string name="layers_mash">Puré para Ponedoras</string>
     <string name="pre_layer">Preponedora</string>
     <string name="flock_type">Tipo de Rebaño</string>
+    <string-array name="types_of_flocks">
+        <item>Pollo de engorde</item>
+        <item>Gallina ponedora</item>
+        <item>Pollo de pueblo</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>Venta de pollos</item>
+        <item>Estiércol</item>
+        <item>Otro</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>Venta de pollos</item>
+        <item>Estiércol</item>
+        <item>Huevos</item>
+        <item>Otro</item>
+    </string-array>
+
 </resources>

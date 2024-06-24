@@ -1,6 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.vaccination
 
 import and.drew.nkhukumanagement.BaseFlockApplication
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.Vaccination
@@ -184,23 +185,23 @@ class VaccinationViewModel @Inject constructor(
         flockUiState: FlockUiState,
         vaccinationUiState: VaccinationUiState
     ): SnapshotStateList<VaccinationUiState> {
-
+        val flockTypeOptions = application.resources.getStringArray(R.array.types_of_flocks).toList()
         return when (flockUiState.flockType) {
-            "Broiler" -> {
+            flockTypeOptions[0] -> {
                 broilerVaccinationDates(
                     flockUiState = flockUiState,
                     vaccinationUiState = vaccinationUiState
                 )
             }
 
-            "Layer" -> {
+            flockTypeOptions[1] -> {
                 defaultLayerVaccinationDates(
                     flockUiState = flockUiState,
                     vaccinationUiState = vaccinationUiState
                 )
             }
 
-            "Village Chicken" -> {
+            flockTypeOptions[2] -> {
                 defaultHybridVillageVaccinations(
                     flockUiState = flockUiState,
                     vaccinationUiState = vaccinationUiState

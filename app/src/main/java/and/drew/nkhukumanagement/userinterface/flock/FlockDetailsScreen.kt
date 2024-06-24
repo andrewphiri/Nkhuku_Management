@@ -187,6 +187,7 @@ fun MainFlockDetailsScreen(
     contentType: ContentType
 ) {
     val context = LocalContext.current
+    val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
     flock?.toFlockUiState()?.copy(enabled = true)?.let { onUpdateUiState(it) }
     if (flock != null) {
         Scaffold(
@@ -280,7 +281,7 @@ fun MainFlockDetailsScreen(
                     }
                 }
 
-                if (flock.flockType == "Layer") {
+                if (flock.flockType == flockTypeOptions[1]) {
                     item {
                             flock.let { flock ->
                                 EggsCard(
@@ -291,7 +292,7 @@ fun MainFlockDetailsScreen(
                                     flock = flock,
                                     onEggsCardClick = { id ->
                                         if (flock.active) {
-                                            Log.d("TAG", "MainFlockDetailsScreen: $id")
+                                            //Log.d("TAG", "MainFlockDetailsScreen: $id")
                                             navigateToEggsInventoryScreen(id)
                                         }
                                     }

@@ -120,6 +120,7 @@ fun AddVaccinationsScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks)
     val getAllVaccinationItems by vaccinationViewModel.getAllVaccinationItems.collectAsState()
     val flockWithVaccinations by detailsViewModel
         .flockWithVaccinationsStateFlow
@@ -277,7 +278,7 @@ fun AddVaccinationsScreen(
                                 feedViewModel.saveFeed(it)
                             }
 
-                            if (flockEntryViewModel.flockUiState.flockType == "Layer") {
+                            if (flockEntryViewModel.flockUiState.flockType == flockTypeOptions[1]) {
                                 eggsInventoryViewModel.insertEggSummary(
                                     EggsSummary(
                                         flockUniqueID = flockEntryViewModel.flockUiState.getUniqueId(),

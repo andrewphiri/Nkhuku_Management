@@ -248,4 +248,22 @@
     <string name="layers_mash">लेयर्स माश</string>
     <string name="pre_layer">प्रेलेयर</string>
     <string name="flock_type">झुंड का प्रकार</string>
+    <string-array name="types_of_flocks">
+        <item>ब्रोइलर</item>
+        <item>लेयर</item>
+        <item>गांव की मुर्गी</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>मुर्गी बिक्री</item>
+        <item>खाद</item>
+        <item>अन्य</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>मुर्गी बिक्री</item>
+        <item>खाद</item>
+        <item>अंडे</item>
+        <item>अन्य</item>
+    </string-array>
+
 </resources>

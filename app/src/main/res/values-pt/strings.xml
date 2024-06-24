@@ -249,4 +249,22 @@
     <string name="layers_mash">Ração para Postura</string>
     <string name="pre_layer">Pré-Postura</string>
     <string name="flock_type">Tipo de Rebanho</string>
+    <string-array name="types_of_flocks">
+        <item>Frango de corte</item>
+        <item>Galinha poedeira</item>
+        <item>Galinha caipira</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>Venda de Frango</item>
+        <item>Esterco</item>
+        <item>Outro</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>Venda de Frango</item>
+        <item>Esterco</item>
+        <item>Ovos</item>
+        <item>Outro</item>
+    </string-array>
+
 </resources>

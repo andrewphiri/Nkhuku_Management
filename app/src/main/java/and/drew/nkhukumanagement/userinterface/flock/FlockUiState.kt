@@ -32,7 +32,6 @@ data class FlockUiState(
     val active: Boolean = true
 ) {
     val broilerOptions = mutableListOf("Hybrid", "Ross", "Ross 308","Zamhatch", "Tiger")
-    val flockTypeOptions = mutableListOf("Broiler", "Layer", "Village Chicken")
     val layerTypeOptions = mutableListOf("Hybrid Brown Layer", "Hybrid Zambro", "Lohmann Brown Classic")
     val villageTypeOptions = mutableListOf("Hybrid Zambro")
 

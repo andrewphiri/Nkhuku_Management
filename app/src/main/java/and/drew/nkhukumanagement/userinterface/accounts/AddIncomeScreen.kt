@@ -110,6 +110,7 @@ fun AddIncomeScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
     val accountsWithIncome by accountsViewModel.accountsWithIncome.collectAsState(
         AccountsWithIncome(
             accountsSummary = AccountsSummary(
@@ -226,7 +227,7 @@ fun AddIncomeScreen(
         onDismissIncomeTypeDropDownMenu = {
                                           expanded = false
         } ,
-        incomeTypeOptions = if (flock?.value?.flockType == "Layer") incomeViewModel.incomeTypeOptionsLayers else incomeViewModel.incomeTypeOptions,
+        incomeTypeOptions = if (flock?.value?.flockType == flockTypeOptions[1]) incomeViewModel.incomeTypeOptionsLayers else incomeViewModel.incomeTypeOptions,
         onExpand = {
                    expanded = !expanded
         },

@@ -247,5 +247,22 @@
     <string name="layers_mash">レイヤーズマッシュ</string>
     <string name="pre_layer">プレレイヤー</string>
     <string name="flock_type">群れの種類</string>
+    <string-array name="types_of_flocks">
+        <item>ブロイラー</item>
+        <item>レイヤー</item>
+        <item>村の鶏</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>鶏の販売</item>
+        <item>肥料</item>
+        <item>その他</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>鶏の販売</item>
+        <item>肥料</item>
+        <item>卵</item>
+        <item>その他</item>
+    </string-array>
 
 </resources>

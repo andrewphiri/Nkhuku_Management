@@ -250,4 +250,22 @@
     <string name="layers_mash">Legefutter</string>
     <string name="pre_layer">Vorleger</string>
     <string name="flock_type">Bestandstyp</string>
+    <string-array name="types_of_flocks">
+        <item>Mastküken</item>
+        <item>Legehenne</item>
+        <item>Dorfhuhn</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>Hühnerverkauf</item>
+        <item>Mist</item>
+        <item>Andere</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>Hühnerverkauf</item>
+        <item>Mist</item>
+        <item>Eier</item>
+        <item>Andere</item>
+    </string-array>
+
 </resources>

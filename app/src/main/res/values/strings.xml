@@ -250,4 +250,21 @@
     <string name="layers_mash">Layers Mash</string>
     <string name="pre_layer">Prelayer</string>
     <string name="flock_type">Flock type</string>
+    <string-array name="types_of_flocks">
+        <item>Broiler</item>
+        <item>Layer</item>
+        <item>Village Chicken</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>Chicken Sale</item>
+        <item>Manure</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>Chicken Sale</item>
+        <item>Manure</item>
+        <item>Eggs</item>
+        <item>Other</item>
+    </string-array>
 </resources>

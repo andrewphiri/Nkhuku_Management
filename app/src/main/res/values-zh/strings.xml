@@ -248,5 +248,22 @@
     <string name="layers_mash">产蛋鸡饲料</string>
     <string name="pre_layer">预产蛋</string>
     <string name="flock_type">鸡群类型</string>
+    <string-array name="types_of_flocks">
+        <item>肉鸡</item>
+        <item>蛋鸡</item>
+        <item>村鸡</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>鸡肉销售</item>
+        <item>肥料</item>
+        <item>其他</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>鸡肉销售</item>
+        <item>肥料</item>
+        <item>鸡蛋</item>
+        <item>其他</item>
+    </string-array>
 
 </resources>

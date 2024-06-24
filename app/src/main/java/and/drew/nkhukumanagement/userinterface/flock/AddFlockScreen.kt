@@ -240,15 +240,17 @@ fun AddFlockInputForm(
     onValueChanged: (FlockUiState) -> Unit = {},
     currencySymbol: String,
 ) {
-    val options = if(flockUiState.flockType == "Broiler") flockUiState.broilerOptions
-    else if(flockUiState.flockType == "Layer") flockUiState.layerTypeOptions else flockUiState.villageTypeOptions
+    val context = LocalContext.current
+    val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
+    val options = if(flockUiState.flockType == flockTypeOptions[0]) flockUiState.broilerOptions
+    else if(flockUiState.flockType == flockTypeOptions[1]) flockUiState.layerTypeOptions else flockUiState.villageTypeOptions
     var expanded by rememberSaveable { mutableStateOf(false) }
     var expandFlockType by rememberSaveable { mutableStateOf(false) }
-    var expandLayerType by rememberSaveable { mutableStateOf(false) }
     var isBreedDialogShowing by remember { mutableStateOf(false) }
     var newBreedEntry by remember { mutableStateOf("") }
     var selectedBreedOption by remember { mutableStateOf("") }
-    var selectedLayerOption by remember { mutableStateOf("") }
+
+
 
     val dateState = rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
@@ -272,7 +274,7 @@ fun AddFlockInputForm(
             onDismissed = {
                           expandFlockType = false
             },
-            options = flockUiState.flockTypeOptions,
+            options = flockTypeOptions,
             onOptionSelected = {
                 onValueChanged(flockUiState.copy(flockType = it))
             },

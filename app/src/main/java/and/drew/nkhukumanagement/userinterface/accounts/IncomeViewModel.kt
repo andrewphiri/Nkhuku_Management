@@ -1,5 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.accounts
 
+import and.drew.nkhukumanagement.BaseFlockApplication
+import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.Income
 import android.os.Build
@@ -12,6 +14,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
@@ -22,15 +25,16 @@ import javax.inject.Inject
 @HiltViewModel
 class IncomeViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
-    val flockRepository: FlockRepository
+    val flockRepository: FlockRepository,
+    val application: BaseFlockApplication
 ) : ViewModel() {
 
     companion object {
         private const val MILLIS = 5_000L
     }
 
-    val incomeTypeOptions = listOf("Chicken Sale", "Manure", "Other")
-    val incomeTypeOptionsLayers = listOf("Chicken Sale", "Eggs", "Manure", "Other")
+    val incomeTypeOptions = application.resources.getStringArray(R.array.income_type_options).toList()
+    val incomeTypeOptionsLayers = application.resources.getStringArray(R.array.income_type_options_layers).toList()
 
     var incomeUiState by mutableStateOf(IncomeUiState())
         private set
@@ -40,6 +44,7 @@ class IncomeViewModel @Inject constructor(
         .getStateFlow(AddIncomeScreenDestination.incomeIdArg, initialValue = 0)
 
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val getIncome: Flow<Income> = savedStateHandle
         .getStateFlow(AddIncomeScreenDestination.incomeIdArg, initialValue = 0)
         .flatMapLatest {

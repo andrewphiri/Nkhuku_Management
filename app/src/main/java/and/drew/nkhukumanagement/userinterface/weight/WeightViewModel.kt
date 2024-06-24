@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -130,19 +131,20 @@ class WeightViewModel @Inject constructor(
     fun defaultWeights(
         flockUiState: FlockUiState
     ): SnapshotStateList<WeightUiState> {
-
+        val context = application.applicationContext
+        val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
         return when (flockUiState.flockType) {
-            "Broiler" -> {
+            flockTypeOptions[0] -> {
                 defaultWeightBroilers1(
                     flockUiState = flockUiState
                 )
             }
-            "Layer" -> {
+            flockTypeOptions[1] -> {
                 defaultLayersFeed(
                     flockUiState = flockUiState
                 )
             }
-            "Village Chicken" -> {
+            flockTypeOptions[2] -> {
                 defaultWeightHybridVillageChicken(
                     flockUiState = flockUiState
                 )

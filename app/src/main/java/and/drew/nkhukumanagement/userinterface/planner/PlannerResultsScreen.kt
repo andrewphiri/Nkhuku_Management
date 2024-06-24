@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -69,6 +70,8 @@ fun MainPlannerResultScreen(
     plannerUiState: PlannerUiState,
     contentType: ContentType
 ) {
+    val context = LocalContext.current
+    val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -88,7 +91,7 @@ fun MainPlannerResultScreen(
             contentPadding = PaddingValues(16.dp)
         ) {
             item {
-                if (plannerUiState.flockType == "Broiler") {
+                if (plannerUiState.flockType == flockTypeOptions[0]) {
                     FeedResultsCard(planner = plannerUiState.toPlanner())
                 } else {
                     LayersFeedResultsCard(planner = plannerUiState)
@@ -96,7 +99,7 @@ fun MainPlannerResultScreen(
 
             }
 
-            if (plannerUiState.flockType == "Broiler") {
+            if (plannerUiState.flockType == flockTypeOptions[0]) {
                 if (!plannerUiState.areFeedersAvailable) {
                     item {
                         FeedersResultsCard(

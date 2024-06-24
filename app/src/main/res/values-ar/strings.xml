@@ -252,5 +252,22 @@
     <string name="layers_mash">علف الدجاج البياض</string>
     <string name="pre_layer">علف ما قبل البيض</string>
     <string name="flock_type">نوع القطيع</string>
+    <string-array name="types_of_flocks">
+        <item>دجاج اللاحم</item>
+        <item>دجاج البياض</item>
+        <item>دجاج القرية</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>بيع الدجاج</item>
+        <item>سماد</item>
+        <item>أخرى</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>بيع الدجاج</item>
+        <item>سماد</item>
+        <item>بيض</item>
+        <item>أخرى</item>
+    </string-array>
 
 </resources>

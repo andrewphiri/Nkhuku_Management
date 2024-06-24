@@ -201,6 +201,8 @@ fun HomeScreen(
                     accountsViewModel.deleteAccountsSummary(uniqueId)
                     incomeViewModel.deleteIncome(uniqueId)
                     expenseViewModel.deleteExpense(uniqueId)
+                    eggsInventoryViewModel.deleteEggs(uniqueId)
+                    eggsInventoryViewModel.deleteEggsSummary(uniqueId)
                 }
             },
             onClose = { flock ->
@@ -775,10 +777,11 @@ fun FlockCard(
     var isAlertDialogShowing by remember { mutableStateOf(false) }
     var isCloseAlertDialogShowing by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks)
     val lifecycleOwner = LocalLifecycleOwner.current
     var totalGoodEggsCollected by remember { mutableStateOf(0) }
 
-    if (flock.flockType == "Layer") {
+    if (flock.flockType == flockTypeOptions[1]) {
         eggsInventoryViewModel.flockRepository.getFlockAndEggsSummary(flock.id).asLiveData()
             .observe(lifecycleOwner) { flockAndEggsSummary ->
                 if (flockAndEggsSummary.eggsSummary?.totalGoodEggs != null) {
@@ -812,8 +815,8 @@ fun FlockCard(
             },
         elevation = CardDefaults.cardElevation(),
         colors = color,
-        border = BorderStroke(width = Dp.Hairline, color = if (flock.flockType == "Broiler") Color.LightGray
-        else if (flock.flockType == "Layer") lightBrown else orange)
+        border = BorderStroke(width = Dp.Hairline, color = if (flock.flockType == flockTypeOptions[0]) Color.LightGray
+        else if (flock.flockType == flockTypeOptions[1]) lightBrown else orange)
     ) {
         Box {
             if (!flock.active) {
@@ -920,7 +923,7 @@ fun FlockCard(
                                 value = flock.mortality.toString()
                             )
 
-                            if (flock.flockType == "Layer") {
+                            if (flock.flockType == flockTypeOptions[1]) {
                                 BaseSingleRowItem(
                                     label = stringResource(R.string.total_good_eggs_collected),
                                     value = totalGoodEggsCollected.toString()

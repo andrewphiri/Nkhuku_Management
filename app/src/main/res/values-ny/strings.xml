@@ -248,5 +248,22 @@
     <string name="layers_mash">Chakudya cha nkhuku zowika</string>
     <string name="pre_layer">Chakudya chokonzekera kuyika</string>
     <string name="flock_type">Mtundu wa gulu</string>
+    <string-array name="types_of_flocks">
+        <item>Nkhuku za nyama</item>
+        <item>Nkhuku za mazira</item>
+        <item>Nkhuku za Kumudzi</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>Kugulitsa Nkhuku</item>
+        <item>Manyowa</item>
+        <item>Zina</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>Kugulitsa Nkhuku</item>
+        <item>Manyowa</item>
+        <item>Mazira</item>
+        <item>Zina</item>
+    </string-array>
 
 </resources>

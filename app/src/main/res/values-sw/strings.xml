@@ -250,4 +250,22 @@
     <string name="layers_mash">Chakula cha Kuku Wanaotaga</string>
     <string name="pre_layer">Chakula cha Kabla ya Kutaga</string>
     <string name="flock_type">Aina ya Kundi</string>
+    <string-array name="types_of_flocks">
+        <item>Kuku wa nyama</item>
+        <item>Kuku wa mayai</item>
+        <item>Kuku wa Kijiji</item>
+    </string-array>
+    <string-array name="income_type_options">
+        <item>Mauzo ya Kuku</item>
+        <item>Samadi</item>
+        <item>Nyingine</item>
+    </string-array>
+
+    <string-array name="income_type_options_layers">
+        <item>Mauzo ya Kuku</item>
+        <item>Samadi</item>
+        <item>Mayai</item>
+        <item>Nyingine</item>
+    </string-array>
+
 </resources>
