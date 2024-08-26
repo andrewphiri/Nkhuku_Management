@@ -1,6 +1,6 @@
 package and.drew.nkhukumanagement.data
 
-import androidx.lifecycle.LiveData
+
 import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -62,7 +62,25 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
     override fun getAccountsWithExpense(id: Int): Flow<AccountsWithExpense> =
         flockDao.getAccountsWithExpense(id)
 
+    override fun getAllVaccinationsForExport(flockUniqueID: String): Flow<List<Vaccination>> = flockDao.getAllVaccinationItemsForExport(flockUniqueID)
+
+    override fun getAllFeedsForExport(flockUniqueID: String): Flow<List<Feed>> = flockDao.getAllFeedItemsForExport(flockUniqueID)
+
+    override fun getAllWeightsForExport(flockUniqueID: String): Flow<List<Weight>> = flockDao.getAllWeightItemsForExport(flockUniqueID)
+
+    override fun getAllEggsForExport(flockUniqueID: String): Flow<List<Eggs>> = flockDao.getAllEggsItemsForExport(flockUniqueID)
+
+    override fun getAllHealthForExport(flockUniqueID: String): Flow<List<FlockHealth>> = flockDao.getAllHealthItemsForExport(flockUniqueID)
+
+    override fun getAllIncomeForExport(flockUniqueID: String): Flow<List<Income>> = flockDao.getAllIncomeItemsForExport(flockUniqueID)
+
+    override fun getAllExpensesForExport(flockUniqueID: String): Flow<List<Expense>> = flockDao.getAllExpenseItemsForExport(flockUniqueID)
+
+    override fun getAllAccountsForExport(flockUniqueID: String): Flow<AccountsSummary> = flockDao.getAllAccountItemsForExport(flockUniqueID)
+    override fun getAllEggsSummaryForExport(flockUniqueID: String): Flow<EggsSummary> = flockDao.getAllEggsSummaryItemsForExport(flockUniqueID)
+
     override suspend fun insertFlock(flock: Flock) = flockDao.insertFlock(flock)
+
     override suspend fun insertAccounts(accountsSummary: AccountsSummary) =
         flockDao.insertAccounts(accountsSummary)
 

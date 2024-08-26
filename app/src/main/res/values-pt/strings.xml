@@ -266,5 +266,5 @@
         <item>Ovos</item>
         <item>Outro</item>
     </string-array>
-
+    <string name="not_enough_stock">Estoque insuficiente disponível. Reduza a quantidade.</string>
 </resources>

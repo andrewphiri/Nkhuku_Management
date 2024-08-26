@@ -250,6 +250,7 @@
     <string name="layers_mash">Layers Mash</string>
     <string name="pre_layer">Prelayer</string>
     <string name="flock_type">Flock type</string>
+    <string name="not_enough_stock">Not enough stock available. Reduce the quantity.</string>
     <string-array name="types_of_flocks">
         <item>Broiler</item>
         <item>Layer</item>

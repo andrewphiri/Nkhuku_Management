@@ -3,7 +3,7 @@ package and.drew.nkhukumanagement.settings
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
-import and.drew.nkhukumanagement.backup.BackupAndRestoreViewModel
+import and.drew.nkhukumanagement.backupAndExport.BackupAndRestoreViewModel
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations

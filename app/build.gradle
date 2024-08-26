@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId "and.drew.nkhukumanagement"
-        minSdk 25
+        minSdk 26
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -136,6 +136,10 @@ dependencies {
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
+
+    //Apache Poi for exporting room as excel
+    implementation("org.apache.poi:poi:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
 
 
     //Coil Library

@@ -2,6 +2,7 @@ package and.drew.nkhukumanagement.userinterface.flock
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.backupAndExport.ExportRoomViewModel
 import and.drew.nkhukumanagement.data.EggsSummary
 import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.data.FlockAndEggsSummary
@@ -18,8 +19,10 @@ import and.drew.nkhukumanagement.utils.BaseSingleRowDetailsItem
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -43,16 +46,24 @@ import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Vaccines
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -63,10 +74,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -104,7 +118,8 @@ fun FlockDetailsScreen(
     navigateToEggsInventoryScreen: (Int) -> Unit,
     flockEntryViewModel: FlockEntryViewModel,
     detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
-    contentType: ContentType
+    contentType: ContentType,
+    exportRoomViewModel: ExportRoomViewModel = hiltViewModel()
 ) {
 
     val flockWithVaccinations by detailsViewModel
@@ -143,6 +158,31 @@ fun FlockDetailsScreen(
             )
         )
     )
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isCircularIndicatorShowing by remember {mutableStateOf(false)}
+
+    val requestStoragePermission = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            coroutineScope.launch {
+                isCircularIndicatorShowing = true
+                delay(3000)
+                exportRoomViewModel.exportRoomAsExcelFileAndShare(flock)
+            }.invokeOnCompletion {
+                isCircularIndicatorShowing = false
+            }
+        } else {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.feature_unavailable),
+                    duration = SnackbarDuration.Long
+                )
+            }
+        }
+    }
 
     MainFlockDetailsScreen(
         modifier = modifier,
@@ -160,9 +200,33 @@ fun FlockDetailsScreen(
         totalFeedQtyConsumed = flockWithFeed?.feedList?.sumOf { it.consumed },
         vaccinations = flockWithVaccinations?.vaccinations,
         weights = flockWithWeight?.weights,
-        eggsSummary = flockAndEggsSummary.eggsSummary,
+        eggsSummary = flockAndEggsSummary?.eggsSummary,
         contentType = contentType,
-        navigateToEggsInventoryScreen = navigateToEggsInventoryScreen
+        navigateToEggsInventoryScreen = navigateToEggsInventoryScreen,
+        isCircularIndicatorShowing = isCircularIndicatorShowing,
+        showExportButton = true,
+        onClickExport = {
+            when (PackageManager.PERMISSION_GRANTED) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) -> {
+                    coroutineScope.launch {
+                        isCircularIndicatorShowing = true
+                        delay(3000)
+                        exportRoomViewModel.exportRoomAsExcelFileAndShare(flock)
+                    }.invokeOnCompletion {
+                        isCircularIndicatorShowing = false
+                    }
+                }
+                else -> {
+                    requestStoragePermission.launch(
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
+                }
+
+            }
+        }
     )
 
 }
@@ -184,7 +248,10 @@ fun MainFlockDetailsScreen(
     totalFeedQtyConsumed: Double?,
     weights: List<Weight>?,
     onUpdateUiState: (FlockUiState) -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    isCircularIndicatorShowing: Boolean = false,
+    showExportButton: Boolean = false,
+    onClickExport: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
@@ -197,14 +264,31 @@ fun MainFlockDetailsScreen(
                     title = flock.batchName,
                     canNavigateBack = canNavigateBack,
                     navigateUp = onNavigateUp,
-                    contentType = contentType
+                    contentType = contentType,
+                    onClickExport = onClickExport,
+                    showExportButton = showExportButton
                 )
             }
         ) { innerPadding ->
 
+            if (isCircularIndicatorShowing) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.5f),
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
             LazyVerticalStaggeredGrid(
                 modifier = Modifier
-                    .padding(innerPadding),
+                    .padding(innerPadding)
+                    .alpha(if (isCircularIndicatorShowing) 0.5f else 1f),
                 columns = StaggeredGridCells.Fixed(2),
                 contentPadding = PaddingValues(8.dp),
                 verticalItemSpacing = 16.dp,

@@ -19,6 +19,7 @@ import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -186,6 +187,12 @@ fun AddIncomeScreen(
                         editFlockViewModel.updateFlock(flock.value.copy(stock = (flock.value.stock - incomeViewModel.incomeUiState.quantity.toInt())))
                     }
                 }
+
+                if (flock != null) {
+                    if(incomeViewModel.incomeUiState.quantity.toInt() > flock.value.stock) {
+                        Toast.makeText(context, context.getString(R.string.not_enough_stock), Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         },
         updateIncome = {
@@ -194,6 +201,12 @@ fun AddIncomeScreen(
                 if (incomeViewModel.incomeUiState.incomeType == context.getString(R.string.chicken_sale)) {
                     if (flock != null) {
                         editFlockViewModel.updateFlock(flock.value.copy(stock = ((flock.value.stock + income.quantity) - incomeViewModel.incomeUiState.quantity.toInt())))
+                    }
+                }
+
+                if (flock != null) {
+                    if(incomeViewModel.incomeUiState.quantity.toInt() > flock.value.stock) {
+                        Toast.makeText(context, context.getString(R.string.not_enough_stock), Toast.LENGTH_SHORT).show()
                     }
                 }
             }

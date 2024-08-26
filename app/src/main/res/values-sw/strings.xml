@@ -267,5 +267,5 @@
         <item>Mayai</item>
         <item>Nyingine</item>
     </string-array>
-
+    <string name="not_enough_stock">Hesabu ya kuku haijatosha. Punguza idadi ya kuku inayouzwa.</string>
 </resources>

@@ -269,5 +269,5 @@
         <item>بيض</item>
         <item>أخرى</item>
     </string-array>
-
+    <string name="not_enough_stock">الكمية المتوفرة غير كافية. قلل الكمية.</string>
 </resources>

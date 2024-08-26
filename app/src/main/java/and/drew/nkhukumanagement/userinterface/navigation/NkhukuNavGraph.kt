@@ -391,7 +391,7 @@ fun NavGraphBuilder.loginGraphVerification(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun NavGraphBuilder.homeGraph(
+fun NavGraphBuilder.    homeGraph(
     navController: NavHostController,
     flockEntryViewModel: FlockEntryViewModel,
     vaccinationViewModel: VaccinationViewModel,

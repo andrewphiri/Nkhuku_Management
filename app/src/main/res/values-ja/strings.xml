@@ -264,5 +264,5 @@
         <item>卵</item>
         <item>その他</item>
     </string-array>
-
+    <string name="not_enough_stock">在庫が不足しています。数量を減らしてください。</string>
 </resources>

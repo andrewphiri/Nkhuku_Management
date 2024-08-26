@@ -1,8 +1,7 @@
-package and.drew.nkhukumanagement.backup
+package and.drew.nkhukumanagement.backupAndExport
 
 import and.drew.nkhukumanagement.BaseFlockApplication
 import and.drew.nkhukumanagement.BuildConfig
-import and.drew.nkhukumanagement.FlockApplication
 import and.drew.nkhukumanagement.data.FlockDatabase
 import and.drew.nkhukumanagement.utils.Constants
 import android.content.Intent
@@ -17,6 +16,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.channels.FileChannel
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,11 +30,12 @@ class BackupAndRestoreViewModel @Inject constructor(
             //Close database
             database.close()
 
+            val databaseName = "${LocalDateTime.now()}"
             //Copy database file
             val databaseFile =
                 application.applicationContext.getDatabasePath(Constants.DATABASE_NAME)
             val backupFile = File(
-                Environment.getExternalStorageDirectory(), "${Constants.DATABASE_NAME}.bak"
+                Environment.getExternalStorageDirectory(), "${Constants.DATABASE_NAME}_$databaseName.bak"
             )
 
             databaseFile.copyTo(backupFile, true)

@@ -207,4 +207,31 @@ interface FlockDao {
     @Transaction
     @Query("SELECT * FROM accounts_summary WHERE id = :id")
     fun getAccountsWithExpense(id: Int): Flow<AccountsWithExpense>
+
+    @Query("SELECT * FROM vaccinations WHERE flockUniqueId = :flockUniqueID")
+    fun getAllVaccinationItemsForExport(flockUniqueID: String): Flow<List<Vaccination>>
+
+    @Query("SELECT * FROM feed WHERE flockUniqueId = :flockUniqueID")
+    fun getAllFeedItemsForExport(flockUniqueID: String): Flow<List<Feed>>
+
+    @Query("SELECT * FROM weight WHERE flockUniqueId = :flockUniqueID")
+    fun getAllWeightItemsForExport(flockUniqueID: String): Flow<List<Weight>>
+
+    @Query("SELECT * FROM health WHERE flockUniqueId = :flockUniqueID")
+    fun getAllHealthItemsForExport(flockUniqueID: String): Flow<List<FlockHealth>>
+
+    @Query("SELECT * FROM eggs WHERE flockUniqueId = :flockUniqueID")
+    fun getAllEggsItemsForExport(flockUniqueID: String): Flow<List<Eggs>>
+
+    @Query("SELECT * FROM income WHERE flockUniqueID = :flockUniqueID")
+    fun getAllIncomeItemsForExport(flockUniqueID: String): Flow<List<Income>>
+
+    @Query("SELECT * FROM expense WHERE flockUniqueID = :flockUniqueID")
+    fun getAllExpenseItemsForExport(flockUniqueID: String): Flow<List<Expense>>
+
+    @Query("SELECT * FROM accounts_summary WHERE flockUniqueID = :flockUniqueID")
+    fun getAllAccountItemsForExport(flockUniqueID: String): Flow<AccountsSummary>
+
+    @Query("SELECT * FROM eggs_summary WHERE flockUniqueID = :flockUniqueID")
+    fun getAllEggsSummaryItemsForExport(flockUniqueID: String): Flow<EggsSummary>
 }

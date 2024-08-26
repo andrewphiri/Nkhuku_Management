@@ -265,5 +265,5 @@
         <item>अंडे</item>
         <item>अन्य</item>
     </string-array>
-
+    <string name="not_enough_stock">उपलब्ध स्टॉक पर्याप्त नहीं है। मात्रा कम करें।</string>
 </resources>

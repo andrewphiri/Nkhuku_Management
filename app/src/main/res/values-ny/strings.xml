@@ -265,5 +265,5 @@
         <item>Mazira</item>
         <item>Zina</item>
     </string-array>
-
+    <string name="not_enough_stock">Pali nkhuku zocepa. Chepetsani ciwerengelo cha nkhuku zogulidwa.</string>
 </resources>

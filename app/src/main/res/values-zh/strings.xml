@@ -265,5 +265,5 @@
         <item>鸡蛋</item>
         <item>其他</item>
     </string-array>
-
+    <string name="not_enough_stock">库存不足。请减少数量。</string>
 </resources>

@@ -3,4 +3,7 @@
     <external-path
         name="external_files"
         path="." />
+
+    <!-- Define paths to the internal files directory -->
+    <files-path name="internal_files" path="." />
 </paths>

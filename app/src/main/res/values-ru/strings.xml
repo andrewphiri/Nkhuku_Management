@@ -269,5 +269,5 @@
         <item>Яйца</item>
         <item>Другое</item>
     </string-array>
-
+    <string name="not_enough_stock">Недостаточно товара в наличии. Уменьшите количество.</string>
 </resources>

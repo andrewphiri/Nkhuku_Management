@@ -4,7 +4,7 @@ import and.drew.nkhukumanagement.R
 
 
 object Constants {
-    const val DATABASE_NAME = "flock_database"
+    const val DATABASE_NAME = "Flock_Backup"
     const val CHANNEL_ID = "vaccine_reminder_id"
     const val VACCINE_NOTIFICATION_ID = "VACCINE_NOTIFICATION_ID"
     const val TITLE = "title_notification"

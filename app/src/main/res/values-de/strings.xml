@@ -267,5 +267,5 @@
         <item>Eier</item>
         <item>Andere</item>
     </string-array>
-
+    <string name="not_enough_stock">Nicht genügend Vorrat verfügbar. Reduzieren Sie die Menge.</string>
 </resources>

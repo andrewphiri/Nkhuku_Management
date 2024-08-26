@@ -75,7 +75,7 @@ class FlockDetailsViewModel @Inject constructor(
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @RequiresApi(Build.VERSION_CODES.O)
-    var flockAndEggsSummaryStateFlow: Flow<FlockAndEggsSummary> =
+    var flockAndEggsSummaryStateFlow: Flow<FlockAndEggsSummary?> =
         savedStateHandle.getStateFlow(key = FlockDetailsDestination.flockId, initialValue = 0)
             .flatMapLatest {
                 flockRepository.getFlockAndEggsSummary(it)

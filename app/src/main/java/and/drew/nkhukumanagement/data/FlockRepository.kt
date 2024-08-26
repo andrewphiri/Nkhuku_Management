@@ -124,6 +124,16 @@ interface FlockRepository {
 
     fun getAccountsWithExpense(id: Int): Flow<AccountsWithExpense>
 
+    fun getAllVaccinationsForExport(flockUniqueID: String): Flow<List<Vaccination>>
+    fun getAllFeedsForExport(flockUniqueID: String): Flow<List<Feed>>
+    fun getAllWeightsForExport(flockUniqueID: String): Flow<List<Weight>>
+    fun getAllEggsForExport(flockUniqueID: String): Flow<List<Eggs>>
+    fun getAllHealthForExport(flockUniqueID: String): Flow<List<FlockHealth>>
+    fun getAllIncomeForExport(flockUniqueID: String): Flow<List<Income>>
+    fun getAllExpensesForExport(flockUniqueID: String): Flow<List<Expense>>
+    fun getAllAccountsForExport(flockUniqueID: String): Flow<AccountsSummary>
+    fun getAllEggsSummaryForExport(flockUniqueID: String): Flow<EggsSummary>
+
     /**
      * Insert flock in the database
      */
