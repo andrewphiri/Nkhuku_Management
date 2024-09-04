@@ -303,7 +303,9 @@ fun AddNewEntryDialog(
                         onClick = onDismissed
                     ) {
                         Text(
-                            modifier = Modifier.fillMaxWidth().padding(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
                             text = stringResource(R.string.cancel),
                             textAlign = TextAlign.Center
                         )
@@ -315,7 +317,9 @@ fun AddNewEntryDialog(
                         onClick = onSaveEntry
                     ) {
                         Text(
-                            modifier = Modifier.fillMaxWidth().padding(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
                             text = stringResource(R.string.save),
                             textAlign = TextAlign.Center
                         )
@@ -347,7 +351,9 @@ fun DropDownMenuDialog(
             onExpandedChange = onExpand
         ) {
             TextField(
-                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
                 textStyle = MaterialTheme.typography.bodySmall,
                 readOnly = true,
                 value = value,
@@ -417,7 +423,9 @@ fun DropDownMenuAutoCompleteDialog(
             onExpandedChange = onExpand
         ) {
             TextField(
-                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
                 textStyle = MaterialTheme.typography.bodySmall,
                 value = value,
                 onValueChange = {
@@ -492,7 +500,9 @@ fun BaseAccountRow(
         )
 
         VerticalDivider(
-            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            modifier = Modifier
+                .weight(0.01f)
+                .fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
 
@@ -512,7 +522,9 @@ fun BaseAccountRow(
         )
 
         VerticalDivider(
-            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            modifier = Modifier
+                .weight(0.01f)
+                .fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
 
@@ -536,7 +548,9 @@ fun BaseSingleRowDetailsItem(
     color: Color = MaterialTheme.colorScheme.tertiary
 ) {
     Row(
-        modifier = modifier.height(IntrinsicSize.Min).padding(8.dp),
+        modifier = modifier
+            .height(IntrinsicSize.Min)
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -548,7 +562,9 @@ fun BaseSingleRowDetailsItem(
         )
 
         VerticalDivider(
-            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            modifier = Modifier
+                .weight(0.01f)
+                .fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
 
@@ -589,7 +605,9 @@ fun BaseSingleRowItem(
         )
 
         VerticalDivider(
-            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            modifier = Modifier
+                .weight(0.01f)
+                .fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
 
@@ -684,7 +702,10 @@ fun ShowOverflowMenu(
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.delete)) },
-                onClick = onShowAlertDialog
+                onClick = {
+                    onShowAlertDialog()
+                    onDismiss()
+                }
             )
             if (showCloseButton) {
                 DropdownMenuItem(
@@ -695,7 +716,10 @@ fun ShowOverflowMenu(
                             )
                         )
                     },
-                    onClick = onClose
+                    onClick = {
+                        onClose()
+                        onDismiss()
+                    }
                 )
             }
         }
@@ -745,7 +769,8 @@ fun ShowSuccessfulDialog(
                     )
                     if (isActionSuccessful) {
                         Image(
-                            modifier = Modifier.size(100.dp)
+                            modifier = Modifier
+                                .size(100.dp)
                                 .rotate(animateRotation),
                             imageVector = Icons.Default.Check,
                             contentDescription = title
@@ -996,7 +1021,9 @@ fun PieChart(
     )
 
     Column(
-        modifier = Modifier.size(radiusOuter * 3f).padding(32.dp),
+        modifier = Modifier
+            .size(radiusOuter * 3f)
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -1101,7 +1128,9 @@ fun PieChart2(
         animationPlayed = true
     }
     Column(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -1109,7 +1138,8 @@ fun PieChart2(
             contentAlignment = Alignment.Center
         ) {
             Canvas(
-                modifier = Modifier.size(radiusOuter * 2f)
+                modifier = Modifier
+                    .size(radiusOuter * 2f)
                     .rotate(animateRotation)
             ) {
 

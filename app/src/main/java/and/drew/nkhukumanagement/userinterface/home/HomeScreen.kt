@@ -46,6 +46,7 @@ import and.drew.nkhukumanagement.utils.ShowAlertDialog
 import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
 import and.drew.nkhukumanagement.utils.ShowOverflowMenu
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -186,8 +187,8 @@ fun HomeScreen(
             },
             deleteFlock = { index ->
                 if (vaccinationList?.vaccinations != null) {
-                    vaccinationList?.vaccinations?.forEach { vaccine ->
-                        //Log.i("CANCEL_NOTIFICATION", vaccine.toString())
+                   for (vaccine in vaccinationList?.vaccinations!!) {
+                        Log.i("CANCEL_NOTIFICATION", vaccine.toString())
                         vaccinationViewModel.cancelNotification(vaccine)
                     }
                 }
@@ -723,7 +724,6 @@ private fun LazyListState.isScrollingUp(): Boolean {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FlockList(
     modifier: Modifier = Modifier,

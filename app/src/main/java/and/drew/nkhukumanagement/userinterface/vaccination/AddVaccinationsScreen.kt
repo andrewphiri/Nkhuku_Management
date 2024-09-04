@@ -21,6 +21,7 @@ import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.DropDownMenuAutoCompleteDialog
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -251,6 +252,7 @@ fun AddVaccinationsScreen(
                             for (uiState in vaccinationViewModel.getInitialVaccinationList()) {
                                 vaccineID += 1
                                 flockID += 1
+
                                 vaccinationViewModel.schedule(
                                     uiState.copy(flockUniqueId = flockEntryViewModel.flockUiState.getUniqueId())
                                         .toVaccination(),

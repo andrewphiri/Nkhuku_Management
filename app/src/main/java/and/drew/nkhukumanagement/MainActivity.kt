@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
 
     fun hideNavigationBar(controller: WindowInsetsControllerCompat) {
 //        // Get the insets controller for the window
-//        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
 
         // Set the decor to fit system windows (this helps in properly handling the insets)
         WindowCompat.setDecorFitsSystemWindows(window, true)

@@ -20,6 +20,7 @@ import and.drew.nkhukumanagement.utils.Constants.VACCINATION_ID
 import and.drew.nkhukumanagement.utils.Constants.VACCINATION_NAME
 import and.drew.nkhukumanagement.utils.Constants.VACCINATION_NOTES
 import and.drew.nkhukumanagement.utils.Constants.VACCINATION_NOTIFICATION_UUID
+import and.drew.nkhukumanagement.utils.Constants.VACCINATION_NOTIFICATION_UUID2
 import and.drew.nkhukumanagement.utils.Constants.VACCINE_NOTIFICATION_ID
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.NotificationScheduler
@@ -29,6 +30,7 @@ import android.app.AlarmManager
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -773,7 +775,7 @@ class VaccinationViewModel @Inject constructor(
 //    }
 
     /**
-     * Schedule an alarm to be triggered day before the vaccination date
+     * Schedule a notification to be triggered day before the vaccination date
      * and another on day of vaccine to confirm if vaccine has been administered
      */
     override fun schedule(vaccination: Vaccination, flock: FlockUiState, notificationID: Int) {
@@ -803,7 +805,7 @@ class VaccinationViewModel @Inject constructor(
         val secondNotificationWorkerRequest =
             OneTimeWorkRequest.Builder(VaccinationConfirmationWorker::class.java)
                 .setInputData(secondNotificationData)
-                .addTag(vaccination.notificationUUID.toString())
+                .setId(vaccination.notificationUUID2)
                 .setInitialDelay(
                     DateUtils().calculateConfirmVaccineNotificationDate(
                         vaccination = vaccination,
@@ -811,6 +813,7 @@ class VaccinationViewModel @Inject constructor(
                     ), TimeUnit.MINUTES
                 )
                 .build()
+
         if (LocalDate.now().isBefore(vaccination.date)) {
             WorkManager.getInstance(application.applicationContext)
                 .enqueue(firstNotificationWorkerRequest)
@@ -824,7 +827,7 @@ class VaccinationViewModel @Inject constructor(
     }
 
     /**
-     * Schedule an alarm to be triggered day before the vaccination date
+     * Schedule a notification to be triggered day before the vaccination date
      * and another on day of vaccine to confirm if vaccine has been administered
      */
     override fun schedule(vaccination: Vaccination, flock: FlockUiState) {
@@ -851,10 +854,12 @@ class VaccinationViewModel @Inject constructor(
                 )
                 .build()
 
+
+
         val secondNotificationWorkerRequest =
             OneTimeWorkRequest.Builder(VaccinationConfirmationWorker::class.java)
                 .setInputData(secondNotificationData)
-                .addTag(vaccination.notificationUUID.toString())
+                .setId(vaccination.notificationUUID2)
                 .setInitialDelay(
                     DateUtils().calculateConfirmVaccineNotificationDate(
                         vaccination = vaccination,
@@ -862,6 +867,7 @@ class VaccinationViewModel @Inject constructor(
                     ), TimeUnit.MINUTES
                 )
                 .build()
+
 
 //        WorkManager.getInstance(application.applicationContext)
 //            .enqueue(vaccineWorkerRequest)
@@ -919,8 +925,8 @@ class VaccinationViewModel @Inject constructor(
             putString(VACCINATION_NOTES, vaccination.notes)
             putString(VACCINATION_DATE, DateUtils().dateToStringLongFormat(vaccination.date))
             putString(VACCINATION_NOTIFICATION_UUID, vaccination.notificationUUID.toString())
+            putString(VACCINATION_NOTIFICATION_UUID2, vaccination.notificationUUID2.toString())
             putBoolean(VACCINATION_ADMINISTERED, vaccination.hasVaccineBeenAdministered)
-
         }.build()
     }
 

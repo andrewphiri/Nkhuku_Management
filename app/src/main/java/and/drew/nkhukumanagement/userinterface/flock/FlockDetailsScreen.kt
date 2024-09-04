@@ -562,6 +562,7 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
         name = vaccination.name,
         notes = vaccination.notes,
         notificationUUID = vaccination.notificationUUID,
+        notificationUUID2 = vaccination.notificationUUID2,
         hasVaccineBeenAdministered = vaccination.hasVaccineBeenAdministered,
         method = vaccination.method,
     ).toVaccinationUiState()

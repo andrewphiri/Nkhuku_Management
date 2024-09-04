@@ -39,12 +39,14 @@ class NotificationReceiver : BroadcastReceiver() {
         val vaccineAdministered =
             intent?.getBooleanExtra(Constants.VACCINATION_ADMINISTERED, false) ?: false
         val notificationUUID = intent?.getStringExtra(Constants.VACCINATION_NOTIFICATION_UUID)
+        val notificationUUID2 = intent?.getStringExtra(Constants.VACCINATION_NOTIFICATION_UUID2)
         val method = intent?.getStringExtra(Constants.VACCINATION_NOTIFICATION_METHOD) ?: ""
         val vaccineNotificationId = intent?.getIntExtra(Constants.VACCINE_NOTIFICATION_ID, -1) ?: -1
 
         if (action == ACTION_YES) {
 
             val uuid = UUID.fromString(notificationUUID)
+            val uuid2 = UUID.fromString(notificationUUID2)
             val vaccination = Vaccination(
                 id = id,
                 flockUniqueId = flockUniqueID,
@@ -53,6 +55,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 hasVaccineBeenAdministered = true,
                 notes = notes,
                 notificationUUID = uuid,
+                notificationUUID2 = uuid2,
                 method = method
             )
 

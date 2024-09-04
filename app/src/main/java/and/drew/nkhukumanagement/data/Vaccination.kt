@@ -18,5 +18,6 @@ data class Vaccination(
     val date: LocalDate,
     val notes: String,
     val notificationUUID: UUID,
+    val notificationUUID2: UUID,
     val hasVaccineBeenAdministered: Boolean
 )

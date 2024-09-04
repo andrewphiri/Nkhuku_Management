@@ -22,6 +22,7 @@ data class VaccinationUiState(
     val actionEnabled: Boolean = false,
     var isExpanded: Boolean = false,
     val notificationUUID: UUID = UUID.randomUUID(),
+    val notificationUUID2: UUID = UUID.randomUUID(),
     val vaccineAdministered: Boolean = false
 )  {
 val methodsVaccineAdministration = listOf("Drinking water", "Subcutaneous injection(SC)","Intramuscular injection(IM)","Spray vaccination","Ocular instillation")
@@ -64,6 +65,7 @@ fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
     notes = notes,
     hasVaccineBeenAdministered = vaccineAdministered,
     notificationUUID = notificationUUID,
+    notificationUUID2 = notificationUUID2,
     method = method
 )
 
@@ -83,6 +85,7 @@ fun Vaccination.toVaccinationUiState(
     actionEnabled = enabled,
     vaccinationNumber = vaccinationNumber,
     notificationUUID = notificationUUID,
+    notificationUUID2 = notificationUUID2,
     vaccineAdministered = hasVaccineBeenAdministered
 )
 
