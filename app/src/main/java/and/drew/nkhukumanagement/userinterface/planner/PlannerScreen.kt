@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -81,6 +82,7 @@ fun MainPlannerScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var isCalculateButtonEnabled by remember { mutableStateOf(false) }
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Planner.resourceId),

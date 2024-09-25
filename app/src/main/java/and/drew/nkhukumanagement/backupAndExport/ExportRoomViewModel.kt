@@ -52,7 +52,7 @@ class ExportRoomViewModel @Inject constructor(
                         "_${LocalDateTime.now().dayOfMonth}" +
                         "_${LocalTime.now().hour}" + "${LocalTime.now().minute}.xlsx"
             Log.d("ExportRoomViewModel", "Workbook name: $workbookName")
-            val folder = File(baseFlockApplication.filesDir, "FlockExports")
+            val folder = File(baseFlockApplication.filesDir, "flock_exports")
             //check if folder exists
             if (!folder.exists()) {
                 folder.mkdirs()
@@ -78,7 +78,7 @@ class ExportRoomViewModel @Inject constructor(
                     FileOutputStream(file).use { outputStream ->
                         workbook.write(outputStream)
                     }
-                    Log.d("ExportRoomViewModel", "Workbook exported successfully")
+                    //Log.d("ExportRoomViewModel", "Workbook exported successfully")
                 }
                 // Share the file using an Intent
                 val fileUri = FileProvider.getUriForFile(

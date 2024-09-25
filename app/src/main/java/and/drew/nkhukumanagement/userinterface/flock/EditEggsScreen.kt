@@ -17,6 +17,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -236,6 +237,7 @@ fun MainEditEggsScreen(
         (badEggs > 0 || goodEggs > 0) && (goodEggs != eggs.goodEggs || badEggs != eggs.badEggs)
     Scaffold(
         modifier = modifier,
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = flockUiState.batchName,
@@ -282,7 +284,7 @@ fun MainEditEggsScreen(
                                         }
                                     val localDateToString = millisToLocalDate?.let { date ->
                                         DateUtils().dateToStringLongFormat(
-                                            date
+                                            date.toLocalDate()
                                         )
                                     }
                                     localDateToString

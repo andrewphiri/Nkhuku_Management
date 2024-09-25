@@ -19,6 +19,7 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -231,6 +232,7 @@ fun MainAddExpenseScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = if (expenseUiState.id > 0) context.resources.getString(R.string.edit_expense)
@@ -315,7 +317,7 @@ fun MainAddExpenseScreen(
                     }
                     val localDateToString = millisToLocalDate?.let { date ->
                         DateUtils().dateToStringShortFormat(
-                            date
+                            date.toLocalDate()
                         )
                     }
                     localDateToString

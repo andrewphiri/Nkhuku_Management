@@ -23,6 +23,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -160,6 +161,7 @@ fun MainAddFlockScreen(
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
         modifier = Modifier.semantics { contentDescription = "Add flock" },
         topBar = {
             FlockManagementTopAppBar(
@@ -350,7 +352,7 @@ fun AddFlockInputForm(
                 }
                 val localDateToString = millisToLocalDate?.let { date ->
                     DateUtils().dateToStringLongFormat(
-                        date
+                        date.toLocalDate()
                     )
                 }
                 localDateToString

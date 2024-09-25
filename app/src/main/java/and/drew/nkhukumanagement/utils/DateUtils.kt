@@ -10,6 +10,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
@@ -24,42 +26,31 @@ class DateUtils {
     fun dateToStringLongFormat(date: LocalDate): String {
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
 
-        val dateSelectedInMillis = convertLocalDate(date, dateFormatter)
 
         //Format dateSelectedInMillis to a string and Return
-        return dateFormatter.format(
-            dateSelectedInMillis
-        )
+        return dateFormatter.format(date)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun dateToStringShortFormat(date: LocalDate): String {
         val dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", Locale.getDefault())
 
-        val dateSelectedInMillis = convertLocalDate(date, dateFormatter)
-
-        return dateFormatter.format(
-            dateSelectedInMillis
-        )
+        return dateFormatter.format(date)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun convertLocalDate(date: LocalDate, dateFormatter: DateTimeFormatter): LocalDate {
-        //Convert the passed in date to a Long in millis
-        val timeInMillis = LocalDate.parse(date.format(dateFormatter), dateFormatter)
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-
-        //Then convert the timeInMillis to a LocalDate object
-        return Instant.ofEpochMilli(timeInMillis)
-            .atZone(ZoneId.systemDefault()).toLocalDate()
-    }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun convertMillisToLocalDate(millis: Long): LocalDate {
-        return Instant.ofEpochMilli(millis)
-            .atZone(ZoneId.systemDefault()).toLocalDate()
+    fun convertMillisToLocalDate(millis: Long): ZonedDateTime {
+        // Interpret the milliseconds as the start of the day in UTC, then convert to Los Angeles time
+        val utcDateAtStartOfDay = Instant
+            .ofEpochMilli(millis)
+            .atZone(ZoneOffset.UTC)
+            .toLocalDate()
+        println("UTC Date at Start of Day: $utcDateAtStartOfDay") // Debugging UTC date
+
+        // Convert to the same instant in Local time zone
+        return utcDateAtStartOfDay.atStartOfDay(ZoneId.systemDefault())
+
     }
 
     /**
@@ -68,13 +59,7 @@ class DateUtils {
     @RequiresApi(Build.VERSION_CODES.O)
     fun stringToLocalDate(date: String?): LocalDate {
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
-        val timeInMillis = LocalDate.parse(date, dateFormatter)
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-
-        return Instant.ofEpochMilli(timeInMillis)
-            .atZone(ZoneId.systemDefault()).toLocalDate()
+        return LocalDate.parse(date, dateFormatter)
     }
 
     /**
@@ -83,13 +68,7 @@ class DateUtils {
     @RequiresApi(Build.VERSION_CODES.O)
     fun stringToLocalDateShortFormat(myDate: String): LocalDate {
         val dateFormatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", Locale.getDefault())
-        val timeInMillis = LocalDate.parse(myDate, dateFormatter)
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-
-        return Instant.ofEpochMilli(timeInMillis)
-            .atZone(ZoneId.systemDefault()).toLocalDate()
+        return LocalDate.parse(myDate, dateFormatter)
     }
 
     /**

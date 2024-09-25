@@ -5,5 +5,5 @@
         path="." />
 
     <!-- Define paths to the internal files directory -->
-    <files-path name="internal_files" path="." />
+    <files-path name="internal_files" path="flock_exports/" />
 </paths>

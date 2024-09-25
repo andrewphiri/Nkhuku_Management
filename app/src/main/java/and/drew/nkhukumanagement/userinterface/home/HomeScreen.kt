@@ -47,6 +47,7 @@ import and.drew.nkhukumanagement.utils.ShowFilterOverflowMenu
 import and.drew.nkhukumanagement.utils.ShowOverflowMenu
 import android.os.Build
 import android.util.Log
+import android.view.Window
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -65,6 +66,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -109,6 +111,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -118,6 +123,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.launch
@@ -269,13 +277,14 @@ fun HomeScreen(
                 flockEntryViewModel.resetAll()
             },
             deleteFlock = { index ->
+                if (vaccinationList?.vaccinations != null) {
+                    vaccinationList?.vaccinations?.forEach { vaccine ->
+                        vaccinationViewModel.cancelNotification(vaccine)
+                        //Log.i("CANCEL_NOTIFICATION", vaccine.id.toString())
+                    }
+                }
                 coroutineScope.launch {
                     val uniqueId = homeUiState.flockList[index].uniqueId
-                    if (vaccinationList?.vaccinations != null) {
-                        vaccinationList?.vaccinations?.forEach { vaccine ->
-                            vaccinationViewModel.cancelNotification(vaccine)
-                        }
-                    }
                     flockEntryViewModel.deleteFlock(uniqueId)
                     vaccinationViewModel.deleteVaccination(uniqueId)
                     vaccinationViewModel.deleteFeed(uniqueId)
@@ -576,6 +585,7 @@ fun MainHomeScreen(
 
     Scaffold(
         modifier = modifier,
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(NavigationBarScreens.Home.resourceId),
@@ -600,12 +610,10 @@ fun MainHomeScreen(
             ) {
                 FloatingActionButton(
                     modifier = Modifier
-                        .semantics { contentDescription = "FlockAddition" }
-                        .navigationBarsPadding(),
+                        .semantics { contentDescription = "FlockAddition" },
                     onClick = navigateToAddFlock,
                     shape = ShapeDefaults.Small,
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    elevation = FloatingActionButtonDefaults.elevation()
+                    containerColor = MaterialTheme.colorScheme.secondary
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,

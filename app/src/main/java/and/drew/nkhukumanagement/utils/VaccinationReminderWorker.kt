@@ -41,6 +41,7 @@ class VaccinationReminderWorker @AssistedInject constructor(
         val flockID = data.getInt(Constants.FLOCK_ID, -1)
         val vaccinationID = data.getInt(Constants.VACCINE_NOTIFICATION_ID, 0)
 
+
         val deepLinkIntent = Intent(
             Intent.ACTION_VIEW,
             "${FlockDetailsDestination.uri}/$flockID".toUri()
@@ -51,7 +52,7 @@ class VaccinationReminderWorker @AssistedInject constructor(
             getPendingIntent(vaccinationID, PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
-        Log.i("NOTIFICATION_WORKED", "________")
+//        Log.i("NOTIFICATION_WORKED", "________")
         with(NotificationManagerCompat.from(context)) {
             if (ActivityCompat.checkSelfPermission(
                     context,

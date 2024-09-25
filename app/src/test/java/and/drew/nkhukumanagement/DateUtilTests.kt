@@ -126,7 +126,9 @@ class DateUtilTests {
                 2024, 1, 1
             ),
             hasVaccineBeenAdministered = false,
-            notificationUUID = UUID.randomUUID()
+            notificationUUID = UUID.randomUUID(),
+            notificationUUID2 = UUID.randomUUID(),
+            method = "Drinking Water"
         )
         val calculateVaccineAlarmDate = dateUtil.calculateVaccineNotificationDate(vaccination)
         val actualAlarmDateLong = LocalDate.of(
@@ -153,7 +155,9 @@ class DateUtilTests {
                 2024, 1, 1
             ),
             hasVaccineBeenAdministered = false,
-            notificationUUID = UUID.randomUUID()
+            notificationUUID = UUID.randomUUID(),
+            notificationUUID2 = UUID.randomUUID(),
+            method = "Drinking Water"
         )
         val notificationTime = dateUtil.calculateVaccineNotificationDate(
             currentTime = LocalDateTime.of(2024, 1, 1, 8, 0),
@@ -178,7 +182,9 @@ class DateUtilTests {
                 2024, 1, 1
             ),
             hasVaccineBeenAdministered = false,
-            notificationUUID = UUID.randomUUID()
+            notificationUUID = UUID.randomUUID(),
+            notificationUUID2 = UUID.randomUUID(),
+            method = "Drinking Water"
         )
         val notificationTime = dateUtil.calculateConfirmVaccineNotificationDate(
             currentTime = LocalDateTime.of(2024, 1, 1, 7, 0),

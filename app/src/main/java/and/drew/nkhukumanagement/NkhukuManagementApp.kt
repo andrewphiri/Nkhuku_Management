@@ -10,8 +10,11 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -48,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -80,7 +84,7 @@ fun NkhukuApp(
     val currentDestination = navBackStackEntry?.destination
     val navigationBarShowing = screens.any { it.route == currentDestination?.route }
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.consumeWindowInsets(PaddingValues(0.dp))) {
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -94,6 +98,7 @@ fun NkhukuApp(
                 )
             }
             Scaffold(
+                contentWindowInsets = WindowInsets(0.dp),
                 bottomBar = {
                     AnimatedVisibility(
                         visible = navigationType == NavigationType.BOTTOM_NAVIGATION
@@ -120,6 +125,7 @@ fun NkhukuApp(
     }
 }
 
+
 /**
  * Bottom navigation with 5 screens for the app
  */
@@ -130,7 +136,7 @@ fun BottomNavigationForApp(
     screens: List<NavigationBarScreens> = listOf()
 ) {
     if (isNavigationBarShowing) {
-        NavigationBar {
+        NavigationBar{
             screens.forEach { screen ->
                 NavigationBarItem(
                     modifier = Modifier.semantics { contentDescription = screen.route },
@@ -276,10 +282,10 @@ fun FlockManagementTopAppBar(
     showExportButton: Boolean = false,
     onClickExport: () -> Unit = {}
 ) {
-    val context = LocalContext.current
     if (canNavigateBack) {
         TopAppBar(
             modifier = modifier,
+            windowInsets = WindowInsets(0.dp),
             title = {
                 Text(
                     text = title,

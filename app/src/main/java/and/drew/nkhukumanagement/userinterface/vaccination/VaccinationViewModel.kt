@@ -901,6 +901,8 @@ class VaccinationViewModel @Inject constructor(
             )
             putInt(FLOCK_ID, flock.id)
             putInt(VACCINE_NOTIFICATION_ID, notificationID)
+            putString(VACCINATION_NOTIFICATION_UUID, vaccination.notificationUUID.toString())
+            putString(VACCINATION_NOTIFICATION_UUID2, vaccination.notificationUUID2.toString())
         }.build()
     }
 
@@ -935,7 +937,7 @@ class VaccinationViewModel @Inject constructor(
         WorkManager.getInstance(application.applicationContext)
             .cancelWorkById(vaccination.notificationUUID)
         WorkManager.getInstance(application.applicationContext)
-            .cancelAllWorkByTag(vaccination.notificationUUID.toString())
+            .cancelWorkById(vaccination.notificationUUID2)
 
         val notificationManager =
             application.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

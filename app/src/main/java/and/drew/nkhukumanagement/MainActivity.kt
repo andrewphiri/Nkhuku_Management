@@ -13,8 +13,16 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.areNavigationBarsVisible
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -26,9 +34,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -61,9 +74,11 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
 
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalLayoutApi::class)
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         //Check if user is signed in or email verified before splashScreen
         //This ensures that the Account setup screen is not shown
@@ -72,8 +87,9 @@ class MainActivity : AppCompatActivity() {
         userPreferencesRepository.userSkipAccount.asLiveData().observe(this) { skip ->
             userPrefsViewModel.setSkipAccount(skip)
         }
-        installSplashScreen()
-        //hideNavigationBar(controller)
+
+
+        //hideNavigationBar()
         setContent {
 
             val windowSize = calculateWindowSizeClass(this).widthSizeClass
@@ -120,19 +136,21 @@ class MainActivity : AppCompatActivity() {
                         throw IllegalArgumentException("Dp must be greater than zero")
                     }
                 }
-                NkhukuApp(
-                    navigationType = navigationType,
-                    contentType = contentType,
-                    userPrefsViewModel = userPrefsViewModel,
-                    isUserSignedIn = userSignedIn,
-                    isEmailVerified = emailVerified,
-                    isAccountSetupSkipped = skipAccount
-                )
+
+                    NkhukuApp(
+                        navigationType = navigationType,
+                        contentType = contentType,
+                        userPrefsViewModel = userPrefsViewModel,
+                        isUserSignedIn = userSignedIn,
+                        isEmailVerified = emailVerified,
+                        isAccountSetupSkipped = skipAccount,
+                    )
+                }
             }
-        }
+
     }
 
-    fun hideNavigationBar(controller: WindowInsetsControllerCompat) {
+    fun hideNavigationBar() {
 //        // Get the insets controller for the window
         val controller = WindowCompat.getInsetsController(window, window.decorView)
 
@@ -140,10 +158,10 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, true)
 
         // Hide the navigation bar
-        controller.hide(WindowInsetsCompat.Type.navigationBars())
+        controller.hide(WindowInsetsCompat.Type.systemBars())
 
         // Hide the status bar
-        controller.hide(WindowInsetsCompat.Type.statusBars())
+       // controller.hide(WindowInsetsCompat.Type.statusBars())
 
         // Set the behavior of system bars to show transient bars by swipe
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
