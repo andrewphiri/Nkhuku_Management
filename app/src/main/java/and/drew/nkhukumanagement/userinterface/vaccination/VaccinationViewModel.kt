@@ -41,6 +41,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -794,7 +795,6 @@ class VaccinationViewModel @Inject constructor(
         val firstNotificationWorkerRequest =
             OneTimeWorkRequest.Builder(VaccinationReminderWorker::class.java)
                 .setInputData(firstNotificationData)
-                .setId(vaccination.notificationUUID)
                 .setInitialDelay(
                     DateUtils().calculateVaccineNotificationDate(
                         vaccination = vaccination,
@@ -805,7 +805,6 @@ class VaccinationViewModel @Inject constructor(
         val secondNotificationWorkerRequest =
             OneTimeWorkRequest.Builder(VaccinationConfirmationWorker::class.java)
                 .setInputData(secondNotificationData)
-                .setId(vaccination.notificationUUID2)
                 .setInitialDelay(
                     DateUtils().calculateConfirmVaccineNotificationDate(
                         vaccination = vaccination,
@@ -816,13 +815,17 @@ class VaccinationViewModel @Inject constructor(
 
         if (LocalDate.now().isBefore(vaccination.date)) {
             WorkManager.getInstance(application.applicationContext)
-                .enqueue(firstNotificationWorkerRequest)
+                .beginUniqueWork(vaccination.notificationUUID.toString(), ExistingWorkPolicy.REPLACE, firstNotificationWorkerRequest)
+                .enqueue()
+
             WorkManager.getInstance(application.applicationContext)
-                .enqueue(secondNotificationWorkerRequest)
+                .beginUniqueWork(vaccination.notificationUUID2.toString(), ExistingWorkPolicy.REPLACE, secondNotificationWorkerRequest)
+                .enqueue()
             //Log.i("UISTATE__NAME", vaccination.name)
         } else if (LocalDate.now().isEqual(vaccination.date)) {
             WorkManager.getInstance(application.applicationContext)
-                .enqueue(secondNotificationWorkerRequest)
+                .beginUniqueWork(vaccination.notificationUUID2.toString(), ExistingWorkPolicy.REPLACE, secondNotificationWorkerRequest)
+                .enqueue()
         }
     }
 
@@ -845,7 +848,6 @@ class VaccinationViewModel @Inject constructor(
         val firstNotificationWorkerRequest =
             OneTimeWorkRequest.Builder(VaccinationReminderWorker::class.java)
                 .setInputData(firstNotificationData)
-                .setId(vaccination.notificationUUID)
                 .setInitialDelay(
                     DateUtils().calculateVaccineNotificationDate(
                         vaccination = vaccination,
@@ -859,7 +861,6 @@ class VaccinationViewModel @Inject constructor(
         val secondNotificationWorkerRequest =
             OneTimeWorkRequest.Builder(VaccinationConfirmationWorker::class.java)
                 .setInputData(secondNotificationData)
-                .setId(vaccination.notificationUUID2)
                 .setInitialDelay(
                     DateUtils().calculateConfirmVaccineNotificationDate(
                         vaccination = vaccination,
@@ -869,20 +870,18 @@ class VaccinationViewModel @Inject constructor(
                 .build()
 
 
-//        WorkManager.getInstance(application.applicationContext)
-//            .enqueue(vaccineWorkerRequest)
-//        WorkManager.getInstance(application.applicationContext)
-//            .enqueue(secondNotificationWorker)
-
         if (LocalDate.now().isBefore(vaccination.date)) {
             WorkManager.getInstance(application.applicationContext)
-                .enqueue(firstNotificationWorkerRequest)
+                .beginUniqueWork(vaccination.notificationUUID.toString(), ExistingWorkPolicy.REPLACE, firstNotificationWorkerRequest)
+                .enqueue()
+
             WorkManager.getInstance(application.applicationContext)
-                .enqueue(secondNotificationWorkerRequest)
-            //Log.i("UISTATENAME", vaccination.name)
+                .beginUniqueWork(vaccination.notificationUUID2.toString(), ExistingWorkPolicy.REPLACE, secondNotificationWorkerRequest)
+                .enqueue()
         } else if (LocalDate.now().isEqual(vaccination.date)) {
             WorkManager.getInstance(application.applicationContext)
-                .enqueue(secondNotificationWorkerRequest)
+                .beginUniqueWork(vaccination.notificationUUID2.toString(), ExistingWorkPolicy.REPLACE, secondNotificationWorkerRequest)
+                .enqueue()
         }
     }
 
@@ -900,7 +899,7 @@ class VaccinationViewModel @Inject constructor(
                         "${DateUtils().dateToStringLongFormat(vaccination.date)}."
             )
             putInt(FLOCK_ID, flock.id)
-            putInt(VACCINE_NOTIFICATION_ID, notificationID)
+            putInt(VACCINE_NOTIFICATION_ID, vaccination.notificationUUID.hashCode())
             putString(VACCINATION_NOTIFICATION_UUID, vaccination.notificationUUID.toString())
             putString(VACCINATION_NOTIFICATION_UUID2, vaccination.notificationUUID2.toString())
         }.build()
@@ -920,7 +919,7 @@ class VaccinationViewModel @Inject constructor(
                         "Have you administered the vaccine?"
             )
             putInt(FLOCK_ID, flock.id)
-            putInt(VACCINE_NOTIFICATION_ID, vaccination.hashCode())
+            putInt(VACCINE_NOTIFICATION_ID, vaccination.notificationUUID2.hashCode())
             putInt(VACCINATION_ID, notificationID)
             putString(VACCINATION_FLOCK_UNIQUE_ID, vaccination.flockUniqueId)
             putString(VACCINATION_NAME, vaccination.name)
@@ -935,13 +934,10 @@ class VaccinationViewModel @Inject constructor(
 
     override fun cancelNotification(vaccination: Vaccination) {
         WorkManager.getInstance(application.applicationContext)
-            .cancelWorkById(vaccination.notificationUUID)
+            .cancelUniqueWork(vaccination.notificationUUID.toString())
         WorkManager.getInstance(application.applicationContext)
-            .cancelWorkById(vaccination.notificationUUID2)
+            .cancelUniqueWork(vaccination.notificationUUID2.toString())
 
-        val notificationManager =
-            application.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(vaccination.id)
     }
 
 }

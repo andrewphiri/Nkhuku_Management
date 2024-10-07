@@ -46,7 +46,6 @@ class DateUtils {
             .ofEpochMilli(millis)
             .atZone(ZoneOffset.UTC)
             .toLocalDate()
-        println("UTC Date at Start of Day: $utcDateAtStartOfDay") // Debugging UTC date
 
         // Convert to the same instant in Local time zone
         return utcDateAtStartOfDay.atStartOfDay(ZoneId.systemDefault())
