@@ -13,9 +13,11 @@ import android.content.Context
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextInput
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,6 +49,7 @@ class ScreenTests {
         hiltRule.inject()
         navController = TestNavHostController(context)
         navController.navigatorProvider.addNavigator(ComposeNavigator())
+
 
     }
 
@@ -152,6 +155,7 @@ class ScreenTests {
         )
 
         composeRule.activity.setContent {
+            eggsInventoryViewModel = hiltViewModel()
             MainHomeScreen(
                 navigateToAddFlock = {},
                 navigateToFlockDetails = {},
@@ -189,6 +193,14 @@ class ScreenTests {
                 contentType = ContentType.LIST_ONLY
             )
         }
+
+        composeRule
+            .onNodeWithText("Flock type")
+            .performClick()
+
+        composeRule
+            .onNode(hasText("Broiler"))
+            .performClick()
 
         composeRule
             .onNodeWithText("Breed")

@@ -322,7 +322,6 @@ fun SettingsScreen(
                             vaccinationViewModel.cancelNotification(it)
                         }
                     } else {
-
                         requestVaccineNotificationPermission.launch(
                             Manifest.permission.POST_NOTIFICATIONS
                         )

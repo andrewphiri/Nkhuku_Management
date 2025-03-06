@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement.utils
 
+import and.drew.nkhukumanagement.data.FlockDatabase
 import and.drew.nkhukumanagement.userinterface.flock.FlockDetailsDestination
 import android.Manifest
 import android.app.PendingIntent
@@ -17,6 +18,10 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
 import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
+import androidx.room.Room
+import androidx.room.Room.databaseBuilder
+import androidx.room.RoomDatabase
+import androidx.work.CoroutineWorker
 import androidx.work.ListenableWorker
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -24,44 +29,66 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltWorker
 class VaccinationReminderWorker @AssistedInject constructor(
     @Assisted val context: Context,
     @Assisted val params: WorkerParameters
-) : ListenableWorker(context, params) {
+) : CoroutineWorker(context, params) {
 
-    private val future = SettableFuture.create<Result>()
     @Inject
     lateinit var notificationBuilder: NotificationCompat.Builder
 
-    override fun startWork(): ListenableFuture<Result> {
-        if (future.isCancelled || this.isStopped) {
-            return future // Return the canceled future
-        } else {
-            try {
-                showNotification()
-                //Log.i("NOTIFICATION_WORKED", "WORKED")
-                future.set(Result.success())
-            } catch (e: Exception) {
-                // Handle error and set result to failure
-                future.setException(e)
-                future.set(Result.failure())
+    var INSTANCE: FlockDatabase? = null
+
+    companion object {
+        @Volatile
+        private var INSTANCE: FlockDatabase? = null
+
+        fun getDatabase(context: Context): FlockDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext, // Use application context
+                    FlockDatabase::class.java,
+                    Constants.DATABASE_NAME
+                )
+                    .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
             }
         }
-
-        return future
     }
 
-    override fun onStopped() {
-        super.onStopped()
-        if (future.isCancelled || this.isStopped) {
-            NotificationManagerCompat
-                .from(context)
-                .cancel(params.inputData.getInt(Constants.VACCINE_NOTIFICATION_ID, 0))
-           // Log.i("NOTIFICATION_WORKED", "CANCELLED")
+    private val database: FlockDatabase by lazy { getDatabase(context) }
+
+
+    override suspend fun doWork(): Result {
+        withContext(Dispatchers.IO) {
+            val vaccinationID = params.inputData.getInt(Constants.VACCINE_NOTIFICATION_ID, 0)
+
+            try {
+                database.flockDao().getAllVaccinationItems().collectLatest { vaccinations ->
+                    val vaccination = vaccinations.find { it.id == vaccinationID }
+                    if (vaccination != null) {
+                        showNotification()
+                    }
+                }
+                Result.success()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Result.failure()
+            }
         }
+        return Result.success()
     }
 
     fun showNotification() {

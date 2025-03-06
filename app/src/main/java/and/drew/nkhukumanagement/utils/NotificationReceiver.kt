@@ -22,35 +22,37 @@ import java.util.UUID
 
 
 class NotificationReceiver : BroadcastReceiver() {
+    var INSTANCE: FlockDatabase? = null
+
     companion object {
         const val ACTION_YES = "and.drew.nkhukumanagement.utils.ACTION_YES"
         const val ACTION_NO = "and.drew.nkhukumanagement.utils.ACTION_NO"
-    }
 
-    var INSTANCE: FlockDatabase? = null
+        @Volatile
+        private var INSTANCE: FlockDatabase? = null
 
-    fun getInstance(context: Context): FlockDatabase? {
-        if (INSTANCE == null) {
-            synchronized(FlockDatabase::class.java) {
-                if (INSTANCE == null) {
-                    INSTANCE = databaseBuilder(
-                        context = context,
-                        FlockDatabase::class.java,
-                        Constants.DATABASE_NAME
-                    )
-                        .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
-                        .fallbackToDestructiveMigration()
-                        .build()
-                }
+        fun getDatabase(context: Context): FlockDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext, // Use application context
+                    FlockDatabase::class.java,
+                    Constants.DATABASE_NAME
+                )
+                    .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
             }
         }
-        return INSTANCE
     }
+
+
 
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context != null) {
-            getInstance(context)
+            getDatabase(context)
         }
         val notificationManager =
             context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

@@ -554,17 +554,12 @@ fun HomeScreenListAndDetails(
                             )
                         }
                     }
-
                 }
-
             }
-
         }
     }
-
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainHomeScreen(
     modifier: Modifier = Modifier,

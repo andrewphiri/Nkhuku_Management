@@ -77,7 +77,8 @@ class TestDatabase {
             method = "",
             date = LocalDate.now(),
             hasVaccineBeenAdministered = false,
-            notificationUUID = UUID.randomUUID()
+            notificationUUID = UUID.randomUUID(),
+            notificationUUID2 = UUID.randomUUID()
         )
 
         val vaccination1 = Vaccination(
@@ -87,7 +88,8 @@ class TestDatabase {
             date = LocalDate.now(),
             method = "",
             hasVaccineBeenAdministered = false,
-            notificationUUID = UUID.randomUUID()
+            notificationUUID = UUID.randomUUID(),
+            notificationUUID2 = UUID.randomUUID()
         )
         runTest {
             dao.insertVaccination(vaccination)

@@ -25,20 +25,21 @@ import and.drew.nkhukumanagement.userinterface.vaccination.toVaccination
 import and.drew.nkhukumanagement.userinterface.weight.WeightUiState
 import and.drew.nkhukumanagement.userinterface.weight.toWeight
 import and.drew.nkhukumanagement.utils.DateUtils
+import android.Manifest
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
-import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -47,20 +48,23 @@ import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.rule.GrantPermissionRule
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import junit.framework.TestCase
 import kotlinx.coroutines.test.runTest
-import okhttp3.internal.wait
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.io.IOException
 import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltAndroidTest
+@RunWith(JUnit4::class)
 class AppFlowTests {
 
     @get:Rule(order = 0)
@@ -71,6 +75,13 @@ class AppFlowTests {
     val context = ApplicationProvider.getApplicationContext<Context>()
     lateinit var navController: TestNavHostController
     lateinit var userPrefsViewModel: UserPrefsViewModel
+
+    // Grant the notification permission for the test
+    @get:Rule
+    val grantPermissionRule: GrantPermissionRule =
+        GrantPermissionRule.grant(
+        Manifest.permission.POST_NOTIFICATIONS
+    )
 
     @Inject
     lateinit var database: FlockDatabase
@@ -417,6 +428,14 @@ class AppFlowTests {
             .performClick()
 
         composeRule
+            .onNodeWithText("Flock type")
+            .performClick()
+
+        composeRule
+            .onNode(hasText("Layer"))
+            .performClick()
+
+        composeRule
             .onNodeWithText("Breed")
             .performTextInput("Hybrid")
 
@@ -438,10 +457,14 @@ class AppFlowTests {
             .performTextInput("5")
 
         composeRule
-            .onNodeWithContentDescription("navigate to vaccination screen")
+            .onNodeWithText("Set vaccination days")
             .performClick()
 
-        val route = navController.currentBackStackEntry?.destination?.route
+//        composeRule
+//            .onNodeWithContentDescription("Done")
+//            .performClick()
+
+        val route = navController.currentDestination?.route
         TestCase.assertEquals(
             route,
             "${AddVaccinationsDestination.route}/{${AddVaccinationsDestination.flockIdArg}}"

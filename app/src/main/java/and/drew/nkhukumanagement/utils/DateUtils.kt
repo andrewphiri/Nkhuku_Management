@@ -26,7 +26,6 @@ class DateUtils {
     fun dateToStringLongFormat(date: LocalDate): String {
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
 
-
         //Format dateSelectedInMillis to a string and Return
         return dateFormatter.format(date)
     }
@@ -49,7 +48,6 @@ class DateUtils {
 
         // Convert to the same instant in Local time zone
         return utcDateAtStartOfDay.atStartOfDay(ZoneId.systemDefault())
-
     }
 
     /**
