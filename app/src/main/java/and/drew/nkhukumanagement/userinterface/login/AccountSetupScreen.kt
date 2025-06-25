@@ -1,5 +1,6 @@
 package and.drew.nkhukumanagement.userinterface.login
 
+import and.drew.nkhukumanagement.MainActivity
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
@@ -15,6 +16,7 @@ import and.drew.nkhukumanagement.userinterface.navigation.TabScreens
 import and.drew.nkhukumanagement.utils.Tabs
 import android.app.Activity.RESULT_OK
 import android.os.Build
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -56,6 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 object AccountSetupDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -66,7 +69,8 @@ object AccountSetupDestination : NkhukuDestinations {
         get() = R.string.account_setup
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+@Serializable object AccountSetupScreenNav
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AccountSetupScreen(
@@ -85,8 +89,14 @@ fun AccountSetupScreen(
 
     MainAccountSetupScreen(
         modifier = modifier,
-        navigateToVerificationScreen = navigateToVerificationScreen,
-        navigateToHome = navigateToHome,
+        navigateToVerificationScreen = {
+            signInViewModel.setUserLoggedIn(true)
+            navigateToVerificationScreen()
+                                       },
+        navigateToHome = {
+            signInViewModel.setUserLoggedIn(true)
+            navigateToHome()
+                         },
         state = state,
         onSignInResult = { signInViewModel.onSignInResult(it) },
         resetState = { signInViewModel.resetState() },
@@ -109,7 +119,7 @@ fun AccountSetupScreen(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainAccountSetupScreen(
@@ -137,12 +147,30 @@ fun MainAccountSetupScreen(
     var isLoadingEmailAndPasswordButtonSignIn by remember { mutableStateOf(false) }
     var isLoadingEmailAndPasswordButtonSignUp by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    var isGoogleSignUpButtonEnabled by remember { mutableStateOf(true) }
+    var isSignUpButtonEnabled by remember { mutableStateOf(true) }
+    var isGoogleSignInButtonEnabled by remember { mutableStateOf(true) }
+    var isSignInButtonEnabled by remember { mutableStateOf(true) }
+
     LaunchedEffect(key1 = state.signInError) {
         state.signInError?.let { error ->
             snackbarHostState.showSnackbar(
                 message = error,
                 duration = SnackbarDuration.Long
             )
+        }
+
+        if (state.signInError != null) {
+            isSignInButtonEnabled = true
+            isGoogleSignInButtonEnabled = true
+            isSignUpButtonEnabled = true
+            isGoogleSignUpButtonEnabled = true
+            isLoadingEmailAndPasswordButtonSignIn = false
+            isLoadingEmailAndPasswordButtonSignUp = false
+            isLoadingGoogleButton = false
+            onSignInResult(SignInResult(
+            data = null, errorMessage = null
+                ))
         }
     }
 
@@ -155,19 +183,23 @@ fun MainAccountSetupScreen(
         2
     }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = { result ->
-            if (result.resultCode == RESULT_OK) {
-                coroutineScope.launch {
-                    val signInResult = googleAuthUiClient.signInWithIntent(
-                        intent = result.data ?: return@launch
-                    )
-                    onSignInResult(signInResult)
-                }
-            }
-        }
-    )
+//    val launcher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.StartIntentSenderForResult(),
+//        onResult = { result ->
+//            if (result.resultCode == RESULT_OK) {
+//                coroutineScope.launch {
+//                    val signInResult = googleAuthUiClient.signInWithIntent(
+//                        intent = result.data ?: return@launch
+//                    )
+//                    onSignInResult(signInResult)
+//                }
+//            } else {
+//                isLoadingGoogleButton = false
+//                isLoadingEmailAndPasswordButtonSignIn = false
+//                isLoadingEmailAndPasswordButtonSignUp = false
+//            }
+//        }
+//    )
 
     LaunchedEffect(key1 = state.isSignInSuccessful, key2 = isEmailVerified ) {
         if (state.isSignInSuccessful) {
@@ -195,7 +227,9 @@ fun MainAccountSetupScreen(
         contentWindowInsets = WindowInsets(0.dp),
         snackbarHost = { SnackbarHost(snackbarHostState) }) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(it),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -209,19 +243,40 @@ fun MainAccountSetupScreen(
                     isLoadingGoogleButton = isLoadingGoogleButton,
                     onClickSignInGoogleButton = {
                         coroutineScope.launch {
+                            isSignInButtonEnabled = false
                             isLoadingGoogleButton = true
-                            val signInIntentSender = googleAuthUiClient.signIn()
-                            launcher.launch(
-                                IntentSenderRequest.Builder(
-                                    signInIntentSender ?: return@launch
-                                ).build()
-                            )
+                            isGoogleSignInButtonEnabled = false
+
+                            val result = googleAuthUiClient.signIn()
+                            result.data?.let { user ->
+                                // Handle logged-in user
+                                val signInResult = SignInResult(
+                                    data = result.data, errorMessage = null
+                                )
+                                onSignInResult(signInResult)
+                            } ?: run {
+                                // Show error: result.errorMessage
+
+                                val signInResult = SignInResult(
+                                    data = null, errorMessage = result.errorMessage
+                                )
+                                onSignInResult(signInResult)
+
+                            }
+
+//                            val signInIntentSender = googleAuthUiClient.signIn()
+//                            launcher.launch(
+//                                IntentSenderRequest.Builder(
+//                                    signInIntentSender ?: return@launch
+//                                ).build()
+//                            )
                         }
                     },
                     isLoadingEmailAndPasswordSignInButton = isLoadingEmailAndPasswordButtonSignIn,
                     isLoadingEmailAndPasswordSignUpButton = isLoadingEmailAndPasswordButtonSignUp,
                     onClickSignInEmailAndPasswordButton = {
                         coroutineScope.launch {
+                            isGoogleSignInButtonEnabled = false
                             isLoadingEmailAndPasswordButtonSignIn = true
                             delay(2000)
                             val signInResult = authUiClient.signInUserWithEmailAndPassWord(
@@ -244,6 +299,7 @@ fun MainAccountSetupScreen(
                                 .isPasswordValid(userSignUpState.password)
                         ) {
                             coroutineScope.launch {
+                                isGoogleSignUpButtonEnabled = false
                                 isLoadingEmailAndPasswordButtonSignUp = true
                                 delay(2000)
                                 val signInResult =
@@ -265,13 +321,27 @@ fun MainAccountSetupScreen(
                     },
                     onClickSignUpGoogleButton = {
                         isLoadingGoogleButton = true
+                        isSignUpButtonEnabled = false
                         coroutineScope.launch {
-                            val signUpIntentSender = googleAuthUiClient.signIn()
-                            launcher.launch(
-                                IntentSenderRequest.Builder(
-                                    signUpIntentSender ?: return@launch
-                                ).build()
-                            )
+                            isSignInButtonEnabled = false
+                            isLoadingGoogleButton = true
+                            isGoogleSignInButtonEnabled = false
+
+                            val result = googleAuthUiClient.signIn()
+                            result.data?.let { user ->
+                                // Handle logged-in user
+                                val signInResult = SignInResult(
+                                    data = result.data, errorMessage = null
+                                )
+                                onSignInResult(signInResult)
+                            } ?: run {
+                                // Show error: result.errorMessage
+
+                                val signInResult = SignInResult(
+                                    data = null, errorMessage = result.errorMessage
+                                )
+                                onSignInResult(signInResult)
+                            }
                         }
                     },
                     onClickForgotPassword = onClickForgotPassword
@@ -308,7 +378,11 @@ fun AccountTabScreenContent(
     onValueChangedSignUp: (UserUiState) -> Unit,
     onClickSignUpGoogleButton: () -> Unit,
     onClickSignUpEmailAndPasswordButton: () -> Unit,
-    onClickForgotPassword: () -> Unit
+    onClickForgotPassword: () -> Unit,
+    isGoogleSignUpButtonEnabled: Boolean = true,
+    isSignUpButtonEnabled: Boolean = true,
+    isGoogleSignInButtonEnabled: Boolean = true,
+    isSignInButtonEnabled: Boolean = true
 ) {
     HorizontalPager(
         modifier = Modifier,
@@ -317,7 +391,7 @@ fun AccountTabScreenContent(
         userScrollEnabled = !isLoadingGoogleButton || !isLoadingEmailAndPasswordSignInButton ||
                 !isLoadingEmailAndPasswordSignUpButton,
         reverseLayout = false,
-        beyondBoundsPageCount = 0,
+        beyondViewportPageCount = 0,
         pageSize = PageSize.Fill,
         pageContent = { page ->
             when (page) {
@@ -332,7 +406,9 @@ fun AccountTabScreenContent(
                         isLoadingGoogleButton = isLoadingGoogleButton,
                         userUiState = userUiStateSignIn,
                         onValueChanged = onValueChangedSignIn,
-                        onClickForgotPassword = onClickForgotPassword
+                        onClickForgotPassword = onClickForgotPassword,
+                        isGoogleSignInButtonEnabled = isGoogleSignInButtonEnabled,
+                        isSignInButtonEnabled = isSignInButtonEnabled
                     )
                 }
 
@@ -347,6 +423,8 @@ fun AccountTabScreenContent(
                         userUiState = userUiStateSignUp,
                         isLoadingGoogleButton = isLoadingGoogleButton,
                         isLoadingSignUpButton = isLoadingEmailAndPasswordSignUpButton,
+                        isGoogleButtonEnabled = isGoogleSignUpButtonEnabled,
+                        isSignUpButtonEnabled = isSignUpButtonEnabled
                     )
                 }
             }

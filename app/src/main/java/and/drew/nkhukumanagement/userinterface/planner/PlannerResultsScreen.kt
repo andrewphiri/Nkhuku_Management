@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.serialization.Serializable
 
 object PlannerResultsDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -45,6 +46,9 @@ object PlannerResultsDestination : NkhukuDestinations {
     override val resourceId: Int
         get() = R.string.estimation
 }
+
+@Serializable
+object PlannerResultsScreenNav
 
 @Composable
 fun PlannerResultScreen(
@@ -75,7 +79,6 @@ fun MainPlannerResultScreen(
     val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
     Scaffold(
         modifier = modifier,
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(PlannerResultsDestination.resourceId),

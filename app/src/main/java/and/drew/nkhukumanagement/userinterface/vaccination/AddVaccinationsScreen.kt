@@ -82,6 +82,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.ZoneId
 import java.util.UUID
 
@@ -103,6 +104,11 @@ object AddVaccinationsDestination : NkhukuDestinations {
     )
 }
 
+@Serializable
+data class AddVaccinationsScreenNav(
+    val flockId: Int = 0
+)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddVaccinationsScreen(
@@ -110,6 +116,7 @@ fun AddVaccinationsScreen(
     navigateBack: () -> Unit,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    flockId: Int,
     vaccinationViewModel: VaccinationViewModel = hiltViewModel(),
     detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
@@ -138,18 +145,22 @@ fun AddVaccinationsScreen(
     val userPreferences by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
-    var vaccineID by rememberSaveable { mutableStateOf(0) }
-    var flockID by rememberSaveable { mutableStateOf(0) }
+    var vaccineID: Int? by rememberSaveable { mutableStateOf(0) }
+    var flockID: Int? by rememberSaveable { mutableStateOf(0) }
+
+    LaunchedEffect(key1 = flockId) {
+        vaccinationViewModel.getFlockWithVaccinations(flockId)
+    }
 
     LaunchedEffect(key1 = getAllVaccinationItems, key2 = flockList) {
-        if (getAllVaccinationItems.isNotEmpty()) {
-            vaccineID = getAllVaccinationItems.maxOf {
+        if (getAllVaccinationItems?.isNotEmpty() == true) {
+            vaccineID = getAllVaccinationItems?.maxOfOrNull {
                 it.id
             }
         }
 
-        if (flockList.flockList.isNotEmpty()) {
-            flockID = flockList.flockList.maxOf { it.id }
+        if (flockList?.isNotEmpty() == true) {
+            flockID = flockList?.maxOfOrNull { it.id }
         }
     }
 
@@ -197,7 +208,6 @@ fun AddVaccinationsScreen(
     Scaffold(
         modifier = Modifier
             .semantics { contentDescription = "Vaccination Screen" },
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = title,
@@ -252,14 +262,14 @@ fun AddVaccinationsScreen(
                         )
                         if (userPreferences.receiveNotifications) {
                             for (uiState in vaccinationViewModel.getInitialVaccinationList()) {
-                                vaccineID += 1
-                                flockID += 1
+                                vaccineID = vaccineID?.plus(1)
+                                flockID = flockID?.plus(1)
 
                                 vaccinationViewModel.schedule(
                                     uiState.copy(flockUniqueId = flockEntryViewModel.flockUiState.getUniqueId())
                                         .toVaccination(),
-                                    flockEntryViewModel.flockUiState.copy(id = flockID),
-                                    notificationID = vaccineID
+                                    flockEntryViewModel.flockUiState.copy(id = flockID ?: 0),
+                                    notificationID = vaccineID ?: 0
                                 )
 //                                Log.i("UISTATE__", uiState.toString())
                             }
@@ -391,7 +401,6 @@ fun AddVaccinationsScreen(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainAddVaccinationsScreen(
     modifier: Modifier = Modifier,

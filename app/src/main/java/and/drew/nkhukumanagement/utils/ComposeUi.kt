@@ -61,6 +61,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ShapeDefaults
@@ -83,6 +84,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -115,6 +117,7 @@ fun SignInGoogleButton(
     loadingText: String,
     contentDescription: String,
     icon: Painter,
+    isButtonEnabled: Boolean = true,
     shape: Shape = Shapes.medium,
     borderColor: Color = Color.LightGray,
     isLoading: Boolean = false,
@@ -124,7 +127,7 @@ fun SignInGoogleButton(
 ) {
     Surface(
         modifier = Modifier.clickable(
-            enabled = !isLoading,
+            enabled = isButtonEnabled,
             onClick = onClick
         ),
         shape = shape,
@@ -353,7 +356,7 @@ fun DropDownMenuDialog(
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(),
+                    .menuAnchor(MenuAnchorType.PrimaryEditable, expanded),
                 textStyle = MaterialTheme.typography.bodySmall,
                 readOnly = true,
                 value = value,
@@ -425,7 +428,7 @@ fun DropDownMenuAutoCompleteDialog(
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(),
+                    .menuAnchor(MenuAnchorType.PrimaryEditable, expanded),
                 textStyle = MaterialTheme.typography.bodySmall,
                 value = value,
                 onValueChange = {
@@ -959,6 +962,7 @@ fun BaseCard(
     description: String,
     label: String,
     imageVector: ImageVector,
+    color: ColorFilter? = null
 ) {
     ElevatedCard(
         modifier = modifier
@@ -974,7 +978,8 @@ fun BaseCard(
                 modifier = Modifier.size(50.dp),
                 imageVector = imageVector,
                 contentDescription = description,
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                colorFilter = color
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),

@@ -35,7 +35,7 @@ object DatabaseModule {
            Constants.DATABASE_NAME
        )
            .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
-            .fallbackToDestructiveMigration()
+           .fallbackToDestructiveMigration(false)
             .build()
     }
 }

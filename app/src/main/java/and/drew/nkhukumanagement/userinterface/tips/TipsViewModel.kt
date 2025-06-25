@@ -26,12 +26,12 @@ class TipsViewModel @Inject constructor(
     val articlesList = _articlesList.asStateFlow()
 
     //Category ID of the category chosen
-    val articleIdCategory = savedStateHandle
-        .getStateFlow(TipsArticlesListDestination.articleCategoryIdArg, initialValue = 0)
-
-    //Name of category. Used as title of the app bar
-    val title = savedStateHandle
-        .getStateFlow(key = TipsArticlesListDestination.categoryId, initialValue = "Tips")
+//    val articleIdCategory = savedStateHandle
+//        .getStateFlow(TipsArticlesListDestination.articleCategoryIdArg, initialValue = 0)
+//
+//    //Name of category. Used as title of the app bar
+//    val title = savedStateHandle
+//        .getStateFlow(key = TipsArticlesListDestination.categoryId, initialValue = "Tips")
 
 
     fun setArticlesList(article: SnapshotStateList<Article>) {

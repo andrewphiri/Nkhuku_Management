@@ -3,14 +3,12 @@ package and.drew.nkhukumanagement.userinterface.planner
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
-import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -44,6 +42,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+
+@Serializable object PlannerScreenNav
 
 @Composable
 fun PlannerScreen(
@@ -82,10 +83,9 @@ fun MainPlannerScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var isCalculateButtonEnabled by remember { mutableStateOf(false) }
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
-                title = stringResource(NavigationBarScreens.Planner.resourceId),
+                title = stringResource(R.string.planner),
                 canNavigateBack = canNavigateBack,
                 onClickSettings = onClickSettings,
                 contentType = contentType

@@ -54,7 +54,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -68,9 +67,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 object WeightScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -88,12 +89,18 @@ object WeightScreenDestination : NkhukuDestinations {
     })
 }
 
+@Serializable
+data class WeightScreenNav(
+    val flockId: Int
+)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeightScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    flockId: Int,
     weightViewModel: WeightViewModel = hiltViewModel(),
     contentType: ContentType
 ) {
@@ -106,7 +113,7 @@ fun WeightScreen(
     )
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
-    val weightList: List<Weight> = flockWithWeights.weights ?: listOf()
+    val weightList: List<Weight> = flockWithWeights?.weights ?: listOf()
     val weightUiStateList: MutableList<WeightUiState> = mutableListOf()
     var title by remember { mutableStateOf("") }
     title = stringResource(WeightScreenDestination.resourceId)
@@ -123,6 +130,10 @@ fun WeightScreen(
                 && checkNumberExceptions(weightViewModel.weightUiState)
                 && weightViewModel.weightUiState.actualWeight != actualNewWeight.toString()
 
+    LaunchedEffect(Unit) {
+        weightViewModel.getFlockWithWeight(flockId)
+    }
+
     for (item in weightList) {
         weightUiStateList.add(item.toWeightUiState())
     }
@@ -132,8 +143,8 @@ fun WeightScreen(
     LaunchedEffect(key1 = weightIDClicked) {
         if (weightIDClicked > 0) {
             weight.observe(lifecycleOwner) {
-                weightViewModel.setWeightState(it.toWeightUiState())
-                actualNewWeight = it.weight
+                weightViewModel.setWeightState(it?.toWeightUiState() ?: WeightUiState())
+                actualNewWeight = it?.weight ?: 0.0
             }
         }
     }
@@ -141,7 +152,6 @@ fun WeightScreen(
 
     Scaffold(
         modifier = modifier,
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = title,

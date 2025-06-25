@@ -12,6 +12,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
@@ -30,6 +31,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.serialization.Serializable
 
 object TransactionsScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -46,7 +48,8 @@ object TransactionsScreenDestination : NkhukuDestinations {
     })
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+@Serializable data class TransactionsScreenNav(val accountId: Int)
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TransactionScreen(
@@ -58,7 +61,8 @@ fun TransactionScreen(
     userPrefsViewModel: UserPrefsViewModel,
     initialPage: Int = 0,
     onPageChanged: (Int) -> Unit = {},
-    contentType: ContentType
+    contentType: ContentType,
+    accountID: Int
 ) {
     val tabItems = listOf(TabScreens.Income, TabScreens.Expense)
     val pagerState = rememberPagerState(
@@ -71,7 +75,6 @@ fun TransactionScreen(
     onPageChanged(pagerState.currentPage)
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 canNavigateBack = canNavigateBack,
@@ -82,8 +85,9 @@ fun TransactionScreen(
         }
     ) { innerPadding ->
         Column(
-            modifier = modifier.padding(innerPadding)
-                .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
+            modifier = modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         )
         {
@@ -96,7 +100,8 @@ fun TransactionScreen(
                 pagerState = pagerState,
                 navigateToAddIncomeScreen = navigateToAddIncomeScreen,
                 navigateToAddExpenseScreen = navigateToAddExpenseScreen,
-                userPrefsViewModel = userPrefsViewModel
+                userPrefsViewModel = userPrefsViewModel,
+                accountID = accountID
             )
         }
     }
@@ -112,7 +117,8 @@ fun TabScreenContent(
     pagerState: PagerState,
     navigateToAddIncomeScreen: (Int, Int) -> Unit,
     navigateToAddExpenseScreen: (Int, Int) -> Unit,
-    userPrefsViewModel: UserPrefsViewModel
+    userPrefsViewModel: UserPrefsViewModel,
+    accountID: Int
 ) {
     HorizontalPager(
         modifier = Modifier.semantics { contentDescription = "horizontal pager" },
@@ -120,21 +126,23 @@ fun TabScreenContent(
         pageSpacing = 8.dp,
         userScrollEnabled = true,
         reverseLayout = false,
-        beyondBoundsPageCount = 0,
+        beyondViewportPageCount = 0,
         pageSize = PageSize.Fill,
         pageContent = { page ->
             when (page) {
                 0 -> {
                     IncomeScreen(
                         navigateToAddIncomeScreen = navigateToAddIncomeScreen,
-                        userPrefsViewModel = userPrefsViewModel
+                        userPrefsViewModel = userPrefsViewModel,
+                        accountID = accountID
                     )
                 }
 
                 1 -> {
                     ExpenseScreen(
                         navigateToAddExpenseScreen = navigateToAddExpenseScreen,
-                        userPrefsViewModel = userPrefsViewModel
+                        userPrefsViewModel = userPrefsViewModel,
+                        accountID = accountID
                     )
                 }
             }

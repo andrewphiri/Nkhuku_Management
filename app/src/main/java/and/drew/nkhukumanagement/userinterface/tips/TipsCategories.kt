@@ -3,7 +3,7 @@ package and.drew.nkhukumanagement.userinterface.tips
 import and.drew.nkhukumanagement.R
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Article
+import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Egg
 import androidx.compose.material.icons.outlined.HealthAndSafety
@@ -57,6 +57,6 @@ sealed class TipsCategories(
         id = 6,
         resourceId = R.string.blog_articles,
         contentDescription = "Poultry blog articles",
-        icon = Icons.Outlined.Article
+        icon = Icons.AutoMirrored.Outlined.Article
     )
 }

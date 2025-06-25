@@ -83,6 +83,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.util.Locale
 
 object SettingsDestination : NkhukuDestinations {
@@ -93,6 +94,8 @@ object SettingsDestination : NkhukuDestinations {
     override val resourceId: Int
         get() = R.string.settings
 }
+
+@Serializable object SettingsScreenNav
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -228,7 +231,6 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(SettingsDestination.resourceId),
@@ -318,13 +320,15 @@ fun SettingsScreen(
                 onCheckedChange = {
                     userPrefsViewModel.updateNotifications(it)
                     if (!receiveNotifications) {
-                        allVaccinationItems.forEach {
+                        allVaccinationItems?.forEach {
                             vaccinationViewModel.cancelNotification(it)
                         }
                     } else {
-                        requestVaccineNotificationPermission.launch(
-                            Manifest.permission.POST_NOTIFICATIONS
-                        )
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            requestVaccineNotificationPermission.launch(
+                                Manifest.permission.POST_NOTIFICATIONS
+                            )
+                        }
                     }
                 },
                 navigateToAccountInfoScreen = navigateToAccountInfoScreen,

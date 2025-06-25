@@ -63,7 +63,7 @@ class TestDatabase {
             )
         runTest {
             dao.insertFlock(flock)
-            val getFlock = dao.retrieveFlock(1).first()
+            val getFlock = dao.retrieveFlock(1)?.first()
             assertEquals(flock, getFlock)
         }
     }

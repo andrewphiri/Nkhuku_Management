@@ -65,6 +65,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -90,6 +91,12 @@ object AddExpenseScreenDestination : NkhukuDestinations {
     )
 }
 
+@Serializable
+data class AddExpenseScreenNav(
+    val expenseId: Int = 0,
+    val accountId: Int = 0
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -100,7 +107,9 @@ fun AddExpenseScreen(
     userPrefsViewModel: UserPrefsViewModel,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    expenseID: Int,
+    accountID: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
     val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState(
@@ -119,7 +128,7 @@ fun AddExpenseScreen(
         initial = UserPreferences.getDefaultInstance()
     )
 
-    val expense by expenseViewModel.getExpense.collectAsState(
+    val expense by expenseViewModel.expense.collectAsState(
         initial = expenseViewModel.expenseUiState.copy(
             date = DateUtils().dateToStringShortFormat(
                 LocalDate.now()
@@ -132,14 +141,21 @@ fun AddExpenseScreen(
     title = stringResource(AddExpenseScreenDestination.resourceId)
     val expenseIDArg by expenseViewModel.expenseID.collectAsState(initial = 0)
 
+    LaunchedEffect(Unit) {
+       if (expenseID > 0) {
+           expenseViewModel.getExpense(expenseID)
+       }
+        accountsViewModel.getAccountsWithExpense(accountID)
+    }
+
     /**
      * if nav argument expenseID is greater than zero, update state. LaunchedEffect used because this
      * only updates the state once. Recomposition does not reset the expenseUiState values.
      * This should only be called again when expense changes(KEY)
      */
     LaunchedEffect(expense) {
-        if (expenseViewModel.expenseID.value > 0) {
-            expenseViewModel.updateState(expense.toExpenseUiState(enabled = true))
+        if (expenseID > 0) {
+            expense?.let { expenseViewModel.updateState(it.toExpenseUiState(enabled = true)) }
         }
     }
 
@@ -147,7 +163,7 @@ fun AddExpenseScreen(
         modifier = modifier,
         expenseUiState = expenseViewModel.expenseUiState,
         expense = expense,
-        accountsSummary = accountsWithExpense.accountsSummary,
+        accountsSummary = accountsWithExpense?.accountsSummary,
         updateState = expenseViewModel::updateState,
         insertExpense = {
             coroutineScope.launch {
@@ -182,11 +198,11 @@ fun MainAddExpenseScreen(
     modifier: Modifier = Modifier,
     expenseUiState: ExpensesUiState,
     expense: Expense?,
-    accountsSummary: AccountsSummary,
+    accountsSummary: AccountsSummary?,
     updateState: (ExpensesUiState) -> Unit,
     insertExpense: (ExpensesUiState) -> Unit,
     updateExpense: (ExpensesUiState) -> Unit,
-    updateAccountSummary: (AccountsSummary, ExpensesUiState) -> Unit,
+    updateAccountSummary: (AccountsSummary?, ExpensesUiState) -> Unit,
     expenseIDArg: Int,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
@@ -232,7 +248,6 @@ fun MainAddExpenseScreen(
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = if (expenseUiState.id > 0) context.resources.getString(R.string.edit_expense)
@@ -285,9 +300,9 @@ fun MainAddExpenseScreen(
                         if (handleNumberExceptions(expenseUiState)) {
                             insertExpense(
                                 expenseUiState.copy(
-                                    flockUniqueID = accountsSummary.flockUniqueID,
+                                    flockUniqueID = accountsSummary?.flockUniqueID ?: "",
                                     cumulativeTotalExpense = calculateCumulativeExpense(
-                                        accountsSummary.totalExpenses.toString(),
+                                        accountsSummary?.totalExpenses.toString(),
                                         expenseUiState.totalExpense
                                     ).toString()
                                 )

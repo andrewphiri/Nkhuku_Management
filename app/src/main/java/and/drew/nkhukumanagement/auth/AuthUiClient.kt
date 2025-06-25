@@ -1,8 +1,12 @@
 package and.drew.nkhukumanagement.auth
 
+import and.drew.nkhukumanagement.MainActivity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
@@ -14,11 +18,12 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
 
+
 class AuthUiClient(
-    private val context: Context,
-    private val oneTapClient: SignInClient
+    context: Context
 ) {
     private val auth = Firebase.auth
+    private val credentialManager = CredentialManager.create(context)
 
     suspend fun createUserWithEmailAndPassWord(email: String, password: String): SignInResult {
         return try {
@@ -78,8 +83,8 @@ class AuthUiClient(
 
     suspend fun signOut() {
         try {
-            oneTapClient.signOut().await()
             auth.signOut()
+            credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
@@ -87,47 +92,42 @@ class AuthUiClient(
     }
 
     suspend fun deleteAccount(
-        email: String?, password: String,
-        googleAuthUiClient: GoogleAuthUiClient, intent: Intent?
+        email: String?,
+        password: String,
+        googleAuthUiClient: GoogleAuthUiClient,
     ): Boolean {
-        //val googleAccount = GoogleSignIn.getLastSignedInAccount(context)
+        val user = Firebase.auth.currentUser ?: return false
 
-        val account = if (intent != Intent()) intent?.let {
-            googleAuthUiClient.signInGetCredential(
-                it
-            )
-        } else null
-        val idToken = account?.googleIdToken
-//        val userSignInMethods = auth.currentUser?.email?.let { auth.fetchSignInMethodsForEmail(it).result.signInMethods }
-        //val userSignInMethods = email?.let { fetchSignInMethods(it)?.signInMethods }
-
-        val signInMethod = if (idToken != null)
-            GoogleAuthProvider.getCredential(idToken, null).signInMethod else ""
-
-        Log.i("Email_Provider", signInMethod)
-
-        try {
-            if (signInMethod == "google.com") {
-                Log.i("Email", email.toString())
-                val googleCredential = GoogleAuthProvider.getCredential(idToken, null)
-                auth.currentUser?.reauthenticate(googleCredential)?.addOnSuccessListener { _ ->
-                    auth.currentUser?.delete()
-                }
-            } else {
-                val credential = email?.let { EmailAuthProvider.getCredential(it, password) }
-                if (credential != null) {
-                    auth.currentUser?.reauthenticate(credential)?.addOnSuccessListener { _ ->
-                        auth.currentUser?.delete()
-                    }
-                }
+        return try {
+            // Determine how the user signed in (Google or Email/Password)
+            val signInMethods = email?.let {
+                Firebase.auth.fetchSignInMethodsForEmail(it).await().signInMethods
             }
-            return true
+
+            if (signInMethods?.contains("google.com") == true) {
+                // Reauthenticate using Google
+                val signInResult = googleAuthUiClient.signIn()
+                val idToken = signInResult.data?.let { Firebase.auth.currentUser?.getIdToken(true)?.await()?.token }
+                val googleCredential = GoogleAuthProvider.getCredential(idToken, null)
+                user.reauthenticate(googleCredential).await()
+            } else if (email != null) {
+                // Reauthenticate using Email/Password
+                val credential = EmailAuthProvider.getCredential(email, password)
+                user.reauthenticate(credential).await()
+            } else {
+                return false
+            }
+
+            // Delete account after successful re-auth
+            user.delete().await()
+            true
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
-            return false
+            false
         }
     }
+
 
     suspend fun fetchSignInMethods(email: String?): SignInMethodQueryResult? {
         return email?.let { auth.fetchSignInMethodsForEmail(it).await() }
@@ -144,7 +144,12 @@ class AuthUiClient(
 
     suspend fun verifyEmail() {
         try {
-            auth.currentUser?.sendEmailVerification()?.await()
+            auth.currentUser?.reload()?.await()
+            if (!isEmailVerified()) {
+                auth.currentUser?.sendEmailVerification()?.await()
+            } else {
+                isEmailVerified()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
@@ -154,6 +159,17 @@ class AuthUiClient(
     fun isEmailVerified(): Boolean {
         return try {
             auth.currentUser?.reload()
+            auth.currentUser?.isEmailVerified == true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (e is CancellationException) throw e
+            auth.currentUser?.isEmailVerified == true
+        }
+    }
+
+    suspend fun isEmailVerifiedNonGoogle(): Boolean {
+        return try {
+            auth.currentUser?.reload()?.await()
             auth.currentUser?.isEmailVerified == true
         } catch (e: Exception) {
             e.printStackTrace()

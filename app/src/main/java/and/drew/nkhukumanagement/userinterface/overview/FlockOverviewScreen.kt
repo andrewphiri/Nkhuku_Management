@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.serialization.Serializable
 
 object FlockOverviewDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -74,6 +75,9 @@ object FlockOverviewDestination : NkhukuDestinations {
     })
 }
 
+@Serializable
+object FlockOverviewScreenNav
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FlockOverviewScreen(
@@ -87,11 +91,14 @@ fun FlockOverviewScreen(
     val homeUiState by homeViewModel.homeUiState.collectAsState()
     val eggSummaryList by overviewViewModel.eggSummaryList.collectAsState()
 
+    LaunchedEffect(Unit) {
+        homeViewModel.getAllFlockItems()
+    }
     MainFlockOverviewScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
-        flocks = homeUiState.flockList,
+        flocks = homeUiState ?: emptyList(),
         setFlockTotals = {
             overviewViewModel.flockTotalsList(it)
         },
@@ -157,7 +164,6 @@ fun MainFlockOverviewScreen(
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(FlockOverviewDestination.resourceId),

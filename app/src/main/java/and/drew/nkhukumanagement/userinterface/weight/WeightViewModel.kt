@@ -17,10 +17,13 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -45,21 +48,27 @@ class WeightViewModel @Inject constructor(
 
     private var initialWeightList: SnapshotStateList<WeightUiState> = mutableStateListOf()
 
-    private val flockID: Int = savedStateHandle[WeightScreenDestination.flockIdArg] ?: 0
+//    private val flockID: Int = savedStateHandle[WeightScreenDestination.flockIdArg] ?: 0
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val flockWithWeight: Flow<FlockWithWeight> =
-        savedStateHandle.getStateFlow(key = WeightScreenDestination.flockIdArg, initialValue = 0)
-            .flatMapLatest {
-                flockRepository.getAllFlocksWithWeight(it)
-            }
+//    val flockWithWeight: Flow<FlockWithWeight> =
+//        savedStateHandle.getStateFlow(key = WeightScreenDestination.flockIdArg, initialValue = 0)
+//            .flatMapLatest {
+//                flockRepository.getAllFlocksWithWeight(it)
+//            }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val weight: Flow<Weight> =
-        savedStateHandle.getStateFlow(key = WeightScreenDestination.weightIdArg, initialValue = 0)
-            .flatMapLatest {
-                flockRepository.getWeightItem(it)
-            }
+    private val _flockWithWeight = MutableStateFlow<FlockWithWeight?>(null)
+    val flockWithWeight: Flow<FlockWithWeight?> = _flockWithWeight
+
+//    @OptIn(ExperimentalCoroutinesApi::class)
+//    val weight: Flow<Weight> =
+//        savedStateHandle.getStateFlow(key = WeightScreenDestination.weightIdArg, initialValue = 0)
+//            .flatMapLatest {
+//                flockRepository.getWeightItem(it)
+//            }
+    private val _weight = MutableStateFlow<Weight?>(null)
+    val weight: Flow<Weight?> = _weight
+
 //        flockRepository.getAllFlocksWithWeight(flockID)
 //            .map { it }
 //            .stateIn(
@@ -67,6 +76,22 @@ class WeightViewModel @Inject constructor(
 //                started = SharingStarted.WhileSubscribed(MILLIS),
 //                initialValue = FlockWithWeight(flock = null, weights = listOf())
 //            )
+
+    fun getFlockWithWeight(flockID: Int) {
+        viewModelScope.launch {
+            flockRepository.getAllFlocksWithWeight(flockID).collect {
+                _flockWithWeight.value = it
+            }
+        }
+    }
+
+    fun getWeight(weightID: Int) {
+        viewModelScope.launch {
+            flockRepository.getWeightItem(weightID).collect {
+                _weight.value = it
+            }
+        }
+    }
 
     fun setFlockID(id: Int) {
         savedStateHandle[WeightScreenDestination.flockIdArg] = id

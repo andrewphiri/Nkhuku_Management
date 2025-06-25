@@ -47,6 +47,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -86,19 +87,20 @@ object ExpenseScreenDestination : NkhukuDestinations {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ExpenseScreen(
     navigateToAddExpenseScreen: (Int, Int) -> Unit = { _, _ -> },
     expenseViewModel: ExpenseViewModel = hiltViewModel(),
     accountsViewModel: AccountsViewModel = hiltViewModel(),
     userPrefsViewModel: UserPrefsViewModel,
+    accountID: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val accountsIdArg by accountsViewModel.accountsID.collectAsState(initial = 0)
+    //val accountsIdArg by accountsViewModel.accountsID.collectAsState(initial = 0)
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
+
     val accountsWithExpense by accountsViewModel.accountsWithExpense.collectAsState(
         AccountsWithExpense(
             accountsSummary = AccountsSummary(
@@ -111,6 +113,10 @@ fun ExpenseScreen(
         )
     )
 
+    LaunchedEffect(key1 = accountsWithExpense) {
+        accountsViewModel.getAccountsWithExpense(accountID)
+    }
+
     MainExpenseScreen(
         navigateToAddExpenseScreen = navigateToAddExpenseScreen,
         deleteExpense = {
@@ -118,9 +124,9 @@ fun ExpenseScreen(
                 expenseViewModel.deleteExpense(it)
             }
         },
-        accountsSummary = accountsWithExpense.accountsSummary,
-        expenseList = accountsWithExpense.expenseList,
-        accountsIdArg = accountsIdArg,
+        accountsSummary = accountsWithExpense?.accountsSummary,
+        expenseList = accountsWithExpense?.expenseList ?: emptyList(),
+        accountsIdArg = accountID,
         updateAccountWhenDeletingExpense = { accountsSummary, expense ->
             coroutineScope.launch {
                 accountsViewModel.updateAccountWhenDeletingExpense(
@@ -133,21 +139,20 @@ fun ExpenseScreen(
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainExpenseScreen(
     navigateToAddExpenseScreen: (Int, Int) -> Unit,
     deleteExpense: (Expense) -> Unit,
-    accountsSummary: AccountsSummary,
+    accountsSummary: AccountsSummary?,
     expenseList: List<Expense>,
     accountsIdArg: Int,
-    updateAccountWhenDeletingExpense: (AccountsSummary, Expense) -> Unit,
+    updateAccountWhenDeletingExpense: (AccountsSummary?, Expense) -> Unit,
     currencyLocale: String
 ) {
     val listState = rememberLazyListState()
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
+        contentWindowInsets = WindowInsets(0),
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier.semantics { contentDescription = "Add Expense" },
@@ -319,6 +324,8 @@ fun ExpenseCardItem(
                 )
                  BaseAccountRow(
                      labelA = stringResource(R.string.unit_price),
+                     weightForLabelA = 0.5f,
+                     weightForTitleA = 1.5f,
                      titleA = currencyFormatter(
                          expensesUiState.costPerItem.toDouble(),
                          currencyLocale

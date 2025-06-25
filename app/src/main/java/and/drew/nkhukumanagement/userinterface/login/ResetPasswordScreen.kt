@@ -47,6 +47,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 object ResetPasswordDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -56,6 +57,8 @@ object ResetPasswordDestination : NkhukuDestinations {
     override val resourceId: Int
         get() = R.string.reset_password
 }
+
+@Serializable object ResetPasswordScreenNav
 
 @Composable
 fun ResetPasswordScreen(

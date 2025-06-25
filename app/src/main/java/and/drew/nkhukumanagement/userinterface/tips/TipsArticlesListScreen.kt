@@ -46,6 +46,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 object TipsArticlesListDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -67,7 +68,12 @@ object TipsArticlesListDestination : NkhukuDestinations {
         })
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+@Serializable
+data class TipsArticlesListScreenNav(
+    val articleIdCategory: Int,
+    val categoryId: String
+)
+
 @Composable
 fun TipsArticlesListScreen(
     modifier: Modifier = Modifier,
@@ -75,7 +81,9 @@ fun TipsArticlesListScreen(
     onNavigateUp: () -> Unit,
     navigateToReadArticle: (Int, String) -> Unit,
     tipsViewModel: TipsViewModel = hiltViewModel(),
-    contentType: ContentType
+    contentType: ContentType,
+    categoryId: String,
+    articleIdCategory: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
     val tipsCategories = listOf(
@@ -89,11 +97,12 @@ fun TipsArticlesListScreen(
     val articlesList by tipsViewModel.articlesList.collectAsState(
         initial = mutableListOf()
     )
-    val title by tipsViewModel.title.collectAsState()
-    val articleIdCategory by tipsViewModel.articleIdCategory.collectAsState()
+    //val title by tipsViewModel.title.collectAsState()
+    //val articleIdCategory by tipsViewModel.articleIdCategory.collectAsState()
+
     var isCircularBarShowing by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(tipsViewModel.articlesList) {
-        tipsViewModel.generateArticles(tipsViewModel.articleIdCategory.value)
+        tipsViewModel.generateArticles(articleIdCategory)
     }
 
     MainTipsArticlesListScreen(
@@ -109,13 +118,12 @@ fun TipsArticlesListScreen(
             }.invokeOnCompletion { isCircularBarShowing = false }
         },
         articleIdCategory = articleIdCategory,
-        title = title,
+        title = categoryId,
         contentType = contentType,
         isCircularIndicatorShowing = isCircularBarShowing
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainTipsArticlesListScreen(
     modifier: Modifier = Modifier,

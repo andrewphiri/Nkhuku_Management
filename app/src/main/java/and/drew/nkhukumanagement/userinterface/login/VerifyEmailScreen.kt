@@ -40,8 +40,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 object VerifyEmailDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -51,6 +53,8 @@ object VerifyEmailDestination : NkhukuDestinations {
     override val resourceId: Int
         get() = R.string.verify_email
 }
+
+@Serializable object VerifyEmailScreenNav
 
 @Composable
 fun VerifyEmailScreen(
@@ -101,14 +105,24 @@ fun MainVerifyEmailScreen(
 
     var isCircularIndicatorShowing by remember { mutableStateOf(false) }
     var snackbarHostState = remember { SnackbarHostState() }
+    var isEmailVerified by remember { mutableStateOf(false) }
+    var checking by remember { mutableStateOf(true) }
+
+    LaunchedEffect(key1 = isEmailVerified) {
+        checking = true
+       async {  isEmailVerified = authUiClient.isEmailVerified() }.await()
+        checking = false
+        if (isEmailVerified) {
+            navigateToHome()
+        }
+    }
     LaunchedEffect(key1 = emailVerified) {
         setEmailVerification(
-            authUiClient.isEmailVerified()
+            authUiClient.isEmailVerifiedNonGoogle()
         )
     }
     Scaffold(
         modifier = modifier,
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(VerifyEmailDestination.resourceId),
@@ -126,66 +140,74 @@ fun MainVerifyEmailScreen(
                 .padding(16.dp)
                 .alpha(if (isCircularIndicatorShowing) 0.5f else 1f)
         ) {
-            if (isCircularIndicatorShowing) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(R.string.email_verification_sent_prompt),
-                    textAlign = TextAlign.Center
-                )
-                Button(
-                    enabled = !isCircularIndicatorShowing,
-                    onClick = {
-                        coroutineScope.launch {
-                            authUiClient.verifyEmail()
-                        }
+           if (checking) {
+               CircularProgressIndicator(
+                   modifier = Modifier.align(Alignment.Center),
+                   strokeWidth = 2.dp,
+                   color = MaterialTheme.colorScheme.primary
+               )
+           } else {
+               if (isCircularIndicatorShowing) {
+                   CircularProgressIndicator(
+                       modifier = Modifier.align(Alignment.Center),
+                       strokeWidth = 2.dp,
+                       color = MaterialTheme.colorScheme.primary
+                   )
+               }
+               Column(
+                   modifier = Modifier.align(Alignment.Center),
+                   verticalArrangement = Arrangement.spacedBy(16.dp),
+                   horizontalAlignment = Alignment.CenterHorizontally
+               ) {
+                   Text(
+                       modifier = Modifier.fillMaxWidth(),
+                       text = stringResource(R.string.email_verification_sent_prompt),
+                       textAlign = TextAlign.Center
+                   )
+                   Button(
+                       enabled = !isCircularIndicatorShowing,
+                       onClick = {
+                           coroutineScope.launch {
+                               authUiClient.verifyEmail()
+                           }
 
-                    },
-                ) {
-                    Text(
-                        text = stringResource(R.string.resend_verification_email)
-                    )
-                }
-            }
+                       },
+                   ) {
+                       Text(
+                           text = stringResource(R.string.resend_verification_email)
+                       )
+                   }
+               }
 
-            FilledTonalButton(
-                modifier = Modifier.align(Alignment.BottomEnd),
-                onClick = {
-                    coroutineScope.launch {
-                        setEmailVerification(
-                            authUiClient.isEmailVerified()
-                        )
-                        isCircularIndicatorShowing = true
-                        delay(2000)
-                        if (emailVerified) {
-                            navigateToHome()
-                        } else {
-                            isCircularIndicatorShowing = false
-                            snackbarHostState.showSnackbar(
-                                message = context.getString(R.string.your_email_has_not_yet_been_verified_verify_your_email_then_proceed),
-                                duration = SnackbarDuration.Long
-                            )
-                        }
+               FilledTonalButton(
+                   modifier = Modifier.align(Alignment.BottomEnd),
+                   onClick = {
+                       coroutineScope.launch {
+                           setEmailVerification(
+                               authUiClient.isEmailVerifiedNonGoogle()
+                           )
+                           isCircularIndicatorShowing = true
+                           delay(2000)
+                           if (emailVerified) {
+                               navigateToHome()
+                           } else {
+                               isCircularIndicatorShowing = false
+                               snackbarHostState.showSnackbar(
+                                   message = context.getString(R.string.your_email_has_not_yet_been_verified_verify_your_email_then_proceed),
+                                   duration = SnackbarDuration.Long
+                               )
+                           }
 //                        Log.i("Email_Verified1", authUiClient.isEmailVerified().toString())
-                        isCircularIndicatorShowing = false
-                    }
+                           isCircularIndicatorShowing = false
+                       }
 
-                }
-            ) {
-                Text(
-                    text = stringResource(R.string.proceed)
-                )
-            }
+                   }
+               ) {
+                   Text(
+                       text = stringResource(R.string.proceed)
+                   )
+               }
+           }
         }
     }
 }

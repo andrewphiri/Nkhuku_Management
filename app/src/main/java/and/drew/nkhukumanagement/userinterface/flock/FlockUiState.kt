@@ -98,7 +98,6 @@ data class FlockUiState(
 /**
  * Extension function to convert [FlockUIState] to [Flock]
  */
-@RequiresApi(Build.VERSION_CODES.O)
 fun FlockUiState.toFlock(): Flock = Flock(
     id = id,
     uniqueId = getUniqueId(),
@@ -106,19 +105,18 @@ fun FlockUiState.toFlock(): Flock = Flock(
     flockType = flockType,
     breed = breed,
     datePlaced = DateUtils().stringToLocalDate(getDate()),
-    numberOfChicksPlaced = quantity.toInt(),
-    costPerBird = cost.toDouble(),
+    numberOfChicksPlaced = quantity.toIntOrNull() ?: 0,
+    costPerBird = cost.toDoubleOrNull() ?: 0.0,
     donorFlock = donorFlock.toIntOrNull() ?: 0,
     mortality = getMortality().toInt(),
-    stock = getStock().toInt(),
-    culls = getCulls().toInt(),
+    stock = getStock().toIntOrNull() ?: 0,
+    culls = getCulls().toIntOrNull() ?: 0,
     active = active
 )
 
 /**
  * Handle [NumberFormatException]
  */
-@RequiresApi(Build.VERSION_CODES.O)
 fun checkNumberExceptions(flockUiState: FlockUiState): Boolean {
     return try {
         flockUiState.toFlock()
@@ -131,7 +129,6 @@ fun checkNumberExceptions(flockUiState: FlockUiState): Boolean {
 /**
  * Extension function to convert [Flock] to [FlockUiState]
  */
-@RequiresApi(Build.VERSION_CODES.O)
 fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
     FlockUiState(
         id = id,

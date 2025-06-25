@@ -56,7 +56,6 @@ val methodsVaccineAdministration = listOf("Drinking water", "Subcutaneous inject
 /**
  * Extension function to convert [VaccinationUiState] to [Vaccination]
  */
-@RequiresApi(Build.VERSION_CODES.O)
 fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
     id = id,
     flockUniqueId = getUniqueId(),
@@ -72,7 +71,6 @@ fun VaccinationUiState.toVaccination(): Vaccination = Vaccination(
 /**
  * Extension function to convert [Vaccination] to [VaccinationUiState]
  */
-@RequiresApi(Build.VERSION_CODES.O)
 fun Vaccination.toVaccinationUiState(
     enabled: Boolean = false,
     vaccinationNumber: Int = 1
@@ -86,7 +84,8 @@ fun Vaccination.toVaccinationUiState(
     vaccinationNumber = vaccinationNumber,
     notificationUUID = notificationUUID,
     notificationUUID2 = notificationUUID2,
-    vaccineAdministered = hasVaccineBeenAdministered
+    vaccineAdministered = hasVaccineBeenAdministered,
+    method = method
 )
 
 /**

@@ -71,7 +71,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -96,6 +98,12 @@ object AddIncomeScreenDestination : NkhukuDestinations {
         })
 }
 
+@Serializable
+data class AddIncomeScreenNav(
+    val incomeId: Int,
+    val accountId: Int
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -108,7 +116,9 @@ fun AddIncomeScreen(
     eggsInventoryViewModel: EggsInventoryViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    incomeID: Int,
+    accountID: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -124,7 +134,15 @@ fun AddIncomeScreen(
             )
         )
     )
-    val income by incomeViewModel.getIncome.collectAsState(
+    val flock by editFlockViewModel.flock.collectAsState(
+        initial =  FlockUiState(
+            datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
+            quantity = "0",
+            donorFlock = "0",
+            cost = "0"
+        ).toFlock()
+    )
+    val income by incomeViewModel.income.collectAsState(
         initial = incomeViewModel.incomeUiState.copy(
             date = DateUtils().dateToStringShortFormat(
                 LocalDate.now()
@@ -152,16 +170,30 @@ fun AddIncomeScreen(
 
     var title by remember { mutableStateOf("") }
     title = stringResource(AddIncomeScreenDestination.resourceId)
-    val incomeID by incomeViewModel.incomeID.collectAsState(initial = 0)
+    //val incomeID by incomeViewModel.incomeID.collectAsState(initial = 0)
     var expanded by remember { mutableStateOf(false) }
-    val flock = editFlockViewModel.getFlock(accountsWithIncome.accountsSummary.flockUniqueID)?.collectAsState(
+
         FlockUiState(
             datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
             quantity = "0",
             donorFlock = "0",
             cost = "0"
         ).toFlock()
-    )
+
+
+    LaunchedEffect(Unit) {
+        if (incomeID > 0) {
+            incomeViewModel.getIncome(incomeID)
+        }
+        async { accountsViewModel.getAccountsWithIncome(accountID) }.await()
+        async { editFlockViewModel.getFlock(accountsWithIncome?.accountsSummary?.flockUniqueID) }.await()
+    }
+
+    LaunchedEffect(flock) {
+       if (flock != null) {
+           flock?.id?.let { editFlockViewModel.getFlockAndEggsSummary(it) }
+       }
+    }
 
     /**
      * if nav argument IncomeID is greater than zero, update state. LaunchedEffect used because this
@@ -169,8 +201,8 @@ fun AddIncomeScreen(
      * This should only be called again when income changes(KEY)
      */
     LaunchedEffect(income) {
-        if (incomeViewModel.incomeID.value > 0) {
-            incomeViewModel.updateState(income.toIncomeUiState(enabled = true))
+        if (incomeID > 0) {
+            income?.let { incomeViewModel.updateState(it.toIncomeUiState(enabled = true)) }
         }
     }
 
@@ -178,19 +210,17 @@ fun AddIncomeScreen(
         modifier = modifier,
         incomeUiState = incomeViewModel.incomeUiState,
         income = income,
-        accountsSummary = accountsWithIncome.accountsSummary,
+        accountsSummary = accountsWithIncome?.accountsSummary  ,
         updateState = incomeViewModel::updateState,
         insertIncome = {
             coroutineScope.launch {
                 incomeViewModel.insertIncome(it)
                 if (incomeViewModel.incomeUiState.incomeType == context.getString(R.string.chicken_sale)) {
-                    if (flock != null) {
-                        editFlockViewModel.updateFlock(flock.value.copy(stock = (flock.value.stock - incomeViewModel.incomeUiState.quantity.toInt())))
-                    }
+                    flock?.let { editFlockViewModel.updateFlock(it.copy(stock = (it.stock - incomeViewModel.incomeUiState.quantity.toInt()))) }
                 }
 
-                if (flock != null) {
-                    if(incomeViewModel.incomeUiState.quantity.toInt() > flock.value.stock) {
+                flock?.let {
+                    if(incomeViewModel.incomeUiState.quantity.toInt() > it.stock) {
                         Toast.makeText(context, context.getString(R.string.not_enough_stock), Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -200,13 +230,11 @@ fun AddIncomeScreen(
             coroutineScope.launch {
                 incomeViewModel.updateIncome(it)
                 if (incomeViewModel.incomeUiState.incomeType == context.getString(R.string.chicken_sale)) {
-                    if (flock != null) {
-                        editFlockViewModel.updateFlock(flock.value.copy(stock = ((flock.value.stock + income.quantity) - incomeViewModel.incomeUiState.quantity.toInt())))
-                    }
+                    flock?.let { editFlockViewModel.updateFlock(it.copy(stock = ((it.stock + (income?.quantity ?: 0)) - incomeViewModel.incomeUiState.quantity.toInt()))) }
                 }
 
-                if (flock != null) {
-                    if(incomeViewModel.incomeUiState.quantity.toInt() > flock.value.stock) {
+                flock?.let {
+                    if(incomeViewModel.incomeUiState.quantity.toInt() > it.stock) {
                         Toast.makeText(context, context.getString(R.string.not_enough_stock), Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -241,7 +269,7 @@ fun AddIncomeScreen(
         onDismissIncomeTypeDropDownMenu = {
                                           expanded = false
         } ,
-        incomeTypeOptions = if (flock?.value?.flockType == flockTypeOptions[1]) incomeViewModel.incomeTypeOptionsLayers else incomeViewModel.incomeTypeOptions,
+        incomeTypeOptions = if (flock?.flockType == flockTypeOptions[1]) incomeViewModel.incomeTypeOptionsLayers else incomeViewModel.incomeTypeOptions,
         onExpand = {
                    expanded = !expanded
         },
@@ -251,17 +279,16 @@ fun AddIncomeScreen(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainAddIncomeScreen(
     modifier: Modifier = Modifier,
     incomeUiState: IncomeUiState,
     income: Income?,
-    accountsSummary: AccountsSummary,
+    accountsSummary: AccountsSummary?,
     updateState: (IncomeUiState) -> Unit,
     insertIncome: (IncomeUiState) -> Unit,
     updateIncome: (IncomeUiState) -> Unit,
-    updateAccountSummary: (AccountsSummary, IncomeUiState) -> Unit,
+    updateAccountSummary: (AccountsSummary?, IncomeUiState) -> Unit,
     incomeIDArg: Int,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
@@ -311,8 +338,9 @@ fun MainAddIncomeScreen(
         }
     }
 
+
+
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = if (incomeUiState.id > 0) context.resources.getString(R.string.edit_income)
@@ -365,9 +393,9 @@ fun MainAddIncomeScreen(
 
                             insertIncome(
                                 incomeUiState.copy(
-                                    flockUniqueID = accountsSummary.flockUniqueID,
+                                    flockUniqueID = accountsSummary?.flockUniqueID ?: "",
                                     cumulativeTotalIncome = calculateCumulativeIncome(
-                                        initialIncome = accountsSummary.totalIncome.toString(),
+                                        initialIncome = accountsSummary?.totalIncome.toString(),
                                         totalIncome = incomeUiState.totalIncome
                                     ).toString()
                                 )

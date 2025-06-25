@@ -10,87 +10,87 @@ interface FlockRepository {
     /**
      * Retrieve all flock entries from data source
      */
-    fun getAllFlockItems(): Flow<List<Flock>>
+    fun getAllFlockItems(): Flow<List<Flock>?>
 
     /**
      * Retrieve all feed entries from data source
      */
-    fun getAllFeedItems(): Flow<List<Feed>>
+    fun getAllFeedItems(): Flow<List<Feed>?>
 
     /**
      * Retrieve all weight entries from data source
      */
-    fun getAllWeightItems(): Flow<List<Weight>>
+    fun getAllWeightItems(): Flow<List<Weight>?>
 
     /**
      * Retrieve all egg entries from data source
      */
-    fun getAllEggItems(): Flow<List<Eggs>>
+    fun getAllEggItems(): Flow<List<Eggs>?>
 
     /**
      * Retrieve all flock entries from data source
      */
-    fun getAllAccountsItems(): Flow<List<AccountsSummary>>
+    fun getAllAccountsItems(): Flow<List<AccountsSummary>?>
 
     /**
      * Retrieve all flocksWithVaccinations from data source
      */
-    fun getAllFlocksWithVaccinations(id: Int): Flow<FlockWithVaccinations>
+    fun getAllFlocksWithVaccinations(id: Int): Flow<FlockWithVaccinations?>
 
     /**
      * Retrieve all flocksWithEggs from data source
      */
-    fun getAllFlocksWithEggs(id: Int): Flow<FlockWithEggs>
+    fun getAllFlocksWithEggs(id: Int): Flow<FlockWithEggs?>
 
     /**
      * Retrieve all flocksWithFeed from data source
      */
-    fun getAllFlocksWithFeed(id: Int): Flow<FlockWithFeed>
+    fun getAllFlocksWithFeed(id: Int): Flow<FlockWithFeed?>
 
     /**
      * Retrieve all flocksWithWeight from data source
      */
-    fun getAllFlocksWithWeight(id: Int): Flow<FlockWithWeight>
+    fun getAllFlocksWithWeight(id: Int): Flow<FlockWithWeight?>
 
     /**
      * Retrieve all flocksWithHealth from data source
      */
-    fun getFlocksWithHealth(id: Int): Flow<FlockWithHealth>
+    fun getFlocksWithHealth(id: Int): Flow<FlockWithHealth?>
 
     /**
      * Retrieve all vaccination entries from data source
      */
-    fun getAllVaccinationItems(): Flow<List<Vaccination>>
+    fun getAllVaccinationItems(): Flow<List<Vaccination>?>
 
     /**
      * Retrieve flock from data source
      */
-    fun getFlock(id: Int): Flow<Flock>
+    fun getFlock(id: Int): Flow<Flock>?
 
     /**
      * Retrieve flock from data source
      */
-    fun getFlock(uniqueID: String): Flow<Flock>?
+    fun getFlock(uniqueID: String?): Flow<Flock>?
 
     /**
      * Retrieve flock health from data source
      */
-    fun getFlockHealthItem(id: Int): Flow<FlockHealth>
+    fun getFlockHealthItem(id: Int): Flow<FlockHealth?>
 
     /**
      * Retrieve vaccination item from data source
      */
-    fun getVaccinationItem(id: Int): Flow<Vaccination>
+    fun getVaccinationItem(id: Int): Flow<Vaccination?>
 
     /**
      * Retrieve income item from data source
      */
-    fun getIncomeItem(id: Int): Flow<Income>
+    fun getIncomeItem(id: Int): Flow<Income?>
 
     /**
      * Retrieve weight item from data source
      */
-    fun getWeightItem(id: Int): Flow<Weight>
+    fun getWeightItem(id: Int): Flow<Weight?>
 
     /**
      * Retrieve feed item from data source
@@ -105,34 +105,34 @@ interface FlockRepository {
     /**
      * Retrieve egg summary item from data source
      */
-    fun getAllEggsSummaryItems(): Flow<List<EggsSummary>>
+    fun getAllEggsSummaryItems(): Flow<List<EggsSummary>?>
 
     /**
      * Retrieve expense item from data source
      */
     fun getExpenseItem(id: Int): Flow<Expense>
 
-    fun getFlockAndAccountSummary(id: Int): LiveData<FlockAndAccountSummary>
+    fun getFlockAndAccountSummary(id: Int): LiveData<FlockAndAccountSummary?>
 
-    fun getFlockAndEggsSummary(id: Int): Flow<FlockAndEggsSummary>
+    fun getFlockAndEggsSummary(id: Int): Flow<FlockAndEggsSummary?>
 
-    fun getFlockWithIncome(id: Int): Flow<FlockWithIncome>
+    fun getFlockWithIncome(id: Int): Flow<FlockWithIncome?>
 
-    fun getFlockWithExpenses(id: Int): Flow<FlockWithExpenses>
+    fun getFlockWithExpenses(id: Int): Flow<FlockWithExpenses?>
 
-    fun getAccountsWithIncome(id: Int): Flow<AccountsWithIncome>
+    fun getAccountsWithIncome(id: Int): Flow<AccountsWithIncome?>
 
-    fun getAccountsWithExpense(id: Int): Flow<AccountsWithExpense>
+    fun getAccountsWithExpense(id: Int): Flow<AccountsWithExpense?>
 
     fun getAllVaccinationsForExport(flockUniqueID: String): Flow<List<Vaccination>>
-    fun getAllFeedsForExport(flockUniqueID: String): Flow<List<Feed>>
-    fun getAllWeightsForExport(flockUniqueID: String): Flow<List<Weight>>
+    fun getAllFeedsForExport(flockUniqueID: String): Flow<List<Feed>?>
+    fun getAllWeightsForExport(flockUniqueID: String): Flow<List<Weight>?>
     fun getAllEggsForExport(flockUniqueID: String): Flow<List<Eggs>>
-    fun getAllHealthForExport(flockUniqueID: String): Flow<List<FlockHealth>>
-    fun getAllIncomeForExport(flockUniqueID: String): Flow<List<Income>>
-    fun getAllExpensesForExport(flockUniqueID: String): Flow<List<Expense>>
-    fun getAllAccountsForExport(flockUniqueID: String): Flow<AccountsSummary>
-    fun getAllEggsSummaryForExport(flockUniqueID: String): Flow<EggsSummary>
+    fun getAllHealthForExport(flockUniqueID: String): Flow<List<FlockHealth>?>
+    fun getAllIncomeForExport(flockUniqueID: String): Flow<List<Income>?>
+    fun getAllExpensesForExport(flockUniqueID: String): Flow<List<Expense>?>
+    fun getAllAccountsForExport(flockUniqueID: String): Flow<AccountsSummary?>
+    fun getAllEggsSummaryForExport(flockUniqueID: String): Flow<EggsSummary?>
 
     /**
      * Insert flock in the database

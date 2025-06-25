@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 object AccountInformationDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -65,6 +66,7 @@ object AccountInformationDestination : NkhukuDestinations {
     override val resourceId: Int
         get() = R.string.account_information
 }
+@Serializable object AccountInformationScreenNav
 
 @Composable
 fun AccountInfoScreen(
@@ -92,7 +94,6 @@ fun AccountInfoScreen(
     title = if (emailSignedIn != "null")
         context.getString(AccountInformationDestination.resourceId) else context.getString(R.string.add_account)
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = title,

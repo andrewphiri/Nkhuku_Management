@@ -33,13 +33,13 @@ class NotificationReceiver : BroadcastReceiver() {
 
         fun getDatabase(context: Context): FlockDatabase {
             return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
+                val instance = databaseBuilder(
                     context.applicationContext, // Use application context
                     FlockDatabase::class.java,
                     Constants.DATABASE_NAME
                 )
                     .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(false)
                     .build()
                 INSTANCE = instance
                 instance

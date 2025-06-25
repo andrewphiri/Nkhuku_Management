@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -60,11 +61,12 @@ import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.xml.sax.XMLReader
 
 object ReadArticleDestination : NkhukuDestinations {
     override val icon: ImageVector
-        get() = Icons.Default.Article
+        get() = Icons.AutoMirrored.Filled.Article
     override val route: String
         get() = "read_article"
     override val resourceId: Int
@@ -83,6 +85,12 @@ object ReadArticleDestination : NkhukuDestinations {
     )
 }
 
+@Serializable
+data class ReadArticleScreenNav(
+    val categoryId: Int,
+    val articleId: String
+)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ReadArticleScreen(
@@ -90,14 +98,16 @@ fun ReadArticleScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     articleViewModel: ArticleViewModel = hiltViewModel(),
-    contentType: ContentType
+    contentType: ContentType,
+    categoryId: Int,
+    articleId: String
 ) {
     val coroutineScope = rememberCoroutineScope()
     val article by articleViewModel.article.collectAsState(
         initial = Article()
     )
-    val categoryId by articleViewModel.categoryId.collectAsState()
-    val articleId by articleViewModel.articleId.collectAsState()
+//    val categoryId by articleViewModel.categoryId.collectAsState()
+//    val articleId by articleViewModel.articleId.collectAsState()
     var isCircularIndicatorShowing by rememberSaveable { mutableStateOf(true) }
 
     MainReadArticleScreen(

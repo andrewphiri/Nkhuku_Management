@@ -4,7 +4,6 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
 import and.drew.nkhukumanagement.auth.SignInViewModel
-import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.BaseCard
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.TipsAndDetailsCurrentScreen
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,11 +27,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,6 +40,14 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.serialization.Serializable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.ColorFilter
+
+
+@Serializable
+object TipsScreenNav
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -60,13 +65,19 @@ fun TipsScreen(
     isUserSignedIn: Boolean
 ) {
 
+    val isUserLoggedIn by signInViewModel.userLoggedIn.collectAsState()
+
+    LaunchedEffect(isUserLoggedIn) {
+        signInViewModel.setUserLoggedIn(googleAuthUiClient.getSignedInUser() != null)
+    }
+
     if (contentType == ContentType.LIST_ONLY) {
         MainTipsScreen(
             modifier = modifier,
             canNavigateBack = canNavigateBack,
             navigateToArticlesListScreen = navigateToArticlesListScreen,
             onClickSettings = onClickSettings,
-            isUserSignedIn = isUserSignedIn,
+            isUserSignedIn = isUserLoggedIn,
             navigateToLoginScreen = navigateToLoginScreen,
             contentType = contentType
         )
@@ -75,7 +86,7 @@ fun TipsScreen(
             modifier = modifier,
             canNavigateBack = canNavigateBack,
             onClickSettings = onClickSettings,
-            isUserSignedIn = isUserSignedIn,
+            isUserSignedIn = isUserLoggedIn,
             articleViewModel = articleViewModel,
             tipsViewModel = tipsViewModel,
             navigateToLoginScreen = navigateToLoginScreen,
@@ -85,7 +96,6 @@ fun TipsScreen(
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TipsAndDetailsScreen(
     modifier: Modifier = Modifier,
@@ -102,6 +112,9 @@ fun TipsAndDetailsScreen(
     val articlesList by tipsViewModel.articlesList.collectAsState(
         initial = mutableListOf()
     )
+    var categoryID by rememberSaveable { mutableStateOf(0) }
+    var articleID by rememberSaveable { mutableStateOf("") }
+    var articleTitle by rememberSaveable { mutableStateOf("") }
 
     Column {
         Row {
@@ -111,6 +124,8 @@ fun TipsAndDetailsScreen(
                     canNavigateBack = canNavigateBack,
                     navigateToArticlesListScreen = { title, id ->
                         articlesList.clear()
+                        articleTitle = title
+                        categoryID = id
                         showDetailsPane = true
                         currentScreen = TipsAndDetailsCurrentScreen.ARTICLES_LIST_SCREEN
                         tipsViewModel.setTitle(title)
@@ -141,12 +156,16 @@ fun TipsAndDetailsScreen(
                                 canNavigateBack = false,
                                 onNavigateUp = {},
                                 navigateToReadArticle = { categoryId, articleId ->
+                                    categoryID = categoryId
+                                    articleID = articleId
                                     currentScreen =
                                         TipsAndDetailsCurrentScreen.SINGLE_ARTICLE_SCREEN
                                     articleViewModel.setCategoryID(categoryId)
                                     articleViewModel.setArticleID(articleId)
                                 },
-                                contentType = contentType
+                                contentType = contentType,
+                                categoryId = articleTitle,
+                                articleIdCategory = categoryID
                             )
                         }
 
@@ -156,7 +175,9 @@ fun TipsAndDetailsScreen(
                                 onNavigateUp = {
                                     currentScreen = TipsAndDetailsCurrentScreen.ARTICLES_LIST_SCREEN
                                 },
-                                contentType = contentType
+                                contentType = contentType,
+                                categoryId = categoryID,
+                                articleId = articleID
                             )
                         }
                     }
@@ -179,11 +200,10 @@ fun MainTipsScreen(
     contentType: ContentType,
 ) {
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         modifier = modifier,
         topBar = {
             FlockManagementTopAppBar(
-                title = stringResource(NavigationBarScreens.Tips.resourceId),
+                title = stringResource(R.string.tips),
                 canNavigateBack = canNavigateBack,
                 onClickSettings = onClickSettings,
                 contentType = contentType
@@ -234,12 +254,12 @@ fun CategoriesList(
     val context = LocalContext.current
 
     val tipsCategories = listOf(
-        TipsCategories.Placement,
-        TipsCategories.Brooding,
-        TipsCategories.RearingAndFeeding,
-        TipsCategories.Hygiene,
-        TipsCategories.Equipment,
-        TipsCategories.BlogArticles
+        TipsCategories.Placement to ColorFilter.tint(Color.Blue),
+        TipsCategories.Brooding to ColorFilter.tint(Color.Magenta),
+        TipsCategories.RearingAndFeeding to ColorFilter.tint(Color.Yellow),
+        TipsCategories.Hygiene to ColorFilter.tint(Color.Green),
+        TipsCategories.Equipment to ColorFilter.tint(Color.Red),
+        TipsCategories.BlogArticles to ColorFilter.tint(Color.Cyan)
     )
     LazyVerticalGrid(
         modifier = modifier.padding(16.dp),
@@ -251,13 +271,14 @@ fun CategoriesList(
             BaseCard(
                 onCardClick = {
                     onCardClick(
-                        context.getString(tipCategory.resourceId),
-                        tipCategory.id
+                        context.getString(tipCategory.first.resourceId),
+                        tipCategory.first.id
                     )
                 },
-                description = tipCategory.contentDescription,
-                imageVector = tipCategory.icon,
-                label = stringResource(tipCategory.resourceId)
+                description = tipCategory.first.contentDescription,
+                imageVector = tipCategory.first.icon,
+                label = stringResource(tipCategory.first.resourceId),
+                color = tipCategory.second
             )
         }
     }

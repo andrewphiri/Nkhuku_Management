@@ -4,7 +4,6 @@ package and.drew.nkhukumanagement.userinterface.overview
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
-import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.BaseCard
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.OverViewDetailsCurrentScreen
@@ -32,9 +31,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.serialization.Serializable
+
+
+@Serializable
+object OverviewScreenNav
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -145,7 +151,7 @@ fun MainOverViewScreen(
         contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
-                title = stringResource(NavigationBarScreens.Overview.resourceId),
+                title = stringResource(R.string.overview),
                 canNavigateBack = canNavigateBack,
                 onClickSettings = onClickSettings,
                 contentType = contentType
@@ -181,6 +187,7 @@ fun OverviewScreenCardList(
                 description = stringResource(R.string.account_overview),
                 label = stringResource(R.string.accounts),
                 imageVector = Icons.Default.AttachMoney,
+                color = ColorFilter.tint(Color.Green)
             )
         }
         item {
@@ -189,6 +196,7 @@ fun OverviewScreenCardList(
                 description = stringResource(R.string.flock_overview),
                 label = stringResource(R.string.flock),
                 imageVector = Icons.Default.Inventory,
+                color = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
 
         }

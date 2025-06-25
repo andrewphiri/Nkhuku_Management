@@ -8,18 +8,14 @@ import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
-import and.drew.nkhukumanagement.utils.AddNewEntryDialog
 import and.drew.nkhukumanagement.utils.ContentType
-import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.DropDownMenuAutoCompleteDialog
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -34,16 +30,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -68,10 +57,8 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -88,9 +75,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
 object FeedScreenDestination : NkhukuDestinations {
@@ -109,12 +98,18 @@ object FeedScreenDestination : NkhukuDestinations {
     })
 }
 
+@Serializable
+data class FeedScreenNav(
+    val flockId: Int,
+)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FeedScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    flockId: Int,
     feedViewModel: FeedViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
     contentType: ContentType
@@ -137,14 +132,18 @@ fun FeedScreen(
     LaunchedEffect(key1 = feedIDClicked) {
         if (feedIDClicked > 0) {
             feed.observe(lifecycleOwner) {
-                feedViewModel.setFeedState(it.toFeedUiState())
-                actualFeedConsumed = it.consumed
+                feedViewModel.setFeedState(it?.toFeedUiState() ?: FeedUiState())
+                actualFeedConsumed = it?.consumed ?: -1.0
             }
         }
     }
 
+    LaunchedEffect(Unit) {
+        feedViewModel.getFeedWithFlock(flockId)
+    }
 
-    val feedList: List<Feed> = flockWithFeed.feedList ?: listOf()
+
+    val feedList: List<Feed> = flockWithFeed?.feedList ?: listOf()
     val feedUiStateList: MutableList<FeedUiState> = mutableListOf()
 
     for (feedUiState in feedList) {
@@ -157,7 +156,7 @@ fun FeedScreen(
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
         flockUiState = flockEntryViewModel.flockUiState,
-        feedList = flockWithFeed.feedList,
+        feedList = flockWithFeed?.feedList,
         setFeedList = {
             feedViewModel.setFeedList(it.toMutableStateList())
         },
@@ -174,6 +173,9 @@ fun FeedScreen(
         },
         contentType = contentType,
         onItemClick = {
+            coroutineScope.launch {
+                feedViewModel.getFeed(it)
+            }
             feedIDClicked = it
             feedViewModel.setFeedID(it)
         },
@@ -218,7 +220,6 @@ fun MainFeedScreen(
     setFeedList(feedUiStateList.toMutableStateList())
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(FeedScreenDestination.resourceId),

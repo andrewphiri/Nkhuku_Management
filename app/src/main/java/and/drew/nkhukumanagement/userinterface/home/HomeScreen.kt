@@ -3,9 +3,7 @@ package and.drew.nkhukumanagement.userinterface.home
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.data.AccountsSummary
-import and.drew.nkhukumanagement.data.EggsSummary
 import and.drew.nkhukumanagement.data.Flock
-import and.drew.nkhukumanagement.data.FlockAndEggsSummary
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
@@ -26,7 +24,6 @@ import and.drew.nkhukumanagement.userinterface.flock.FlockEditScreen
 import and.drew.nkhukumanagement.userinterface.flock.FlockEntryViewModel
 import and.drew.nkhukumanagement.userinterface.flock.FlockHealthScreen
 import and.drew.nkhukumanagement.userinterface.flock.toFlockUiState
-import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.userinterface.vaccination.AddVaccinationsScreen
 import and.drew.nkhukumanagement.userinterface.vaccination.VaccinationViewModel
 import and.drew.nkhukumanagement.userinterface.weight.WeightScreen
@@ -95,6 +92,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -107,31 +105,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.launch
-import java.time.LocalDate
+import kotlinx.serialization.Serializable
 
-@RequiresApi(Build.VERSION_CODES.O)
+@Serializable
+object HomeScreenNav
+
 @Composable
 fun HomeScreen(
     contentType: ContentType,
@@ -159,6 +153,11 @@ fun HomeScreen(
             flock = null, vaccinations = listOf()
         )
     )
+
+    LaunchedEffect(key1 = homeUiState) {
+        homeViewModel.getAllFlockItems()
+    }
+
     var accountSummary: AccountsSummary? by remember {
         mutableStateOf(
             AccountsSummary(
@@ -185,7 +184,7 @@ fun HomeScreen(
             navigateToFlockDetails = navigateToFlockDetails,
             eggsInventoryViewModel = eggsInventoryViewModel,
             onClickSettings = onClickSettings,
-            flocks = homeUiState.flockList.sortedBy { it.datePlaced },
+            flocks = homeUiState?.sortedBy { it.datePlaced } ?: emptyList(),
             resetFlock = {
                 flockEntryViewModel.resetAll()
             },
@@ -201,17 +200,19 @@ fun HomeScreen(
                     }
                 }
                 coroutineScope.launch {
-                    val uniqueId = homeUiState.flockList[index].uniqueId
-                    flockEntryViewModel.deleteFlock(uniqueId)
-                    vaccinationViewModel.deleteVaccination(uniqueId)
-                    vaccinationViewModel.deleteFeed(uniqueId)
-                    vaccinationViewModel.deleteWeight(uniqueId)
-                    flockEntryViewModel.deleteFlockHealth(uniqueId)
-                    accountsViewModel.deleteAccountsSummary(uniqueId)
-                    incomeViewModel.deleteIncome(uniqueId)
-                    expenseViewModel.deleteExpense(uniqueId)
-                    eggsInventoryViewModel.deleteEggs(uniqueId)
-                    eggsInventoryViewModel.deleteEggsSummary(uniqueId)
+                    val uniqueId = homeUiState?.get(index)?.uniqueId
+                    if (uniqueId != null) {
+                        flockEntryViewModel.deleteFlock(uniqueId)
+                        vaccinationViewModel.deleteVaccination(uniqueId)
+                        vaccinationViewModel.deleteFeed(uniqueId)
+                        vaccinationViewModel.deleteWeight(uniqueId)
+                        flockEntryViewModel.deleteFlockHealth(uniqueId)
+                        accountsViewModel.deleteAccountsSummary(uniqueId)
+                        incomeViewModel.deleteIncome(uniqueId)
+                        expenseViewModel.deleteExpense(uniqueId)
+                        eggsInventoryViewModel.deleteEggs(uniqueId)
+                        eggsInventoryViewModel.deleteEggsSummary(uniqueId)
+                    }
                 }
             },
             onClose = { flock ->
@@ -223,7 +224,7 @@ fun HomeScreen(
                 }
                 accountsViewModel.flockRepository.getFlockAndAccountSummary(flock.id)
                     .observe(lifecycleOwner) { flockAndSummary ->
-                        accountSummary = flockAndSummary.accountsSummary
+                        accountSummary = flockAndSummary?.accountsSummary
                     }
                 coroutineScope.launch {
                     if (flock.active) {
@@ -272,7 +273,7 @@ fun HomeScreen(
 
             },
             onClickSettings = onClickSettings,
-            flocks = homeUiState.flockList.sortedBy { it.datePlaced },
+            flocks = homeUiState?.sortedBy { it.datePlaced } ?: emptyList(),
             resetFlock = {
                 flockEntryViewModel.resetAll()
             },
@@ -284,15 +285,17 @@ fun HomeScreen(
                     }
                 }
                 coroutineScope.launch {
-                    val uniqueId = homeUiState.flockList[index].uniqueId
-                    flockEntryViewModel.deleteFlock(uniqueId)
-                    vaccinationViewModel.deleteVaccination(uniqueId)
-                    vaccinationViewModel.deleteFeed(uniqueId)
-                    vaccinationViewModel.deleteWeight(uniqueId)
-                    flockEntryViewModel.deleteFlockHealth(uniqueId)
-                    accountsViewModel.deleteAccountsSummary(uniqueId)
-                    incomeViewModel.deleteIncome(uniqueId)
-                    expenseViewModel.deleteExpense(uniqueId)
+                    val uniqueId = homeUiState?.get(index)?.uniqueId
+                   if (uniqueId != null) {
+                       flockEntryViewModel.deleteFlock(uniqueId)
+                       vaccinationViewModel.deleteVaccination(uniqueId)
+                       vaccinationViewModel.deleteFeed(uniqueId)
+                       vaccinationViewModel.deleteWeight(uniqueId)
+                       flockEntryViewModel.deleteFlockHealth(uniqueId)
+                       accountsViewModel.deleteAccountsSummary(uniqueId)
+                       incomeViewModel.deleteIncome(uniqueId)
+                       expenseViewModel.deleteExpense(uniqueId)
+                   }
                 }
             },
             onClose = { flock1 ->
@@ -303,7 +306,7 @@ fun HomeScreen(
                 }
                 accountsViewModel.flockRepository.getFlockAndAccountSummary(flock1.id)
                     .observe(lifecycleOwner) { flockAndSummary ->
-                        accountSummary = flockAndSummary.accountsSummary
+                        accountSummary = flockAndSummary?.accountsSummary
                     }
                 coroutineScope.launch {
                     if (flock1.active) {
@@ -382,6 +385,9 @@ fun HomeScreenListAndDetails(
 ) {
     var showDetailsPane by rememberSaveable { mutableStateOf(false) }
     var currentScreen by rememberSaveable { mutableStateOf(DETAILS_SCREEN) }
+    var flockID by rememberSaveable { mutableStateOf(-1) }
+    var eggsId by rememberSaveable { mutableStateOf(-1) }
+    var healthId by rememberSaveable { mutableStateOf(-1) }
 
     Column(modifier = modifier) {
         Row(
@@ -395,8 +401,10 @@ fun HomeScreenListAndDetails(
                     navigateToAddFlock = navigateToAddFlock,
                     navigateToFlockDetails = {
                         showDetailsPane = true
+                        flockID = it
                         currentScreen = DETAILS_SCREEN
                         navigateToFlockDetails(it)
+
                     },
                     onClickSettings = onClickSettings,
                     flocks = flocks,
@@ -447,10 +455,12 @@ fun HomeScreenListAndDetails(
                                 },
                                 flockEntryViewModel = flockEntryViewModel,
                                 contentType = contentType,
-                                navigateToEggsInventoryScreen = {
-                                    eggsInventoryViewModel.setFlockID(it)
+                                navigateToEggsInventoryScreen = {eggsID, flockId ->
+                                    eggsId = eggsID
+                                    flockID = flockId
                                     currentScreen = EGG_INVENTORY_SCREEN
-                                }
+                                },
+                                flockId = flockID
                             )
                         }
 
@@ -465,13 +475,16 @@ fun HomeScreenListAndDetails(
                                     onNavigateUp = {
                                         currentScreen = DETAILS_SCREEN
                                     },
-                                    navigateToFlockEditScreen = { flockId, healthId ->
-                                        editFlockViewModel.setFlockID(flockID = flockId)
-                                        editFlockViewModel.setHealthID(healthId = healthId)
+                                    navigateToFlockEditScreen = { flockId, healthID ->
+//                                        editFlockViewModel.setFlockID(flockID = flockId)
+//                                        editFlockViewModel.setHealthID(healthId = healthId)
+                                        flockID = flockId
+                                        healthId = healthID
                                         currentScreen = EDIT_FLOCK_SCREEN
                                     },
                                     editFlockViewModel = editFlockViewModel,
-                                    contentType = contentType
+                                    contentType = contentType,
+                                    flockID = flockID
                                 )
                             }
 
@@ -487,7 +500,8 @@ fun HomeScreenListAndDetails(
                                     onNavigateUp = {
                                         currentScreen = DETAILS_SCREEN
                                     },
-                                    contentType = contentType
+                                    contentType = contentType,
+                                    flockId = flockID
                                 )
                             }
                         }
@@ -503,7 +517,8 @@ fun HomeScreenListAndDetails(
                                         currentScreen = DETAILS_SCREEN
                                     },
                                     flockEntryViewModel = flockEntryViewModel,
-                                    contentType = contentType
+                                    contentType = contentType,
+                                    flockId = flockID
                                 )
                             }
                         }
@@ -521,7 +536,8 @@ fun HomeScreenListAndDetails(
                                     navigateBack = {},
                                     flockEntryViewModel = flockEntryViewModel,
                                     userPrefsViewModel = userPrefsViewModel,
-                                    contentType = contentType
+                                    contentType = contentType,
+                                    flockId = flockID
                                 )
                             }
                         }
@@ -533,7 +549,9 @@ fun HomeScreenListAndDetails(
                                     currentScreen = FLOCK_HEALTH_SCREEN
                                 },
                                 editFlockViewModel = editFlockViewModel,
-                                contentType = contentType
+                                contentType = contentType,
+                                flockId = flockID,
+                                healthId = healthId
                             )
                         }
                         EGG_INVENTORY_SCREEN -> {
@@ -543,14 +561,18 @@ fun HomeScreenListAndDetails(
                                     eggsInventoryViewModel.setFlockID(flockID)
                                     eggsInventoryViewModel.setEggID(eggsID)
                                     currentScreen = EDIT_EGGS_SCREEN },
-                                contentType = contentType
+                                contentType = contentType,
+                                flockID = flockID,
+                                eggId = eggsId
                             )
                         }
                         EDIT_EGGS_SCREEN -> {
                             EggsEditScreen(
                                 onNavigateUp = { currentScreen = EGG_INVENTORY_SCREEN },
                                 flockEntryViewModel = flockEntryViewModel,
-                                contentType = contentType
+                                contentType = contentType,
+                                flockID = flockID,
+                                eggsId = eggsId
                             )
                         }
                     }
@@ -580,10 +602,9 @@ fun MainHomeScreen(
 
     Scaffold(
         modifier = modifier,
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
-                title = stringResource(NavigationBarScreens.Home.resourceId),
+                title = stringResource(R.string.home),
                 canNavigateBack = false,
                 onClickSettings = onClickSettings,
                 isFilterButtonEnabled = flocks.isNotEmpty(),
@@ -787,7 +808,7 @@ fun FlockCard(
     if (flock.flockType == flockTypeOptions[1]) {
         eggsInventoryViewModel.flockRepository.getFlockAndEggsSummary(flock.id).asLiveData()
             .observe(lifecycleOwner) { flockAndEggsSummary ->
-                if (flockAndEggsSummary.eggsSummary?.totalGoodEggs != null) {
+                if (flockAndEggsSummary?.eggsSummary?.totalGoodEggs != null) {
                     totalGoodEggsCollected = flockAndEggsSummary.eggsSummary.totalGoodEggs
                 }
             }
@@ -940,10 +961,11 @@ fun FlockCard(
                                 Text(
                                     text = "${stringResource(R.string.stock)}: ${(flock.stock)}",
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = Color.Green,
+                                    fontWeight = FontWeight.ExtraBold,
                                     modifier = Modifier
                                         .padding(8.dp),
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.tertiary
                                 )
                             }
                         }
@@ -959,7 +981,6 @@ fun FlockCard(
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun ShowPreview() {

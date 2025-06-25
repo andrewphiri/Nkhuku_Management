@@ -20,6 +20,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,6 +64,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -73,6 +76,9 @@ object AddFlockDestination : NkhukuDestinations {
     override val resourceId: Int
         get() = R.string.add_flock
 }
+
+@Serializable
+object AddFlockScreenNav
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -161,8 +167,7 @@ fun MainAddFlockScreen(
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
-        modifier = Modifier.semantics { contentDescription = "Add flock" },
+        modifier = modifier.semantics { contentDescription = "Add flock" },
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(AddFlockDestination.resourceId),
@@ -173,9 +178,9 @@ fun MainAddFlockScreen(
         },
         snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { innerPadding ->
-        Column(modifier = modifier
+        Column(modifier = Modifier
             .padding(innerPadding)
-            .verticalScroll(scrollState)) {
+            .scrollable(scrollState, orientation = Orientation.Vertical)) {
             AddFlockBody(
                 flockUiState = flockUiState,
                 onItemValueChange = onItemValueChange,

@@ -17,10 +17,15 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
 
@@ -49,19 +54,40 @@ class FeedViewModel @Inject constructor(
     private val flockId: Int = savedStateHandle[FeedScreenDestination.flockIdArg] ?: 0
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val flockWithFeed: Flow<FlockWithFeed> =
-        savedStateHandle.getStateFlow(key = FeedScreenDestination.flockIdArg, initialValue = 0)
-            .flatMapLatest {
-                flockRepository.getAllFlocksWithFeed(it)
-            }
+//    val flockWithFeed: Flow<FlockWithFeed> =
+//        savedStateHandle.getStateFlow(key = FeedScreenDestination.flockIdArg, initialValue = 0)
+//            .flatMapLatest {
+//                flockRepository.getAllFlocksWithFeed(it)
+//            }
+
+    private val _flockWithFeed = MutableStateFlow<FlockWithFeed?>(null)
+    val flockWithFeed = _flockWithFeed.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val feed: Flow<Feed> =
-        savedStateHandle.getStateFlow(key = FeedScreenDestination.feedIdArg, initialValue = 0)
-            .flatMapLatest {
-                flockRepository.getFeedItem(it)
-            }
+//    val feed: Flow<Feed> =
+//        savedStateHandle.getStateFlow(key = FeedScreenDestination.feedIdArg, initialValue = 0)
+//            .flatMapLatest {
+//                flockRepository.getFeedItem(it)
+//            }
 
+    private val _feed = MutableStateFlow<Feed?>(null)
+    val feed = _feed.asStateFlow()
+
+    fun getFeedWithFlock(flockId: Int) {
+        viewModelScope.launch {
+            flockRepository.getAllFlocksWithFeed(flockId).collect {
+                _flockWithFeed.value = it
+            }
+        }
+    }
+
+    fun getFeed(feedId: Int) {
+        viewModelScope.launch {
+            flockRepository.getFeedItem(feedId).collect {
+                _feed.value = it
+            }
+        }
+    }
     fun setFlockID(id: Int) {
         savedStateHandle[FeedScreenDestination.flockIdArg] = id
     }

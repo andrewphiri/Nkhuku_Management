@@ -16,7 +16,7 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
     override fun getAllAccountsItems(): Flow<List<AccountsSummary>> = flockDao.getAllAccountItems()
 
     override fun getAllFlocksWithVaccinations(id: Int):
-            Flow<FlockWithVaccinations> = flockDao.getFlocksWithVaccinations(id)
+            Flow<FlockWithVaccinations?> = flockDao.getFlocksWithVaccinations(id)
 
     override fun getAllFlocksWithEggs(id: Int): Flow<FlockWithEggs> = flockDao.getFlocksWithEggs(id)
 
@@ -31,9 +31,9 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
     override fun getAllVaccinationItems(): Flow<List<Vaccination>> =
         flockDao.getAllVaccinationItems()
 
-    override fun getFlock(id: Int): Flow<Flock> = flockDao.retrieveFlock(id)
+    override fun getFlock(id: Int): Flow<Flock>? = flockDao.retrieveFlock(id)
 
-    override fun getFlock(uniqueID: String): Flow<Flock>? = flockDao.retrieveFlock(uniqueID)
+    override fun getFlock(uniqueID: String?): Flow<Flock>? = flockDao.retrieveFlock(uniqueID)
     override fun getFlockHealthItem(id: Int): Flow<FlockHealth> = flockDao.retrieveHealth(id)
 
     override fun getVaccinationItem(id: Int): Flow<Vaccination> = flockDao.retrieveVaccination(id)
@@ -48,7 +48,7 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
     override fun getFlockAndAccountSummary(id: Int) =
         flockDao.getFlocksAndAccountSummary(id).asLiveData()
 
-    override fun getFlockAndEggsSummary(id: Int): Flow<FlockAndEggsSummary> = flockDao.getFlocksAndEggsSummary(id)
+    override fun getFlockAndEggsSummary(id: Int): Flow<FlockAndEggsSummary?> = flockDao.getFlocksAndEggsSummary(id)
 
     override fun getFlockWithIncome(id: Int): Flow<FlockWithIncome> =
         flockDao.getFlocksWithIncome(id)
@@ -77,7 +77,7 @@ class FlockRepositoryImplementation @Inject constructor(private val flockDao: Fl
     override fun getAllExpensesForExport(flockUniqueID: String): Flow<List<Expense>> = flockDao.getAllExpenseItemsForExport(flockUniqueID)
 
     override fun getAllAccountsForExport(flockUniqueID: String): Flow<AccountsSummary> = flockDao.getAllAccountItemsForExport(flockUniqueID)
-    override fun getAllEggsSummaryForExport(flockUniqueID: String): Flow<EggsSummary> = flockDao.getAllEggsSummaryItemsForExport(flockUniqueID)
+    override fun getAllEggsSummaryForExport(flockUniqueID: String): Flow<EggsSummary?> = flockDao.getAllEggsSummaryItemsForExport(flockUniqueID)
 
     override suspend fun insertFlock(flock: Flock) = flockDao.insertFlock(flock)
 

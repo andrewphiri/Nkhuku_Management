@@ -18,8 +18,8 @@
 //    modifier: Modifier = Modifier) {
 //    NavHost(
 //        navController = navHostController,
-//        route = GraphRoutes.ROOT,
-//        startDestination = GraphRoutes.HOME
+//        route = GraphRoutes.ROOTGRAPH,
+//        startDestination = GraphRoutes.HomeGraph
 //    ) {
 //   NkhukuNavGraph(navHostController)
 //}

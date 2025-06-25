@@ -1,6 +1,7 @@
 package and.drew.nkhukumanagement.userinterface.login
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
+import and.drew.nkhukumanagement.MainActivity
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.auth.AuthUiClient
 import and.drew.nkhukumanagement.auth.GoogleAuthUiClient
@@ -18,6 +19,8 @@ import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
 import and.drew.nkhukumanagement.utils.SignInGoogleButton
 import android.app.Activity
 import android.content.Intent
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,6 +67,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 object ReauthenticationScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -74,6 +78,8 @@ object ReauthenticationScreenDestination : NkhukuDestinations {
         get() = R.string.confirm_account
 }
 
+
+@Serializable object ReauthenticationScreenNav
 /**
  * Screen used to confirm account before user is allowed to delete his account.
  * User signs in first before proceeding
@@ -134,6 +140,7 @@ fun MainAuthenticateScreen(
     contentType: ContentType
 ) {
     val context = LocalContext.current
+    val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
     var isLoadingGoogleButton by remember { mutableStateOf(false) }
     var isLoadingEmailAndPasswordButtonSignIn by remember { mutableStateOf(false) }
@@ -144,6 +151,8 @@ fun MainAuthenticateScreen(
     emailSignedIn = authUiClient.signedInUser().email.toString()
     var signInIntent by rememberSaveable { mutableStateOf(Intent()) }
     var isAccountDeletedDialogSuccessShowing by remember { mutableStateOf(false) }
+    var isGoogleSignInButtonEnabled by remember { mutableStateOf(true) }
+    var isSignInButtonEnabled by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1 = state.signInError) {
         state.signInError?.let { error ->
@@ -152,22 +161,29 @@ fun MainAuthenticateScreen(
                 duration = SnackbarDuration.Long
             )
         }
+
+        if (state.signInError != null) {
+            isSignInButtonEnabled = true
+            isGoogleSignInButtonEnabled = true
+            isLoadingEmailAndPasswordButtonSignIn = false
+            isLoadingGoogleButton = false
+        }
     }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                coroutineScope.launch {
-                    val signInResult = googleAuthUiClient.signInWithIntent(
-                        intent = result.data ?: return@launch
-                    )
-                    signInIntent = result.data ?: return@launch
-                    onSignInResult(signInResult)
-                }
-            }
-        }
-    )
+//    val launcher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.StartIntentSenderForResult(),
+//        onResult = { result ->
+//            if (result.resultCode == Activity.RESULT_OK) {
+//                coroutineScope.launch {
+//                    val signInResult = googleAuthUiClient.signInWithIntent(
+//                        intent = result.data ?: return@launch
+//                    )
+//                    signInIntent = result.data ?: return@launch
+//                    onSignInResult(signInResult)
+//                }
+//            }
+//        }
+//    )
 
     LaunchedEffect(key1 = state) {
         if (state.isSignInSuccessful) {
@@ -180,7 +196,6 @@ fun MainAuthenticateScreen(
 
     Scaffold(
         modifier = modifier,
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(ReauthenticationScreenDestination.resourceId),
@@ -198,17 +213,32 @@ fun MainAuthenticateScreen(
             AuthenticateCard(
                 onClickSignInWithGoogle = {
                     isLoadingGoogleButton = true
+                    isSignInButtonEnabled = false
                     coroutineScope.launch {
-                        val signInIntentSender = googleAuthUiClient.signIn()
-                        launcher.launch(
-                            IntentSenderRequest.Builder(
-                                signInIntentSender ?: return@launch
-                            ).build()
-                        )
+                        isSignInButtonEnabled = false
+                        isLoadingGoogleButton = true
+                        isGoogleSignInButtonEnabled = false
+
+                        val result = googleAuthUiClient.signIn()
+                        result.data?.let { user ->
+                            // Handle logged-in user
+                            val signInResult = SignInResult(
+                                data = result.data, errorMessage = null
+                            )
+                            onSignInResult(signInResult)
+                        } ?: run {
+                            // Show error: result.errorMessage
+
+                            val signInResult = SignInResult(
+                                data = null, errorMessage = result.errorMessage
+                            )
+                            onSignInResult(signInResult)
+                        }
                     }
                 },
                 onClickSignInWithEmailAndPassword = {
                     isLoadingEmailAndPasswordButtonSignIn = true
+                    isGoogleSignInButtonEnabled = false
                     coroutineScope.launch {
                         delay(2000)
                         val signInResult = authUiClient.signInUserWithEmailAndPassWord(
@@ -231,8 +261,7 @@ fun MainAuthenticateScreen(
                         val deleteAccount = authUiClient.deleteAccount(
                             email = emailSignedIn,
                             password = userSignInState.password,
-                            googleAuthUiClient = googleAuthUiClient,
-                            intent = signInIntent,
+                            googleAuthUiClient = googleAuthUiClient
                         )
                         delay(2000)
                         //Log.i("Email", signInViewModel.userUiStateSignIn.email)
@@ -278,6 +307,8 @@ fun AuthenticateCard(
     isCircularIndicatorShowing: Boolean,
     isSuccessAlertDialogShowing: Boolean,
     onDismissSuccessAlertDialog: () -> Unit,
+    isGoogleButtonEnabled: Boolean = false,
+    isSignButtonEnabled: Boolean = false
 ) {
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     Box(
@@ -346,7 +377,7 @@ fun AuthenticateCard(
 
                 FilledTonalButton(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = userUiState.isValid() && !isLoadingSignInButton,
+                    enabled = userUiState.isValid() && !isLoadingSignInButton && isSignButtonEnabled,
                     onClick = {
                         if (!isCircularIndicatorShowing) {
                             onClickSignInWithEmailAndPassword()
@@ -395,7 +426,8 @@ fun AuthenticateCard(
                         if (!isCircularIndicatorShowing) {
                             onClickSignInWithGoogle()
                         }
-                    }
+                    },
+                    isButtonEnabled = isGoogleButtonEnabled
                 )
             }
         }

@@ -48,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -94,10 +95,11 @@ fun IncomeScreen(
     navigateToAddIncomeScreen: (Int, Int) -> Unit = { _, _ -> },
     incomeViewModel: IncomeViewModel = hiltViewModel(),
     accountsViewModel: AccountsViewModel = hiltViewModel(),
-    userPrefsViewModel: UserPrefsViewModel
+    userPrefsViewModel: UserPrefsViewModel,
+    accountID: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val accountsIdArg by accountsViewModel.accountsID.collectAsState(initial = 0)
+    //val accountsIdArg by accountsViewModel.accountsID.collectAsState(initial = 0)
     val currency by userPrefsViewModel.initialPreferences.collectAsState(
         initial = UserPreferences.getDefaultInstance()
     )
@@ -113,16 +115,21 @@ fun IncomeScreen(
         )
     )
 
+    LaunchedEffect(key1 = accountsWithIncome) {
+        accountsViewModel.getAccountsWithIncome(accountID)
+    }
+
     MainIncomeScreen(
+        modifier = modifier,
         navigateToAddIncomeScreen = navigateToAddIncomeScreen,
         deleteIncome = {
             coroutineScope.launch {
                 incomeViewModel.deleteIncome(it)
             }
         },
-        accountsSummary = accountsWithIncome.accountsSummary,
-        incomeList = accountsWithIncome.incomeList,
-        accountsIdArg = accountsIdArg,
+        accountsSummary = accountsWithIncome?.accountsSummary,
+        incomeList = accountsWithIncome?.incomeList ?: emptyList(),
+        accountsIdArg = accountID,
         updateAccountWhenDeletingIncome = { accountsSummary, income ->
             coroutineScope.launch {
                 accountsViewModel.updateAccountWhenDeletingIncome(
@@ -141,16 +148,16 @@ fun MainIncomeScreen(
     modifier: Modifier = Modifier,
     navigateToAddIncomeScreen: (Int, Int) -> Unit,
     deleteIncome: (Income) -> Unit,
-    accountsSummary: AccountsSummary,
+    accountsSummary: AccountsSummary?,
     incomeList: List<Income>,
     accountsIdArg: Int,
-    updateAccountWhenDeletingIncome: (AccountsSummary, Income) -> Unit,
+    updateAccountWhenDeletingIncome: (AccountsSummary?, Income) -> Unit,
     currencyLocale: String
 ) {
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
+        contentWindowInsets = WindowInsets(0),
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier.semantics { contentDescription = "Add Income" },

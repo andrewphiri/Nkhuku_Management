@@ -50,7 +50,9 @@ fun SignInScreen(
     isLoadingGoogleButton: Boolean,
     userUiState: UserUiState,
     onValueChanged: (UserUiState) -> Unit,
-    onClickForgotPassword: () -> Unit
+    onClickForgotPassword: () -> Unit,
+    isGoogleSignInButtonEnabled: Boolean = false,
+    isSignInButtonEnabled: Boolean = false
 ) {
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     Column(modifier = modifier) {
@@ -91,7 +93,7 @@ fun SignInScreen(
 
             FilledTonalButton(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = userUiState.isValid() && !isLoadingSignInButton,
+                enabled = userUiState.isValid() && !isLoadingSignInButton && isSignInButtonEnabled,
                 onClick = onClickSignInWithEmailAndPassword
             ) {
                 Row(
@@ -132,7 +134,8 @@ fun SignInScreen(
                 contentDescription = stringResource(R.string.sign_in_with_google),
                 icon = painterResource(R.drawable.ic_google_logo),
                 isLoading = isLoadingGoogleButton,
-                onClick = onClickSignInWithGoogle
+                onClick = onClickSignInWithGoogle,
+                isButtonEnabled = isGoogleSignInButtonEnabled
             )
         }
     }

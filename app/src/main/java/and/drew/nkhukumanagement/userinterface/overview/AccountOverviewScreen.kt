@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.serialization.Serializable
 
 object AccountOverviewDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -71,6 +72,9 @@ object AccountOverviewDestination : NkhukuDestinations {
         type = NavType.IntType
     })
 }
+
+@Serializable
+object AccountOverviewScreenNav
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -89,6 +93,9 @@ fun AccountOverviewScreen(
         initial = UserPreferences.getDefaultInstance()
     )
 
+    LaunchedEffect(Unit) {
+        homeViewModel.getAllFlockItems()
+    }
 
     MainAccountOverviewScreen(
         modifier = modifier,
@@ -98,7 +105,7 @@ fun AccountOverviewScreen(
         setAccountsList = {
             overviewViewModel.accountsTotalsList(it)
         },
-        flockList = flockList.flockList,
+        flockList = flockList ?: emptyList(),
         currencyLocale = currency.currencyLocale,
         contentType = contentType
     )
@@ -152,7 +159,6 @@ fun MainAccountOverviewScreen(
         }
     }
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = stringResource(AccountOverviewDestination.resourceId),

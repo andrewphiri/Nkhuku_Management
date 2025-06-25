@@ -2,10 +2,10 @@ package and.drew.nkhukumanagement.userinterface.flock
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.backupAndExport.ExportRoomAsPDFViewModel
 import and.drew.nkhukumanagement.backupAndExport.ExportRoomViewModel
 import and.drew.nkhukumanagement.data.EggsSummary
 import and.drew.nkhukumanagement.data.Flock
-import and.drew.nkhukumanagement.data.FlockAndEggsSummary
 import and.drew.nkhukumanagement.data.FlockWithFeed
 import and.drew.nkhukumanagement.data.FlockWithVaccinations
 import and.drew.nkhukumanagement.data.FlockWithWeight
@@ -21,6 +21,7 @@ import and.drew.nkhukumanagement.utils.DateUtils
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -31,7 +32,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,9 +42,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Details
 import androidx.compose.material.icons.filled.Egg
 import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.Scale
-import androidx.compose.material.icons.filled.Vaccines
+import androidx.compose.material.icons.outlined.MedicalServices
+import androidx.compose.material.icons.outlined.Scale
+import androidx.compose.material.icons.outlined.Vaccines
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,6 +56,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,6 +66,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -82,7 +85,9 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
+import java.util.Locale
 import kotlin.math.roundToInt
 
 object FlockDetailsDestination : NkhukuDestinations {
@@ -106,23 +111,26 @@ object FlockDetailsDestination : NkhukuDestinations {
     })
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+@Serializable
+data class FlockDetailsScreenNav(val flockId: Int)
+
 @Composable
 fun FlockDetailsScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    flockId: Int,
     navigateToFlockHealthScreen: (Int) -> Unit,
     navigateToVaccinationScreen: (Int) -> Unit,
     navigateToFeedScreen: (Int) -> Unit = {},
     navigateToWeightScreen: (Int) -> Unit = {},
-    navigateToEggsInventoryScreen: (Int) -> Unit,
+    navigateToEggsInventoryScreen: (Int,Int) -> Unit,
     flockEntryViewModel: FlockEntryViewModel,
     detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
     contentType: ContentType,
-    exportRoomViewModel: ExportRoomViewModel = hiltViewModel()
+    exportRoomViewModel: ExportRoomViewModel = hiltViewModel(),
+    exportRoomAsPDFViewModel: ExportRoomAsPDFViewModel = hiltViewModel()
 ) {
-
     val flockWithVaccinations by detailsViewModel
         .flockWithVaccinationsStateFlow
         .collectAsState(
@@ -146,19 +154,36 @@ fun FlockDetailsScreen(
             cost = "0"
         ).toFlock()
     )
+    val isExportingExcel by exportRoomViewModel.isExporting.collectAsState()
+    val isExportingAsPDF by exportRoomAsPDFViewModel.isExporting.collectAsState()
+    val errorMessage by exportRoomViewModel.errorMessage.collectAsState()
+    val errorMessageAsPDF by exportRoomAsPDFViewModel.errorMessage.collectAsState()
+
+//    FlockAndEggsSummary(flock = null,
+//        eggsSummary = EggsSummary(
+//            flockUniqueID = "",
+//            totalGoodEggs = 0,
+//            totalBadEggs = 0,
+//            date = LocalDate.now()
+//        )
+//    )
+
+
 
     val flockAndEggsSummary by detailsViewModel
         .flockAndEggsSummaryStateFlow
         .collectAsState(
-        initial = FlockAndEggsSummary(flock = null,
-            eggsSummary = EggsSummary(
-                flockUniqueID = "",
-                totalGoodEggs = 0,
-                totalBadEggs = 0,
-                date = LocalDate.now()
-            )
-        )
+        initial = null
     )
+
+    LaunchedEffect(Unit) {
+        detailsViewModel.getFlock(flockId)
+        detailsViewModel.getFlockWithFeed(flockId)
+        detailsViewModel.getFlockWithWeight(flockId)
+        detailsViewModel.getFlockWithVaccinations(flockId)
+        detailsViewModel.getFlockAndEggsSummary(flockId)
+    }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -169,11 +194,7 @@ fun FlockDetailsScreen(
     ) { isGranted ->
         if (isGranted) {
             coroutineScope.launch {
-                isCircularIndicatorShowing = true
-                delay(3000)
-                exportRoomViewModel.exportRoomAsExcelFileAndShare(flock)
-            }.invokeOnCompletion {
-                isCircularIndicatorShowing = false
+                exportRoomViewModel.exportRoomAsExcelFileAndShare(flock ?: return@launch)
             }
         } else {
             coroutineScope.launch {
@@ -182,6 +203,25 @@ fun FlockDetailsScreen(
                     duration = SnackbarDuration.Long
                 )
             }
+        }
+    }
+
+    LaunchedEffect(errorMessage, errorMessageAsPDF) {
+        if (errorMessage != null) {
+           coroutineScope.launch {
+               snackbarHostState.showSnackbar(
+                   message = errorMessage ?: "",
+                   duration = SnackbarDuration.Long
+               )
+           }
+        }
+        if (errorMessageAsPDF != null) {
+           coroutineScope.launch {
+               snackbarHostState.showSnackbar(
+                   message = errorMessageAsPDF ?: "",
+                   duration = SnackbarDuration.Long
+               )
+           }
         }
     }
 
@@ -203,10 +243,10 @@ fun FlockDetailsScreen(
         weights = flockWithWeight?.weights,
         eggsSummary = flockAndEggsSummary?.eggsSummary,
         contentType = contentType,
-        navigateToEggsInventoryScreen = navigateToEggsInventoryScreen,
-        isCircularIndicatorShowing = isCircularIndicatorShowing,
+        navigateToEggsInventoryScreen = { navigateToEggsInventoryScreen(it, flockId) },
+        isCircularIndicatorShowing = isExportingAsPDF || isExportingExcel,
         showExportButton = true,
-        onClickExport = {
+        onClickExportAsExcel = {
             when (PackageManager.PERMISSION_GRANTED) {
                 ContextCompat.checkSelfPermission(
                     context,
@@ -215,7 +255,7 @@ fun FlockDetailsScreen(
                     coroutineScope.launch {
                         isCircularIndicatorShowing = true
                         delay(3000)
-                        exportRoomViewModel.exportRoomAsExcelFileAndShare(flock)
+                        exportRoomViewModel.exportRoomAsExcelFileAndShare(flock ?: return@launch)
                     }.invokeOnCompletion {
                         isCircularIndicatorShowing = false
                     }
@@ -227,7 +267,30 @@ fun FlockDetailsScreen(
                 }
 
             }
-        }
+        },
+        onClickExportAsPDF = {
+            when (PackageManager.PERMISSION_GRANTED) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) -> {
+                    coroutineScope.launch {
+                        isCircularIndicatorShowing = true
+                        delay(3000)
+                        exportRoomAsPDFViewModel.exportRoomAsPDFAndShare(flock ?: return@launch)
+                    }.invokeOnCompletion {
+                        isCircularIndicatorShowing = false
+                    }
+                }
+                else -> {
+                    requestStoragePermission.launch(
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
+                }
+
+            }
+        },
+        isExportButtonEnabled = !isExportingExcel || !isExportingAsPDF
     )
 
 }
@@ -252,7 +315,9 @@ fun MainFlockDetailsScreen(
     contentType: ContentType,
     isCircularIndicatorShowing: Boolean = false,
     showExportButton: Boolean = false,
-    onClickExport: () -> Unit = {}
+    onClickExportAsExcel: () -> Unit = {},
+    onClickExportAsPDF: () -> Unit = {},
+    isExportButtonEnabled: Boolean = false
 ) {
     val context = LocalContext.current
     val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
@@ -260,15 +325,16 @@ fun MainFlockDetailsScreen(
     if (flock != null) {
         Scaffold(
             modifier = modifier,
-            contentWindowInsets = WindowInsets(0.dp),
             topBar = {
                 FlockManagementTopAppBar(
                     title = flock.batchName,
                     canNavigateBack = canNavigateBack,
                     navigateUp = onNavigateUp,
                     contentType = contentType,
-                    onClickExport = onClickExport,
-                    showExportButton = showExportButton
+                    onClickExportAsExcel = onClickExportAsExcel,
+                    showExportButton = showExportButton,
+                    onClickExportAsPDF = onClickExportAsPDF,
+                    isExportButtonEnabled = isExportButtonEnabled
                 )
             }
         ) { innerPadding ->
@@ -427,8 +493,9 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
         ) {
             Image(
                 modifier = Modifier.size(50.dp),
-                imageVector = Icons.Default.MedicalServices,
-                contentDescription = stringResource(R.string.health_of_flock)
+                imageVector = Icons.Outlined.MedicalServices,
+                contentDescription = stringResource(R.string.health_of_flock),
+                colorFilter = ColorFilter.tint(color = Color.Green)
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),
@@ -465,7 +532,6 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FeedCard(
     modifier: Modifier = Modifier, quantityConsumed: Double,
@@ -485,7 +551,8 @@ fun FeedCard(
                 modifier = Modifier.size(50.dp),
                 imageVector = Icons.Default.Inventory,
                 contentDescription = "feed",
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(color = Color.Magenta)
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),
@@ -508,14 +575,13 @@ fun FeedCard(
                 BaseSingleRowDetailsItem(
                     label = stringResource(R.string.total_feed_consumed).lowercase()
                         .replaceFirstChar { it.uppercase() },
-                    value = stringResource(R.string.kg, String.format("%.2f", quantityConsumed))
+                    value = stringResource(R.string.kg, String.format(Locale.getDefault(),"%.2f", quantityConsumed))
                 )
             }
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun VaccinationList(
     modifier: Modifier,
@@ -532,9 +598,10 @@ fun VaccinationList(
         ) {
             Image(
                 modifier = Modifier.size(50.dp),
-                imageVector = Icons.Default.Vaccines,
+                imageVector = Icons.Outlined.Vaccines,
                 contentDescription = "Pending vaccinations",
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(color = Color.Red)
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),
@@ -621,9 +688,10 @@ fun WeightCard(
         ) {
             Image(
                 modifier = Modifier.size(50.dp),
-                imageVector = Icons.Default.Scale,
+                imageVector = Icons.Outlined.Scale,
                 contentDescription = "Average weight",
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(color = Color.Cyan)
             )
 
             Text(
@@ -666,7 +734,6 @@ fun WeightCard(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EggsCard(
     modifier: Modifier = Modifier,
@@ -690,7 +757,8 @@ fun EggsCard(
             Image(
                 modifier = Modifier.size(50.dp),
                 imageVector = Icons.Default.Egg,
-                contentDescription = stringResource(R.string.egg_inventory)
+                contentDescription = stringResource(R.string.egg_inventory),
+                colorFilter = ColorFilter.tint(color = Color.Yellow)
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),

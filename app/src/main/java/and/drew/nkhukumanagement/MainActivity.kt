@@ -28,26 +28,16 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
-import com.google.android.gms.auth.api.identity.Identity
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -55,14 +45,12 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
     private val googleAuthUiClient by lazy {
         GoogleAuthUiClient(
-            context = applicationContext,
-            oneTapClient = Identity.getSignInClient(applicationContext)
+            context = applicationContext
         )
     }
     private val authUiClient by lazy {
         AuthUiClient(
-            applicationContext,
-            oneTapClient = Identity.getSignInClient(applicationContext)
+            applicationContext
         )
     }
     private val userPrefsViewModel by lazy {
@@ -75,7 +63,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var userPreferencesRepository: UserPreferencesRepository
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalLayoutApi::class)
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge()
@@ -95,8 +82,7 @@ class MainActivity : AppCompatActivity() {
             val windowSize = calculateWindowSizeClass(this).widthSizeClass
             val emailVerified by signInViewModel.emailVerified.collectAsState()
             val userSignedIn by signInViewModel.userLoggedIn.collectAsState()
-            val skipAccount by userPrefsViewModel.skipAccount
-                .collectAsState()
+            val skipAccount by userPrefsViewModel.skipAccount.collectAsState()
 //            var isEmailVerified by remember { mutableStateOf(false) }
 //            emailVerified.observe(this) {
 //                isEmailVerified = it
@@ -106,9 +92,9 @@ class MainActivity : AppCompatActivity() {
             NkhukuManagementTheme {
                 val navigationType: NavigationType
                 val contentType: ContentType
-                val winSize = LocalConfiguration.current
+                val winSize = LocalWindowInfo.current.containerSize
                 when {
-                    winSize.screenWidthDp >= 0 -> {
+                    winSize.width >= 0 -> {
                         when (windowSize) {
                             WindowWidthSizeClass.Compact -> {
                                 navigationType = NavigationType.BOTTOM_NAVIGATION

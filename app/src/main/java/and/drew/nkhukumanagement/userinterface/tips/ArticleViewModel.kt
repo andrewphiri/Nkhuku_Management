@@ -25,10 +25,10 @@ class ArticleViewModel @Inject constructor(
     private val _article = MutableStateFlow(Article())
     val article = _article.asStateFlow()
 
-    val categoryId = savedStateHandle
-        .getStateFlow(key = ReadArticleDestination.categoryIdArg, initialValue = 0)
-    val articleId = savedStateHandle
-        .getStateFlow(key = ReadArticleDestination.articleIdArg, initialValue = "")
+//    val categoryId = savedStateHandle
+//        .getStateFlow(key = ReadArticleDestination.categoryIdArg, initialValue = 0)
+//    val articleId = savedStateHandle
+//        .getStateFlow(key = ReadArticleDestination.articleIdArg, initialValue = "")
 
     fun setArticle(article: Article) {
         _article.update {

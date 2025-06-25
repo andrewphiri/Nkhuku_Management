@@ -49,6 +49,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -70,6 +71,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
 
@@ -88,12 +90,19 @@ object EggsInventoryScreenDestination : NkhukuDestinations {
     })
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+@Serializable
+data class EggsInventoryScreenNav(
+    val flockId: Int,
+    val eggId: Int
+)
+
 @Composable
 fun EggsInventoryScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    eggId: Int,
+    flockID: Int,
     navigateToEggsEditScreen: (Int, Int) -> Unit,
     editEggsViewModel: EggsInventoryViewModel = hiltViewModel(),
     contentType: ContentType
@@ -122,7 +131,12 @@ fun EggsInventoryScreen(
                 )
             )
         )
-    val flockID by editEggsViewModel.flockId.collectAsState(initial = 0)
+
+    LaunchedEffect(key1 = eggId) {
+        editEggsViewModel.getFlockWithEggs(flockID)
+        editEggsViewModel.getFlockAndEggsSummary(flockID)
+    }
+    //val flockID by editEggsViewModel.flockId.collectAsState(initial = 0)
 
     val title = flockWithEggs?.flock?.batchName
     MainEggsScreen(
@@ -164,7 +178,6 @@ fun EggsInventoryScreen(
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainEggsScreen(
     modifier: Modifier = Modifier,
@@ -183,7 +196,6 @@ fun MainEggsScreen(
     }
     val listState = rememberLazyListState()
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = title,

@@ -60,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -85,6 +86,9 @@ object EditFlockDestination : NkhukuDestinations {
     )
 }
 
+@Serializable
+data class EditFlockScreenNav(val flockId: Int, val healthId: Int)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -92,6 +96,8 @@ fun FlockEditScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    flockId: Int,
+    healthId: Int,
     editFlockViewModel: EditFlockViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
     contentType: ContentType
@@ -114,12 +120,16 @@ fun FlockEditScreen(
         ).toFlock()
     )
     val flockUiState: FlockUiState? = flock?.toFlockUiState()
-    val healthId by editFlockViewModel.healthId.collectAsState(initial = 0)
+//    val healthId by editFlockViewModel.healthId.collectAsState(initial = 0)
+
+    LaunchedEffect(Unit) {
+        editFlockViewModel.getFlock(flockId)
+        editFlockViewModel.getFlockHealth(healthId)
+    }
 
     LaunchedEffect(key1 = flock) {
         flockUiState?.copy(enabled = true)?.let { flockEntryViewModel.updateUiState(it) }
     }
-
 
     var quantityRemaining by rememberSaveable {
         mutableStateOf(
@@ -224,7 +234,6 @@ fun MainFlockEditScreen(
         (culls > 0 || mortality > 0) && (mortality != flockHealth.mortality || culls != flockHealth.culls)
     Scaffold(
         modifier = modifier,
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = flockUiState.batchName,

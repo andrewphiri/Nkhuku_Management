@@ -16,11 +16,14 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -35,66 +38,59 @@ class AccountsViewModel @Inject constructor(
         private const val MILLIS = 5_000L
     }
 
-    val accountsID: StateFlow<Int> = savedStateHandle
-        .getStateFlow(key = TransactionsScreenDestination.accountIdArg, initialValue = 0)
+//    val accountsID: StateFlow<Int> = savedStateHandle
+//        .getStateFlow(key = TransactionsScreenDestination.accountIdArg, initialValue = 0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val accountsWithExpense: Flow<AccountsWithExpense> =
-        savedStateHandle
-            .getStateFlow(key = TransactionsScreenDestination.accountIdArg, initialValue = 0)
-            .flatMapLatest {
-                flockRepository.getAccountsWithExpense(it)
-            }
+//    val accountsWithExpense: Flow<AccountsWithExpense> =
+//        savedStateHandle
+//            .getStateFlow(key = TransactionsScreenDestination.accountIdArg, initialValue = 0)
+//            .flatMapLatest {
+//                flockRepository.getAccountsWithExpense(it)
+//            }
 
-//        flockRepository.getAccountsWithExpense(id)
-//            .map { it }
-//            .stateIn(
-//                scope = viewModelScope,
-//                started = SharingStarted.WhileSubscribed(MILLIS),
-//                initialValue = AccountsWithExpense(
-//                    accountsSummary = AccountsSummary(
-//                        flockUniqueID = "",
-//                        batchName = "",
-//                        totalIncome = 0.0,
-//                        totalExpenses = 0.0,
-//                        variance = 0.0
-//                    )
-//                )
-//            )
+    private val _accountsWithExpense = MutableStateFlow<AccountsWithExpense?>(null)
+    val accountsWithExpense = _accountsWithExpense.asStateFlow()
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val accountsWithIncome: Flow<AccountsWithIncome> =
-        savedStateHandle.getStateFlow(
-            key = TransactionsScreenDestination.accountIdArg,
-            initialValue = 0
-        )
-            .flatMapLatest {
-                flockRepository.getAccountsWithIncome(it)
-            }
+//    val accountsWithIncome: Flow<AccountsWithIncome> =
+//        savedStateHandle.getStateFlow(
+//            key = TransactionsScreenDestination.accountIdArg,
+//            initialValue = 0
+//        )
+//            .flatMapLatest {
+//                flockRepository.getAccountsWithIncome(it)
+//            }
 
-    //        flockRepository.getAccountsWithIncome(id)
-//            .map { it }
-//            .stateIn(
-//                scope = viewModelScope,
-//                started = SharingStarted.WhileSubscribed(MILLIS),
-//                initialValue = AccountsWithIncome(
-//                    accountsSummary = AccountsSummary(
-//                        flockUniqueID = "",
-//                        batchName = "",
-//                        totalIncome = 0.0,
-//                        totalExpenses = 0.0,
-//                        variance = 0.0
-//                    )
-//                )
-//            )
+    private val _accountsWithIncome = MutableStateFlow<AccountsWithIncome?>(null)
+    val accountsWithIncome = _accountsWithIncome.asStateFlow()
+
+
     val accountsList: StateFlow<AccountsUiState> =
         flockRepository.getAllAccountsItems()
-            .map { AccountsUiState(it) }
+            .map { AccountsUiState(it ?: listOf()) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(MILLIS),
                 initialValue = AccountsUiState()
             )
+
+    fun getAccountsWithExpense(accountsID: Int) {
+        viewModelScope.launch {
+            flockRepository.getAccountsWithExpense(accountsID).collect {
+                _accountsWithExpense.value = it
+            }
+        }
+    }
+
+    fun getAccountsWithIncome(accountsID: Int) {
+        viewModelScope.launch {
+            flockRepository.getAccountsWithIncome(accountsID).collect {
+                _accountsWithIncome.value = it
+            }
+        }
+    }
 
     fun setAccountsID(id: Int) {
         savedStateHandle[TransactionsScreenDestination.accountIdArg] = id
@@ -121,80 +117,96 @@ class AccountsViewModel @Inject constructor(
     /**
      * Update an Account item when inserting an expense item
      */
-    suspend fun updateAccount(accountsSummary: AccountsSummary, expenseUiState: ExpensesUiState) {
+    suspend fun updateAccount(accountsSummary: AccountsSummary?, expenseUiState: ExpensesUiState) {
         flockRepository.updateAccounts(
-            AccountsSummary(
-                id = accountsSummary.id,
-                flockUniqueID = accountsSummary.flockUniqueID,
-                batchName = accountsSummary.batchName,
-                totalExpenses = calculateCumulativeExpenseUpdate(
-                    initialExpense = accountsSummary.totalExpenses.toString(),
-                    totalExpense = expenseUiState.totalExpense,
-                    initialItemExpense = expenseUiState.initialItemExpense
-                ),
-                totalIncome = accountsSummary.totalIncome,
-                variance = accountsSummary.totalIncome - calculateCumulativeExpenseUpdate(
-                    initialExpense = accountsSummary.totalExpenses.toString(),
-                    totalExpense = expenseUiState.totalExpense,
-                    initialItemExpense = expenseUiState.initialItemExpense
+            if (accountsSummary != null) {
+                AccountsSummary(
+                    id = accountsSummary.id,
+                    flockUniqueID = accountsSummary.flockUniqueID,
+                    batchName = accountsSummary.batchName,
+                    totalExpenses = calculateCumulativeExpenseUpdate(
+                        initialExpense = accountsSummary.totalExpenses.toString(),
+                        totalExpense = expenseUiState.totalExpense,
+                        initialItemExpense = expenseUiState.initialItemExpense
+                    ),
+                    totalIncome = accountsSummary.totalIncome,
+                    variance = accountsSummary.totalIncome - calculateCumulativeExpenseUpdate(
+                        initialExpense = accountsSummary.totalExpenses.toString(),
+                        totalExpense = expenseUiState.totalExpense,
+                        initialItemExpense = expenseUiState.initialItemExpense
+                    )
                 )
-            )
+            } else {
+                return
+            }
         )
     }
     /**
      * Update an Account item when deleting an expense item
      */
-    suspend fun updateAccountWhenDeletingExpense(accountsSummary: AccountsSummary, expense: Expense) {
+    suspend fun updateAccountWhenDeletingExpense(accountsSummary: AccountsSummary?, expense: Expense) {
         flockRepository.updateAccounts(
-            AccountsSummary(
-                id = accountsSummary.id,
-                flockUniqueID = accountsSummary.flockUniqueID,
-                batchName = accountsSummary.batchName,
-                totalExpenses = accountsSummary.totalExpenses - expense.totalExpense,
-                totalIncome = accountsSummary.totalIncome,
-                variance = accountsSummary.variance + expense.totalExpense
-            )
+            if (accountsSummary != null) {
+                AccountsSummary(
+                    id = accountsSummary.id,
+                    flockUniqueID = accountsSummary.flockUniqueID,
+                    batchName = accountsSummary.batchName,
+                    totalExpenses = accountsSummary.totalExpenses - expense.totalExpense,
+                    totalIncome = accountsSummary.totalIncome,
+                    variance = accountsSummary.variance + expense.totalExpense
+                )
+            } else {
+                return
+            }
         )
     }
 
     /**
      * Update account when inserting a new Income Item
      */
-    suspend fun updateAccount(accountsSummary: AccountsSummary, incomeUiState: IncomeUiState) {
+    suspend fun updateAccount(accountsSummary: AccountsSummary?, incomeUiState: IncomeUiState) {
         flockRepository.updateAccounts(
-            AccountsSummary(
-                id = accountsSummary.id,
-                flockUniqueID = accountsSummary.flockUniqueID,
-                batchName = accountsSummary.batchName,
-                totalExpenses = accountsSummary.totalExpenses,
-                totalIncome = calculateCumulativeIncomeUpdate(
-                    initialIncome = accountsSummary.totalIncome.toString(),
-                    totalIncome = incomeUiState.totalIncome,
-                    initialItemIncome = incomeUiState.initialItemIncome
-                ),
-                variance = calculateCumulativeIncomeUpdate(
-                    initialIncome = accountsSummary.totalIncome.toString(),
-                    totalIncome = incomeUiState.totalIncome,
-                    initialItemIncome = incomeUiState.initialItemIncome
-                ) -
-                        accountsSummary.totalExpenses
-            )
+            if (accountsSummary != null) {
+                AccountsSummary(
+                    id = accountsSummary.id,
+                    flockUniqueID = accountsSummary.flockUniqueID,
+                    batchName = accountsSummary.batchName,
+                    totalExpenses = accountsSummary.totalExpenses,
+                    totalIncome = calculateCumulativeIncomeUpdate(
+                        initialIncome = accountsSummary.totalIncome.toString(),
+                        totalIncome = incomeUiState.totalIncome,
+                        initialItemIncome = incomeUiState.initialItemIncome
+                    ),
+                    variance = calculateCumulativeIncomeUpdate(
+                        initialIncome = accountsSummary.totalIncome.toString(),
+                        totalIncome = incomeUiState.totalIncome,
+                        initialItemIncome = incomeUiState.initialItemIncome
+                    ) -
+                            accountsSummary.totalExpenses
+                )
+            } else {
+                return
+            }
         )
     }
 
     /**
      * Update Account when deleting an income item
      */
-    suspend fun updateAccountWhenDeletingIncome(accountsSummary: AccountsSummary, income: Income) {
+    suspend fun updateAccountWhenDeletingIncome(accountsSummary: AccountsSummary?, income: Income) {
         flockRepository.updateAccounts(
-            AccountsSummary(
-                id = accountsSummary.id,
-                flockUniqueID = accountsSummary.flockUniqueID,
-                batchName = accountsSummary.batchName,
-                totalExpenses = accountsSummary.totalExpenses,
-                totalIncome = accountsSummary.totalIncome - income.totalIncome,
-                variance = accountsSummary.variance - income.totalIncome
-            )
+           if (accountsSummary != null) {
+               AccountsSummary(
+                   id = accountsSummary.id,
+                   flockUniqueID = accountsSummary.flockUniqueID,
+                   batchName = accountsSummary.batchName,
+                   totalExpenses = accountsSummary.totalExpenses,
+                   totalIncome = accountsSummary.totalIncome - income.totalIncome,
+                   variance = accountsSummary.variance - income.totalIncome
+               )
+           } else {
+               return
+           }
         )
     }
 

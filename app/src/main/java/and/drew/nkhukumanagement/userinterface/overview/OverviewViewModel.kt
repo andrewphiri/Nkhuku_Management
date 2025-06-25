@@ -9,6 +9,8 @@ import and.drew.nkhukumanagement.data.EggsSummary
 import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.ui.theme.GreenColor
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -31,14 +33,14 @@ class OverviewViewModel @Inject constructor(
 
     val accountsList: StateFlow<OverviewUiState> =
         flockRepository.getAllAccountsItems()
-            .map { OverviewUiState(it.toMutableStateList()) }
+            .map { OverviewUiState(it?.toMutableStateList() ?: mutableStateListOf()) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(MILLIS),
                 initialValue = OverviewUiState()
             )
 
-    val eggSummaryList: StateFlow<List<EggsSummary>> =
+    val eggSummaryList: StateFlow<List<EggsSummary>?> =
         flockRepository.getAllEggsSummaryItems()
             .map { it }
             .stateIn(

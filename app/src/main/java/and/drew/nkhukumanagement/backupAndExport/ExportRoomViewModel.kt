@@ -19,6 +19,9 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.apache.poi.ss.usermodel.FillPatternType
@@ -41,9 +44,17 @@ class ExportRoomViewModel @Inject constructor(
     private val baseFlockApplication: BaseFlockApplication
 ) : ViewModel(){
 
+    private val _isExporting = MutableStateFlow(false)
+    val isExporting: StateFlow<Boolean> = _isExporting.asStateFlow()
+
+    private  val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
    suspend fun exportRoomAsExcelFileAndShare(flock: Flock) {
 
         try {
+            _errorMessage.value = null
+            _isExporting.value = true
             //Create a new workbook
             val workbook = XSSFWorkbook()
             val workbookName =
@@ -51,8 +62,8 @@ class ExportRoomViewModel @Inject constructor(
                         "_${LocalDateTime.now().monthValue}" +
                         "_${LocalDateTime.now().dayOfMonth}" +
                         "_${LocalTime.now().hour}" + "${LocalTime.now().minute}.xlsx"
-            Log.d("ExportRoomViewModel", "Workbook name: $workbookName")
-            val folder = File(baseFlockApplication.filesDir, "flock_exports")
+            //Log.d("ExportRoomViewModel", "Workbook name: $workbookName")
+            val folder = File(baseFlockApplication.filesDir, "PoultryManagement")
             //check if folder exists
             if (!folder.exists()) {
                 folder.mkdirs()
@@ -108,13 +119,16 @@ class ExportRoomViewModel @Inject constructor(
                 chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(viewIntent))
 
                 baseFlockApplication.startActivity(chooserIntent)
-
+                _isExporting.value = false
             } catch (e: Exception) {
+                _errorMessage.value = ("Failed to export Excel file.")
+                _isExporting.value = false
                 e.printStackTrace()
             }
 
-
         } catch (e: Exception) {
+            _errorMessage.value = "Failed to export Excel file."
+            _isExporting.value = false
             e.printStackTrace()
         }
     }
@@ -217,14 +231,16 @@ class ExportRoomViewModel @Inject constructor(
             //Add health data
             var rowNum = 1
 
-            for (healthData in health) {
-                val row = sheet.createRow(rowNum++)
-                for (i in healthFieldsToExport.indices) {
-                    try {
-                        val value = healthFieldsToExport[i]!!.get(healthData)
-                        row.createCell(i).setCellValue(value?.toString() ?: "")
-                    } catch (e: IllegalAccessException) {
-                        e.printStackTrace()
+            if (health != null) {
+                for (healthData in health) {
+                    val row = sheet.createRow(rowNum++)
+                    for (i in healthFieldsToExport.indices) {
+                        try {
+                            val value = healthFieldsToExport[i]!!.get(healthData)
+                            row.createCell(i).setCellValue(value?.toString() ?: "")
+                        } catch (e: IllegalAccessException) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             }
@@ -329,14 +345,16 @@ class ExportRoomViewModel @Inject constructor(
             //Add health data
             var rowNum = 1
 
-            for (data in feed) {
-                val row = sheet.createRow(rowNum++)
-                for (i in feedFieldsToExport.indices) {
-                    try {
-                        val value = feedFieldsToExport[i]!!.get(data)
-                        row.createCell(i).setCellValue(value?.toString() ?: "")
-                    } catch (e: IllegalAccessException) {
-                        e.printStackTrace()
+            if (feed != null) {
+                for (data in feed) {
+                    val row = sheet.createRow(rowNum++)
+                    for (i in feedFieldsToExport.indices) {
+                        try {
+                            val value = feedFieldsToExport[i]!!.get(data)
+                            row.createCell(i).setCellValue(value?.toString() ?: "")
+                        } catch (e: IllegalAccessException) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             }
@@ -435,14 +453,16 @@ class ExportRoomViewModel @Inject constructor(
             //Add health data
             var rowNum = 1
 
-            for (data in weight) {
-                val row = sheet.createRow(rowNum++)
-                for (i in weightFieldsToExport.indices) {
-                    try {
-                        val value = weightFieldsToExport[i]!!.get(data)
-                        row.createCell(i).setCellValue(value?.toString() ?: "")
-                    } catch (e: IllegalAccessException) {
-                        e.printStackTrace()
+            if (weight != null) {
+                for (data in weight) {
+                    val row = sheet.createRow(rowNum++)
+                    for (i in weightFieldsToExport.indices) {
+                        try {
+                            val value = weightFieldsToExport[i]!!.get(data)
+                            row.createCell(i).setCellValue(value?.toString() ?: "")
+                        } catch (e: IllegalAccessException) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             }
@@ -600,14 +620,16 @@ class ExportRoomViewModel @Inject constructor(
             //Add health data
             var rowNum = 1
 
-            for (expense in expenses) {
-                val row = sheet.createRow(rowNum++)
-                for (i in expenseFieldsToExport.indices) {
-                    try {
-                        val value = expenseFieldsToExport[i]!!.get(expense)
-                        row.createCell(i).setCellValue(value?.toString() ?: "")
-                    } catch (e: IllegalAccessException) {
-                        e.printStackTrace()
+            if (expenses != null) {
+                for (expense in expenses) {
+                    val row = sheet.createRow(rowNum++)
+                    for (i in expenseFieldsToExport.indices) {
+                        try {
+                            val value = expenseFieldsToExport[i]!!.get(expense)
+                            row.createCell(i).setCellValue(value?.toString() ?: "")
+                        } catch (e: IllegalAccessException) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             }
@@ -659,14 +681,16 @@ class ExportRoomViewModel @Inject constructor(
             //Add health data
             var rowNum = 1
 
-            for (incomeData in income) {
-                val row = sheet.createRow(rowNum++)
-                for (i in incomeFieldsToExport.indices) {
-                    try {
-                        val value = incomeFieldsToExport[i]!!.get(incomeData)
-                        row.createCell(i).setCellValue(value?.toString() ?: "")
-                    } catch (e: IllegalAccessException) {
-                        e.printStackTrace()
+            if (income != null) {
+                for (incomeData in income) {
+                    val row = sheet.createRow(rowNum++)
+                    for (i in incomeFieldsToExport.indices) {
+                        try {
+                            val value = incomeFieldsToExport[i]!!.get(incomeData)
+                            row.createCell(i).setCellValue(value?.toString() ?: "")
+                        } catch (e: IllegalAccessException) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             }

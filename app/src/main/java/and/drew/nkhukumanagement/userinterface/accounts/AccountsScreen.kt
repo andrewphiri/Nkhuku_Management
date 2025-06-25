@@ -6,7 +6,6 @@ import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.UserPreferences
 import and.drew.nkhukumanagement.data.AccountsSummary
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
-import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
 import and.drew.nkhukumanagement.utils.AccountDetailsCurrentScreen
 import and.drew.nkhukumanagement.utils.BaseSingleRowItem
 import and.drew.nkhukumanagement.utils.ContentType
@@ -56,6 +55,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.serialization.Serializable
+
+
+@Serializable object AccountsScreenNav
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -111,8 +114,11 @@ fun AccountsAndDetailsScreen(
     var showDetailsPane by rememberSaveable { mutableStateOf(false) }
     var currentScreen by rememberSaveable { mutableStateOf(AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN) }
     var currentPageTransactionScreen by rememberSaveable { mutableStateOf(0) }
+    var incomeID by rememberSaveable { mutableStateOf(0) }
+    var expenseID by rememberSaveable { mutableStateOf(0) }
+    var accountID by rememberSaveable { mutableStateOf(0) }
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
@@ -124,6 +130,7 @@ fun AccountsAndDetailsScreen(
                     accountsSummaryList = accountsSummaryList.accountsSummary,
                     navigateToTransactionsScreen = {
                         showDetailsPane = true
+                        accountID = it
                         accountsViewModel.setAccountsID(it)
                     },
                     onClickSettings = onClickSettings,
@@ -151,12 +158,16 @@ fun AccountsAndDetailsScreen(
                         AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN -> {
                             TransactionScreen(
                                 canNavigateBack = false,
-                                navigateToAddExpenseScreen = { expenseID, accountID ->
-                                    expenseViewModel.setExpenseID(expenseID)
+                                navigateToAddExpenseScreen = { expenseId, accountId ->
+//                                    expenseViewModel.setExpenseID(expenseID)
+                                    expenseID = expenseId
+                                    accountID = accountId
                                     currentScreen = AccountDetailsCurrentScreen.ADD_EXPENSE_SCREEN
                                 },
-                                navigateToAddIncomeScreen = { incomeID, accountID ->
-                                    incomeViewModel.setIncomeID(incomeID)
+                                navigateToAddIncomeScreen = { incomeId, accountId ->
+//                                    incomeViewModel.setIncomeID(incomeID)
+                                    incomeID = incomeId
+                                    accountID = accountId
                                     currentScreen = AccountDetailsCurrentScreen.ADD_INCOME_SCREEN
                                 },
                                 userPrefsViewModel = userPrefsViewModel,
@@ -167,7 +178,8 @@ fun AccountsAndDetailsScreen(
                                 onPageChanged = {
                                     currentPageTransactionScreen = it
                                 },
-                                contentType = contentType
+                                contentType = contentType,
+                                accountID = accountID
                             )
                         }
 
@@ -177,7 +189,9 @@ fun AccountsAndDetailsScreen(
                                     currentScreen = AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN
                                 },
                                 userPrefsViewModel = userPrefsViewModel,
-                                contentType = contentType
+                                contentType = contentType,
+                                expenseID = expenseID,
+                                accountID = accountID
                             )
                         }
 
@@ -187,7 +201,9 @@ fun AccountsAndDetailsScreen(
                                     currentScreen = AccountDetailsCurrentScreen.TRANSACTIONS_SCREEN
                                 },
                                 userPrefsViewModel = userPrefsViewModel,
-                                contentType = contentType
+                                contentType = contentType,
+                                accountID = accountID,
+                                incomeID = incomeID
                             )
                         }
                     }
@@ -213,10 +229,9 @@ fun MainAccountsScreen(
     var isFilterMenuShowing by remember { mutableStateOf(false) }
     Scaffold(
         modifier = modifier,
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
-                title = stringResource(NavigationBarScreens.Accounts.resourceId),
+                title = stringResource(R.string.accounts),
                 isFilterButtonEnabled = accountsSummaryList.isNotEmpty(),
                 canNavigateBack = canNavigateBack,
                 onClickFilter = {

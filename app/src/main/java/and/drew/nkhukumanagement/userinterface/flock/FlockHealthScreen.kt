@@ -46,6 +46,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -65,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
 
@@ -83,12 +85,18 @@ object FlockHealthScreenDestination : NkhukuDestinations {
     })
 }
 
+@Serializable
+data class FlockHealthScreenNav(
+    val flockId: Int
+)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FlockHealthScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    flockID: Int,
     navigateToFlockEditScreen: (Int, Int) -> Unit,
     editFlockViewModel: EditFlockViewModel = hiltViewModel(),
     contentType: ContentType
@@ -103,7 +111,20 @@ fun FlockHealthScreen(
             ).toFlock(), health = listOf()
         )
     )
-    val flockID by editFlockViewModel.flockId.collectAsState(initial = 0)
+
+    LaunchedEffect(key1 = flockID) {
+        editFlockViewModel.getFlockWithHealth(flockID)
+    }
+
+//    val flock by editFlockViewModel.flock.collectAsState(
+//        initial = flockEntryViewModel.flockUiState.copy(
+//            datePlaced = DateUtils().dateToStringLongFormat(LocalDate.now()),
+//            quantity = "0",
+//            donorFlock = "0",
+//            cost = "0"
+//        ).toFlock()
+
+   // val flockID by editFlockViewModel.flockId.collectAsState(initial = 0)
     val title = flockWithHealth?.flock?.batchName
 
     MainFlockHealthScreen(
@@ -137,7 +158,6 @@ fun MainFlockHealthScreen(
     }
     val listState = rememberLazyListState()
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = title,

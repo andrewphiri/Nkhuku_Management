@@ -47,11 +47,13 @@ import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -70,7 +72,7 @@ class VaccinationViewModel @Inject constructor(
         private const val MILLIS = 5_000L
     }
 
-    val flockID: Int = savedStateHandle[AddVaccinationsDestination.flockIdArg] ?: 0
+//    val flockID: Int = savedStateHandle[AddVaccinationsDestination.flockIdArg] ?: 0
 
     private val alarmManager =
         application.applicationContext.getSystemService(AlarmManager::class.java)
@@ -86,32 +88,47 @@ class VaccinationViewModel @Inject constructor(
     //Dropdown menu items for the vaccination entry
     val options = mutableListOf("Gumburo", "Lasota")
 
-    val getAllVaccinationItems: StateFlow<List<Vaccination>> =
-        flockRepository.getAllVaccinationItems()
-            .map { it }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(MILLIS),
-                initialValue = listOf()
-            )
+//    val getAllVaccinationItems: StateFlow<List<Vaccination>> =
+//        flockRepository.getAllVaccinationItems()
+//            .map { it }
+//            .stateIn(
+//                scope = viewModelScope,
+//                started = SharingStarted.WhileSubscribed(MILLIS),
+//                initialValue = listOf()
+//            )
+
+    private val _getAllVaccinationItems = MutableStateFlow<List<Vaccination>?>(listOf())
+    val getAllVaccinationItems: StateFlow<List<Vaccination>?> = _getAllVaccinationItems
 
     /**
      * Get all flock with vaccinations items.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    val flockWithVaccinationsStateFlow: Flow<FlockWithVaccinations?> =
-        savedStateHandle.getStateFlow(key = AddVaccinationsDestination.flockIdArg, initialValue = 0)
-            .flatMapLatest {
-                flockRepository.getAllFlocksWithVaccinations(it)
-            }
-//        flockRepository.getAllFlocksWithVaccinations(flockID)
-//            .map { it }
-//            .stateIn(
-//                scope = viewModelScope,
-//                started = SharingStarted.WhileSubscribed(MILLIS),
-//                initialValue = FlockWithVaccinations(flock = null, vaccinations = listOf())
-//            )
+//    val flockWithVaccinationsStateFlow: Flow<FlockWithVaccinations?> =
+//        savedStateHandle.getStateFlow(key = AddVaccinationsDestination.flockIdArg, initialValue = 0)
+//            .flatMapLatest {
+//                flockRepository.getAllFlocksWithVaccinations(it)
+//            }
 
+    private val _flockWithVaccinationsStateFlow = MutableStateFlow<FlockWithVaccinations?>(null)
+    val flockWithVaccinationsStateFlow: StateFlow<FlockWithVaccinations?> = _flockWithVaccinationsStateFlow
+
+
+    fun getFlockWithVaccinations(flockID: Int) {
+        viewModelScope.launch {
+            flockRepository.getAllFlocksWithVaccinations(flockID).collect {
+                _flockWithVaccinationsStateFlow.value = it
+            }
+        }
+    }
+
+    fun getAllVaccinationItems() {
+        viewModelScope.launch {
+            flockRepository.getAllVaccinationItems().collect {
+                _getAllVaccinationItems.value = it
+            }
+        }
+    }
 
     fun setFlockID(id: Int) {
         savedStateHandle[AddVaccinationsDestination.flockIdArg] = id
@@ -120,7 +137,6 @@ class VaccinationViewModel @Inject constructor(
     /**
      * Update the VaccinationUiState List at the specified index
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     fun updateUiState(index: Int, newVaccinationUiState: VaccinationUiState) {
         initialVaccinationList[index] =
             newVaccinationUiState.copy(actionEnabled = newVaccinationUiState.isValid())

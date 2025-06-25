@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Nkhuku Management</string>
-    <string name="web_client_ID" translatable="false">407807660652-ht6ir9fh5l2lpvgsi9sq3iste8g3no28.apps.googleusercontent.com</string>
+    <string name="web_client_ID" translatable="false"></string>
     <string name="home">Home</string>
     <string name="accounts">Accounts</string>
     <string name="tips">Tips</string>

@@ -13,8 +13,13 @@ import and.drew.nkhukumanagement.userinterface.flock.EditFlockDestination
 import and.drew.nkhukumanagement.userinterface.flock.FlockHealthScreenDestination
 import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.flock.toFlock
-import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
+import and.drew.nkhukumanagement.userinterface.navigation.AccountsGraph
+import and.drew.nkhukumanagement.userinterface.navigation.HomeGraph
+import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarRoutes
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuNavHost
+import and.drew.nkhukumanagement.userinterface.navigation.OverviewGraph
+import and.drew.nkhukumanagement.userinterface.navigation.PlannerGraph
+import and.drew.nkhukumanagement.userinterface.navigation.TipsGraph
 import and.drew.nkhukumanagement.userinterface.overview.AccountOverviewDestination
 import and.drew.nkhukumanagement.userinterface.overview.FlockOverviewDestination
 import and.drew.nkhukumanagement.userinterface.planner.PlannerResultsDestination
@@ -30,6 +35,12 @@ import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Calculate
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Money
+import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -95,11 +106,11 @@ class AppFlowTests {
         navController = TestNavHostController(context)
         navController.navigatorProvider.addNavigator(ComposeNavigator())
         val screens = listOf(
-            NavigationBarScreens.Home,
-            NavigationBarScreens.Accounts,
-            NavigationBarScreens.Planner,
-            NavigationBarScreens.Tips,
-            NavigationBarScreens.Overview
+            NavigationBarRoutes(name = "Home", route = HomeGraph, icon = Icons.Outlined.Home, resourceId = R.string.home),
+            NavigationBarRoutes("Accounts", route =AccountsGraph, icon =  Icons.Outlined.Money, resourceId = R.string.accounts),
+            NavigationBarRoutes(name ="Planner", route =PlannerGraph, icon = Icons.Outlined.Calculate, resourceId = R.string.planner),
+            NavigationBarRoutes(name ="Tips", route =TipsGraph,icon =  Icons.Outlined.TipsAndUpdates, resourceId = R.string.tips),
+            NavigationBarRoutes(name ="Overview", route =OverviewGraph, icon = Icons.Outlined.PieChart, resourceId = R.string.overview),
         )
         composeRule.activity.setContent {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -110,7 +121,7 @@ class AppFlowTests {
                 bottomBar = {
                     BottomNavigationForApp(
                         navController = navController,
-                        screens = screens,
+                        navBarRoutes = screens,
                         isNavigationBarShowing = navigationBarShowing,
                     )
                 }

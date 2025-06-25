@@ -1,12 +1,23 @@
 package and.drew.nkhukumanagement
 
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
-import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarScreens
+import and.drew.nkhukumanagement.userinterface.navigation.AccountsGraph
+import and.drew.nkhukumanagement.userinterface.navigation.HomeGraph
+import and.drew.nkhukumanagement.userinterface.navigation.NavigationBarRoutes
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuNavHost
+import and.drew.nkhukumanagement.userinterface.navigation.OverviewGraph
+import and.drew.nkhukumanagement.userinterface.navigation.PlannerGraph
+import and.drew.nkhukumanagement.userinterface.navigation.TipsGraph
 import and.drew.nkhukumanagement.utils.Constants
 import android.content.Context
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Calculate
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Money
+import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -45,11 +56,11 @@ class NavigationTests {
         navController = TestNavHostController(context)
         navController.navigatorProvider.addNavigator(ComposeNavigator())
         val screens = listOf(
-            NavigationBarScreens.Home,
-            NavigationBarScreens.Accounts,
-            NavigationBarScreens.Planner,
-            NavigationBarScreens.Tips,
-            NavigationBarScreens.Overview
+            NavigationBarRoutes(name = "Home", route = HomeGraph, icon = Icons.Outlined.Home, resourceId = R.string.home),
+            NavigationBarRoutes("Accounts", route =AccountsGraph, icon =  Icons.Outlined.Money, resourceId = R.string.accounts),
+            NavigationBarRoutes(name ="Planner", route =PlannerGraph, icon = Icons.Outlined.Calculate, resourceId = R.string.planner),
+            NavigationBarRoutes(name ="Tips", route =TipsGraph,icon =  Icons.Outlined.TipsAndUpdates, resourceId = R.string.tips),
+            NavigationBarRoutes(name ="Overview", route =OverviewGraph, icon = Icons.Outlined.PieChart, resourceId = R.string.overview),
         )
 
         composeRule.activity.setContent {
@@ -62,7 +73,7 @@ class NavigationTests {
                 bottomBar = {
                     BottomNavigationForApp(
                         navController = navController,
-                        screens = screens,
+                        navBarRoutes = screens,
                         isNavigationBarShowing = navigationBarShowing
                     )
                 }
@@ -106,7 +117,7 @@ class NavigationTests {
             .onNodeWithText("Skip")
             .performClick()
         composeRule
-            .onNodeWithContentDescription(NavigationBarScreens.Accounts.route)
+            .onNodeWithContentDescription("Accounts screen")
             .performClick()
         val route = navController.currentBackStackEntry?.destination?.route
         assertEquals(route, "Accounts")
@@ -119,7 +130,7 @@ class NavigationTests {
             .performClick()
 
         composeRule
-            .onNodeWithContentDescription(NavigationBarScreens.Planner.route)
+            .onNodeWithContentDescription("Planner screen")
             .performClick()
         val route = navController.currentBackStackEntry?.destination?.route
         assertEquals(route, "Planner")
@@ -131,7 +142,7 @@ class NavigationTests {
             .onNodeWithText("Skip")
             .performClick()
         composeRule
-            .onNodeWithContentDescription(NavigationBarScreens.Tips.route)
+            .onNodeWithContentDescription("Tips screen")
             .performClick()
         val route = navController.currentBackStackEntry?.destination?.route
         assertEquals(route, "Tips")
@@ -143,7 +154,7 @@ class NavigationTests {
             .onNodeWithText("Skip")
             .performClick()
         composeRule
-            .onNodeWithContentDescription(NavigationBarScreens.Overview.route)
+            .onNodeWithContentDescription("Overview screen")
             .performClick()
         val route = navController.currentBackStackEntry?.destination?.route
         assertEquals(route, "Overview")

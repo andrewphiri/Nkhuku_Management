@@ -13,10 +13,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -40,22 +44,32 @@ class IncomeViewModel @Inject constructor(
         private set
     private var incomeListState: SnapshotStateList<IncomeUiState> = mutableStateListOf()
 
-    val incomeID = savedStateHandle
-        .getStateFlow(AddIncomeScreenDestination.incomeIdArg, initialValue = 0)
+//    val incomeID = savedStateHandle
+//        .getStateFlow(AddIncomeScreenDestination.incomeIdArg, initialValue = 0)
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val getIncome: Flow<Income> = savedStateHandle
-        .getStateFlow(AddIncomeScreenDestination.incomeIdArg, initialValue = 0)
-        .flatMapLatest {
-            flockRepository.getIncomeItem(it)
+//    val getIncome: Flow<Income> = savedStateHandle
+//        .getStateFlow(AddIncomeScreenDestination.incomeIdArg, initialValue = 0)
+//        .flatMapLatest {
+//            flockRepository.getIncomeItem(it)
+//        }
+
+    private val _income = MutableStateFlow<Income?>(null)
+    val income = _income.asStateFlow()
+
+    fun getIncome(id: Int) {
+        viewModelScope.launch {
+            flockRepository.getIncomeItem(id).collect {
+                _income.value = it
+            }
         }
+    }
 
 
     /**
      * Update Income Ui State
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     fun updateState(incomeState: IncomeUiState) {
         incomeUiState = incomeState.copy(enabled = incomeState.isValid())
     }
@@ -63,7 +77,6 @@ class IncomeViewModel @Inject constructor(
     /**
      * Insert an Income Item into the database
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun insertIncome(incomeUiState: IncomeUiState) {
         flockRepository.insertIncome(incomeUiState.toIncome())
     }
@@ -71,7 +84,6 @@ class IncomeViewModel @Inject constructor(
     /**
      * Update an Income Item from the database
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun updateIncome(uiState: IncomeUiState) {
         flockRepository.updateIncome(uiState.toIncome())
     }
@@ -79,7 +91,6 @@ class IncomeViewModel @Inject constructor(
     /**
      * Delete an Income Item from the database
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun deleteIncome(income: Income) {
         flockRepository.deleteIncome(income)
     }
@@ -87,7 +98,6 @@ class IncomeViewModel @Inject constructor(
     /**
      * Delete an Income Item from the database
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun deleteIncome(uniqueID: String) {
         flockRepository.deleteIncome(uniqueID)
     }

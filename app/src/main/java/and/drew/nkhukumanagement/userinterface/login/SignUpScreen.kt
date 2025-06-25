@@ -49,6 +49,8 @@ fun SignUpScreen(
     isLoadingGoogleButton: Boolean,
     userUiState: UserUiState,
     onValueChanged: (UserUiState) -> Unit,
+    isGoogleButtonEnabled: Boolean = false,
+    isSignUpButtonEnabled: Boolean = false
 ) {
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     Column(modifier = modifier) {
@@ -82,7 +84,7 @@ fun SignUpScreen(
 
             FilledTonalButton(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = userUiState.isValid() && !isLoadingSignUpButton,
+                enabled = userUiState.isValid() && !isLoadingSignUpButton && isSignUpButtonEnabled,
                 onClick = onClickSignUpWithEmailAndPassword
             ) {
                 Row(
@@ -123,7 +125,8 @@ fun SignUpScreen(
                 isLoading = isLoadingGoogleButton,
                 contentDescription = stringResource(R.string.sign_up_with_google),
                 icon = painterResource(R.drawable.ic_google_logo),
-                onClick = onClickSignUpWithGoogle
+                onClick = onClickSignUpWithGoogle,
+                isButtonEnabled = isGoogleButtonEnabled
             )
         }
     }

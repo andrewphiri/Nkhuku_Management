@@ -63,6 +63,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -88,6 +89,12 @@ object EditEggsDestination : NkhukuDestinations {
     )
 }
 
+@Serializable
+data class EditEggsScreenNav(
+    val flockId: Int,
+    val eggsId: Int
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -95,6 +102,8 @@ fun EggsEditScreen(
     modifier: Modifier = Modifier,
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    flockID: Int,
+    eggsId: Int,
     eggsInventoryViewModel: EggsInventoryViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
     contentType: ContentType
@@ -131,8 +140,14 @@ fun EggsEditScreen(
             )
         )
 
+    LaunchedEffect(key1 = flockID) {
+        eggsInventoryViewModel.getFlockAndEggsSummary(flockID)
+        eggsInventoryViewModel.getEggs(eggsId)
+        eggsInventoryViewModel.getFlock(flockID)
+    }
+
     val flockUiState: FlockUiState? = flock?.toFlockUiState()
-    val eggId by eggsInventoryViewModel.eggsID.collectAsState(initial = 0)
+    //val eggId by eggsInventoryViewModel.eggsID.collectAsState(initial = 0)
 
     LaunchedEffect(key1 = flock) {
         flockUiState?.copy(enabled = true)?.let { flockEntryViewModel.updateUiState(it) }
@@ -159,7 +174,7 @@ fun EggsEditScreen(
                 eggsInventoryViewModel.updateEggsSummary(eggSummary)
             }
         },
-        eggId = eggId,
+        eggId = eggsId,
         onNavigateUp = onNavigateUp,
         updateEggs = {
             coroutineScope.launch {
@@ -237,7 +252,6 @@ fun MainEditEggsScreen(
         (badEggs > 0 || goodEggs > 0) && (goodEggs != eggs.goodEggs || badEggs != eggs.badEggs)
     Scaffold(
         modifier = modifier,
-        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             FlockManagementTopAppBar(
                 title = flockUiState.batchName,
