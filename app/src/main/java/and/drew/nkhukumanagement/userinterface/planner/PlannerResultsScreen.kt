@@ -2,11 +2,14 @@ package and.drew.nkhukumanagement.userinterface.planner
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.ui.theme.Shapes
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ContentType
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +30,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -37,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
+import java.util.Locale
 
 object PlannerResultsDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -56,14 +62,34 @@ fun PlannerResultScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     plannerViewModel: PlannerViewModel,
-    contentType: ContentType
+    contentType: ContentType,
+    userPrefsViewModel: UserPrefsViewModel,
 ) {
+    val userPrefs by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
+
+    val unitPref = if (userPrefs.massSystem == "Kilogram (Kg)") "kg" else if
+            (userPrefs.massSystem== "Pound (lb)") "lb" else if
+                    (userPrefs.massSystem == "Ounce (oz)") "oz" else "g"
+
+    val bagSize = userPrefs.bagSize
+    val bag = if (userPrefs.bagSize == "50 Kg" || userPrefs.bagSize == "50 lb") 50 else 25
+    Log.d("PlannerResultScreen", "bag: $bag")
+    Log.d("PlannerResultScreen", "bagSize: $bagSize")
+    Log.d("PlannerResultScreen", "unitPref: $unitPref")
+    Log.d("PlannerResultScreen", "unit: ${userPrefs.massSystem}")
+
     MainPlannerResultScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
         plannerUiState = plannerViewModel.plannerUiState,
-        contentType = contentType
+        contentType = contentType,
+        bag = bag,
+        bagSize = bagSize,
+        unit = userPrefs.massSystem,
+        unitPref = unitPref
     )
 }
 
@@ -73,7 +99,11 @@ fun MainPlannerResultScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     plannerUiState: PlannerUiState,
-    contentType: ContentType
+    contentType: ContentType,
+    bag: Int = 50,
+    bagSize: String,
+    unit: String,
+    unitPref: String
 ) {
     val context = LocalContext.current
     val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
@@ -97,9 +127,9 @@ fun MainPlannerResultScreen(
         ) {
             item {
                 if (plannerUiState.flockType == flockTypeOptions[0]) {
-                    FeedResultsCard(planner = plannerUiState.toPlanner())
+                    FeedResultsCard(planner = plannerUiState.toPlanner(bagSize = bag, unit), bagSize = bagSize, unitPref = unitPref)
                 } else {
-                    LayersFeedResultsCard(planner = plannerUiState)
+                    LayersFeedResultsCard(planner = plannerUiState, bagSize = bagSize, unit = unit, bag = bag, unitPref = unitPref)
                 }
 
             }
@@ -108,13 +138,13 @@ fun MainPlannerResultScreen(
                 if (!plannerUiState.areFeedersAvailable) {
                     item {
                         FeedersResultsCard(
-                            planner = plannerUiState.toPlanner()
+                            planner = plannerUiState.toPlanner(bagSize = bag, unit)
                         )
                     }
                 }
                 if (!plannerUiState.areDrinkersAvailable) {
                     item {
-                        DrinkersResultsCard(planner = plannerUiState.toPlanner())
+                        DrinkersResultsCard(planner = plannerUiState.toPlanner(bag, unit))
                     }
                 }
             }
@@ -124,7 +154,11 @@ fun MainPlannerResultScreen(
 }
 
 @Composable
-fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
+fun FeedResultsCard(
+    modifier: Modifier = Modifier,
+    planner: Planner,
+    bagSize: String,
+    unitPref: String) {
 
     Card(
         modifier = modifier,
@@ -159,13 +193,13 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = stringResource(R.string.quantity),
+                        text = stringResource(R.string.quantity) + "\n" + unitPref,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = stringResource(R.string.bags_50kg),
+                        text = "Bag\n($bagSize)",
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
@@ -178,7 +212,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "${String.format("%.2f", planner.starterNeeded)} Kg",
+                        text = String.format(Locale.getDefault(),"%.2f", planner.starterNeeded),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -195,7 +229,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "${String.format("%.2f", planner.growerNeeded)} Kg",
+                        text = String.format(Locale.getDefault(),"%.2f", planner.growerNeeded),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -212,7 +246,7 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "${String.format("%.2f", planner.finisherNeeded)} Kg",
+                        text = String.format(Locale.getDefault(),"%.2f", planner.finisherNeeded),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -247,7 +281,13 @@ fun FeedResultsCard(modifier: Modifier = Modifier, planner: Planner) {
 }
 
 @Composable
-fun LayersFeedResultsCard(modifier: Modifier = Modifier, planner: PlannerUiState) {
+fun LayersFeedResultsCard(
+    modifier: Modifier = Modifier,
+    planner: PlannerUiState,
+    bagSize: String,
+    unitPref: String,
+    unit: String,
+    bag: Int = 50) {
 
     Card(
         modifier = modifier,
@@ -282,13 +322,13 @@ fun LayersFeedResultsCard(modifier: Modifier = Modifier, planner: PlannerUiState
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = stringResource(R.string.quantity),
+                        text = stringResource(R.string.quantity) + "\n" + unitPref,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = stringResource(R.string.bags_50kg),
+                        text = bagSize,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
@@ -301,12 +341,12 @@ fun LayersFeedResultsCard(modifier: Modifier = Modifier, planner: PlannerUiState
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "${String.format("%.2f", planner.calculateLayerStarter())} Kg",
+                        text = String.format(Locale.getDefault(),"%.2f", planner.calculateLayerStarter(unit)),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = planner.calculateLayerStarterBags().toString(),
+                        text = planner.calculateLayerStarterBags(bag, unit).toString(),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -319,12 +359,12 @@ fun LayersFeedResultsCard(modifier: Modifier = Modifier, planner: PlannerUiState
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "${String.format("%.2f", planner.calculatePulletLayerStarter())} Kg",
+                        text = String.format(Locale.getDefault(),"%.2f", planner.calculatePulletLayerStarter(unit)),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = planner.calculatePulletLayerStarterBags().toString(),
+                        text = planner.calculatePulletLayerStarterBags(bag, unit).toString(),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -337,12 +377,12 @@ fun LayersFeedResultsCard(modifier: Modifier = Modifier, planner: PlannerUiState
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "${String.format("%.2f", planner.calculatePulletGrower())} Kg",
+                        text = String.format(Locale.getDefault(), "%.2f", planner.calculatePulletGrower(unit)),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = planner.calculatePulletGrowerBags().toString(),
+                        text = planner.calculatePulletGrowerBags(bag, unit).toString(),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -354,12 +394,12 @@ fun LayersFeedResultsCard(modifier: Modifier = Modifier, planner: PlannerUiState
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "${String.format("%.2f", planner.calculatePreLayer())} Kg",
+                        text = String.format(Locale.getDefault(), "%.2f", planner.calculatePreLayer(unit)),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = planner.calculatePreLayerBags().toString(),
+                        text = planner.calculatePreLayerBags(bag, unit).toString(),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -371,12 +411,12 @@ fun LayersFeedResultsCard(modifier: Modifier = Modifier, planner: PlannerUiState
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = "${String.format("%.2f", planner.calculateLayersMash())} Kg",
+                        text = String.format(Locale.getDefault(), "%.2f", planner.calculateLayersMash(unit)),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = planner.calculateLayerMashBags().toString(),
+                        text = planner.calculateLayerMashBags(bag, unit).toString(),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -389,13 +429,13 @@ fun LayersFeedResultsCard(modifier: Modifier = Modifier, planner: PlannerUiState
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = planner.totalFeedLayers().toString(),
+                        text = planner.totalFeedLayers(unit).toString(),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         modifier = Modifier.weight(weight = 1f, fill = true),
-                        text = planner.totalLayersBags().toString(),
+                        text = planner.totalLayersBags(bag, unit).toString(),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
@@ -653,7 +693,7 @@ fun DrinkersResultsCard(modifier: Modifier = Modifier, planner: Planner) {
 @Composable
 fun FeedResultsPreview() {
     NkhukuManagementTheme {
-        FeedResultsCard(planner = PlannerUiState().toPlanner())
+        FeedResultsCard(planner = PlannerUiState().toPlanner(50, "Kilogram (Kg)"), bagSize = "50 Kg", unitPref = "kg")
     }
 }
 
@@ -662,7 +702,7 @@ fun FeedResultsPreview() {
 @Composable
 fun FeedersResultsPreview() {
     NkhukuManagementTheme {
-        FeedersResultsCard(planner = PlannerUiState().toPlanner())
+        FeedersResultsCard(planner = PlannerUiState().toPlanner(50, "Kilogram (Kg)"))
     }
 }
 
@@ -671,6 +711,6 @@ fun FeedersResultsPreview() {
 @Composable
 fun DrinkersResultsPreview() {
     NkhukuManagementTheme {
-        DrinkersResultsCard(planner = PlannerUiState().toPlanner())
+        DrinkersResultsCard(planner = PlannerUiState().toPlanner(50, "Kilogram (Kg)"))
     }
 }

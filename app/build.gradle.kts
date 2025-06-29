@@ -98,6 +98,7 @@ dependencies {
     implementation ("androidx.appcompat:appcompat:1.7.1")
     implementation ("androidx.test:rules:1.6.1")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("com.google.firebase:firebase-storage:21.0.2")
     testImplementation ("junit:junit:4.13.2")
     androidTestImplementation ("androidx.test.ext:junit:1.2.1")
     androidTestImplementation ("androidx.test.espresso:espresso-core:3.6.1")
@@ -162,6 +163,7 @@ dependencies {
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity:18.0.0")
 
     //Apache Poi for exporting room as excel
     implementation("org.apache.poi:poi:5.2.3")
@@ -185,6 +187,9 @@ dependencies {
     androidTestImplementation ("androidx.compose.ui:ui-test-junit4:1.8.3")
     //Needed for createAndroidComposeRule, but not createComposeRule
     debugImplementation ("androidx.compose.ui:ui-test-manifest:1.5.3")
+
+    //Billing Client
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
 }
 
 protobuf {

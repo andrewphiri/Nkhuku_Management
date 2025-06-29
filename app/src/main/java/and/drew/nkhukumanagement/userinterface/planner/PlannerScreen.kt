@@ -2,6 +2,8 @@ package and.drew.nkhukumanagement.userinterface.planner
 
 import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
+import and.drew.nkhukumanagement.UserPreferences
+import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.ui.theme.NkhukuManagementTheme
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DropDownMenuDialog
@@ -24,6 +26,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +56,8 @@ fun PlannerScreen(
     plannerViewModel: PlannerViewModel,
     navigateToResultsScreen: () -> Unit = {},
     onClickSettings: () -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    userPrefsViewModel: UserPrefsViewModel
 ) {
 
     MainPlannerScreen(
@@ -63,7 +67,8 @@ fun PlannerScreen(
         onClickSettings = onClickSettings,
         onValueChanged = plannerViewModel::updateUiState,
         navigateToResultsScreen = navigateToResultsScreen,
-        contentType = contentType
+        contentType = contentType,
+        userPrefsViewModel = userPrefsViewModel
     )
 }
 
@@ -75,13 +80,19 @@ fun MainPlannerScreen(
     onValueChanged: (PlannerUiState) -> Unit,
     navigateToResultsScreen: () -> Unit = {},
     onClickSettings: () -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    userPrefsViewModel: UserPrefsViewModel
 ) {
+
+    val userPrefs by userPrefsViewModel.initialPreferences.collectAsState(
+        initial = UserPreferences.getDefaultInstance()
+    )
     val context = LocalContext.current
     val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var isCalculateButtonEnabled by remember { mutableStateOf(false) }
+    val bag = if (userPrefs.bagSize == "50 Kg" || userPrefs.bagSize == "50 lb") 50 else 25
     Scaffold(
         topBar = {
             FlockManagementTopAppBar(
@@ -98,7 +109,7 @@ fun MainPlannerScreen(
             modifier = modifier.padding(innerPadding),
             isCalculateButtonEnabled = plannerUiState.isValid(),
             onCalculate = {
-                if (checkNumberExceptions(plannerUiState)) {
+                if (checkNumberExceptions(plannerUiState, bag, userPrefs.massSystem)) {
                     navigateToResultsScreen()
                 } else {
                     coroutineScope.launch {

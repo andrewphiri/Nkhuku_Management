@@ -91,7 +91,6 @@ fun Vaccination.toVaccinationUiState(
 /**
  * Check if entry entered is valid
  */
-@RequiresApi(Build.VERSION_CODES.O)
 fun VaccinationUiState.isValid(): Boolean {
     return getName().isNotBlank() &&
             getDate().isNotBlank()

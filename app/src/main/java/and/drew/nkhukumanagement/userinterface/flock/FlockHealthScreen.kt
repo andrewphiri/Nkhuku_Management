@@ -141,7 +141,6 @@ fun FlockHealthScreen(
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainFlockHealthScreen(
     modifier: Modifier = Modifier,
@@ -158,6 +157,7 @@ fun MainFlockHealthScreen(
     }
     val listState = rememberLazyListState()
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             FlockManagementTopAppBar(
                 title = title,

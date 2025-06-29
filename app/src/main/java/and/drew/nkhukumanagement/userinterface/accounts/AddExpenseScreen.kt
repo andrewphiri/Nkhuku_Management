@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
@@ -139,11 +140,11 @@ fun AddExpenseScreen(
 
     var title by remember { mutableStateOf("") }
     title = stringResource(AddExpenseScreenDestination.resourceId)
-    val expenseIDArg by expenseViewModel.expenseID.collectAsState(initial = 0)
+    //val expenseIDArg by expenseViewModel.expenseID.collectAsState(initial = 0)
 
     LaunchedEffect(Unit) {
        if (expenseID > 0) {
-           expenseViewModel.getExpense(expenseID)
+
        }
         accountsViewModel.getAccountsWithExpense(accountID)
     }
@@ -155,6 +156,7 @@ fun AddExpenseScreen(
      */
     LaunchedEffect(expense) {
         if (expenseID > 0) {
+            async { expenseViewModel.getExpense(expenseID) }.await()
             expense?.let { expenseViewModel.updateState(it.toExpenseUiState(enabled = true)) }
         }
     }
@@ -183,7 +185,7 @@ fun AddExpenseScreen(
                 )
             }
         },
-        expenseIDArg = expenseIDArg,
+        expenseIDArg = expenseID,
         canNavigateBack = canNavigateBack,
         onNavigateUp = onNavigateUp,
         currencySymbol = currency.symbol,

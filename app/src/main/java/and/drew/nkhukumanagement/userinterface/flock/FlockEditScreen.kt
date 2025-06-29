@@ -8,6 +8,7 @@ import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
 import and.drew.nkhukumanagement.utils.PickerDateDialog
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -174,7 +175,6 @@ fun FlockEditScreen(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainFlockEditScreen(
     modifier: Modifier = Modifier,
@@ -210,6 +210,11 @@ fun MainFlockEditScreen(
     var mortality by rememberSaveable { mutableStateOf(0) }
     var culls by rememberSaveable { mutableStateOf(0) }
 
+    Log.d("FlockEditScreen", "healthId: $healthId")
+    Log.d("FlockEditScreen", "flockHealth: $flockHealth")
+    Log.d("FlockEditScreen", "Mortality: $mortality")
+    Log.d("FlockEditScreen", "Culls: $culls")
+
     var isCullsRemoveButtonEnabled by rememberSaveable { mutableStateOf(false) }
     var isMortalityRemoveButtonEnabled by rememberSaveable { mutableStateOf(false) }
     var isCullsAddButtonEnabled by rememberSaveable { mutableStateOf(true) }
@@ -224,6 +229,7 @@ fun MainFlockEditScreen(
             date = DateUtils().dateToStringLongFormat(flockHealth.date)
         }
     }
+
 
     isMortalityAddButtonEnabled = mortality < quantityRemaining
     isMortalityRemoveButtonEnabled = mortality > 0
@@ -421,11 +427,13 @@ fun MainFlockEditScreen(
                                             flockHealth.culls - culls
                                     updateFlock(
                                         flockUiState.copy(
-                                            mortality =
+                                            mortality = if (flockHealth.mortality < mortality)
                                             (flockUiState.getMortality()
-                                                .toInt() + mort).toString(),
-                                            culls = (flockUiState.getCulls()
-                                                .toInt() + cull).toString(),
+                                                .toInt() + mort).toString() else (flockUiState.getMortality()
+                                                .toInt() - mort).toString(),
+                                            culls = if (flockHealth.culls < culls) (flockUiState.getCulls()
+                                                .toInt() + cull).toString() else (flockUiState.getCulls()
+                                                .toInt() - cull).toString(),
                                             stock = quantityRemaining.toString()
                                         )
                                     )

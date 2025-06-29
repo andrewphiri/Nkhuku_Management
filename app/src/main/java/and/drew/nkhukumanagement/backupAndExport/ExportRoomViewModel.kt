@@ -13,6 +13,7 @@ import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.data.Weight
+import and.drew.nkhukumanagement.utils.formatConsumption
 import android.content.Intent
 import android.util.Log
 import androidx.core.content.FileProvider
@@ -36,6 +37,7 @@ import java.io.FileOutputStream
 import java.lang.reflect.Field
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,7 +52,7 @@ class ExportRoomViewModel @Inject constructor(
     private  val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-   suspend fun exportRoomAsExcelFileAndShare(flock: Flock) {
+   suspend fun exportRoomAsExcelFileAndShare(flock: Flock, unitPreference: String) {
 
         try {
             _errorMessage.value = null
@@ -74,8 +76,8 @@ class ExportRoomViewModel @Inject constructor(
             exportVaccinations(flock.uniqueId, workbook)
             exportExpense(flock.uniqueId, workbook)
             exportIncome(flock.uniqueId, workbook)
-            exportFeedFields(flock.uniqueId, workbook)
-            exportWeight(flock.uniqueId, workbook)
+            exportFeedFields(flock.uniqueId, workbook, unitPreference)
+            exportWeight(flock.uniqueId, workbook, unitPreference)
 
             if (flock.flockType == "Layer") {
                 exportEggs(flock.uniqueId, workbook)
@@ -302,9 +304,12 @@ class ExportRoomViewModel @Inject constructor(
         }
     }
 
-    suspend fun exportFeedFields(uniqueId: String, workbook: XSSFWorkbook)  {
+    suspend fun exportFeedFields(uniqueId: String, workbook: XSSFWorkbook, unitPreference: String)  {
         try {
             val sheet = workbook.createSheet("Feed")
+            val unitPref = if (unitPreference == "Kilogram (Kg)") "Kg" else if
+                    (unitPreference == "Pound (lbs)") "lb" else if
+                            (unitPreference == "Ounce (oz)") "oz" else "g"
 
             val feedFields = arrayOf(
                 "name",
@@ -335,7 +340,14 @@ class ExportRoomViewModel @Inject constructor(
             val headerStyle = createHeaderStyle(workbook)
             for (i in feedFieldsToExport.indices) {
                 val cell = header.createCell(i)
-                cell.setCellValue(feedFieldsToExport[i]!!.name)
+                val fieldName = feedFieldsToExport[i]!!.name
+
+                val label = when (fieldName) {
+                    "consumed", "standardConsumption", "actualConsumptionPerBird", "standardConsumptionPerBird" ->
+                        "$fieldName (${unitPref})"
+                    else -> fieldName
+                }
+                cell.setCellValue(label)
                 cell.cellStyle = headerStyle
             }
 
@@ -350,8 +362,21 @@ class ExportRoomViewModel @Inject constructor(
                     val row = sheet.createRow(rowNum++)
                     for (i in feedFieldsToExport.indices) {
                         try {
-                            val value = feedFieldsToExport[i]!!.get(data)
-                            row.createCell(i).setCellValue(value?.toString() ?: "")
+                            val field = feedFieldsToExport[i]!!
+                            val rawValue = field.get(data)
+
+                            // Convert numeric feed values if applicable
+                            val value = when (field.name) {
+                                "consumed", "standardConsumption", "actualConsumptionPerBird", "standardConsumptionPerBird" -> {
+                                    val valueInKg = (rawValue as? Double)
+                                    valueInKg?.let { formatConsumption(it, unitPreference = unitPreference) }
+
+                                }
+                                else -> rawValue?.toString() ?: ""
+                            }
+                            Log.d("ExportRoomViewModel", "Value: $value")
+
+                            row.createCell(i).setCellValue(value)
                         } catch (e: IllegalAccessException) {
                             e.printStackTrace()
                         }
@@ -414,9 +439,12 @@ class ExportRoomViewModel @Inject constructor(
         }
     }
 
-    suspend fun exportWeight(uniqueId: String, workbook: XSSFWorkbook)  {
+    suspend fun exportWeight(uniqueId: String, workbook: XSSFWorkbook, unitPreference: String)  {
         try {
             val sheet = workbook.createSheet("Weight")
+            val unitPref = if (unitPreference == "Kilogram (Kg)") "kg" else if
+                    (unitPreference == "Pound (lbs)") "lb" else if
+                            (unitPreference == "Ounce (oz)") "oz" else "g"
             val weightFields = arrayOf(
                 "week",
                 "expectedWeight",
@@ -443,14 +471,20 @@ class ExportRoomViewModel @Inject constructor(
             val headerStyle = createHeaderStyle(workbook)
             for (i in weightFieldsToExport.indices) {
                 val cell = header.createCell(i)
-                cell.setCellValue(weightFieldsToExport[i]!!.name)
+                val fieldName = weightFieldsToExport[i]!!.name
+
+                val label = when (fieldName) {
+                    "weight", "expectedWeight" -> "$fieldName (${unitPref})"
+                    else -> fieldName
+                }
+                cell.setCellValue(label)
                 cell.cellStyle = headerStyle
             }
 
             //Fetch weight data
             val weight = repository.getAllWeightsForExport(uniqueId).first()
 
-            //Add health data
+
             var rowNum = 1
 
             if (weight != null) {
@@ -458,8 +492,18 @@ class ExportRoomViewModel @Inject constructor(
                     val row = sheet.createRow(rowNum++)
                     for (i in weightFieldsToExport.indices) {
                         try {
-                            val value = weightFieldsToExport[i]!!.get(data)
-                            row.createCell(i).setCellValue(value?.toString() ?: "")
+                            val field = weightFieldsToExport[i]!!
+                            val rawValue = field.get(data)
+
+                            val value = when (field.name) {
+                                "weight", "expectedWeight" -> {
+                                    val valueInKg = (rawValue as? Double)
+                                    valueInKg?.let { formatConsumption(it, unitPreference = unitPreference ) }
+
+                                }
+                                else -> rawValue?.toString() ?: ""
+                            }
+                            row.createCell(i).setCellValue(value)
                         } catch (e: IllegalAccessException) {
                             e.printStackTrace()
                         }

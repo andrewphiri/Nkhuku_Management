@@ -76,8 +76,6 @@
     <string name="delete_income_label">Delete income</string>
     <string name="consumption_per_bird">CONSUMPTION PER BIRD</string>
     <string name="total_feed_consumed">TOTAL FEED CONSUMED</string>
-    <string name="actual_kg">ACTUAL \n Kg</string>
-    <string name="standard_kg">STANDARD \n Kg</string>
     <string name="feed_type">Feed type</string>
     <string name="_0_0">0.0</string>
     <string name="set_vaccination_days">Set vaccination days</string>
@@ -199,7 +197,7 @@
     <string name="verified">Verified</string>
     <string name="unverified">Unverified</string>
     <string name="sign_out">Sign Out</string>
-    <string name="kg">%1$s Kg</string>
+    <string name="kg">%1$s %2$s</string>
     <string name="kg_weight">%1$s Kg</string>
     <string name="week_1">Week 1</string>
     <string name="week_2">Week 2</string>
@@ -251,6 +249,8 @@
     <string name="pre_layer">Prelayer</string>
     <string name="flock_type">Flock type</string>
     <string name="not_enough_stock">Not enough stock available. Reduce the quantity.</string>
+    <string name="mass_unit">Mass Unit</string>
+    <string name="bag_size">Feed Bag Size</string>
     <string-array name="types_of_flocks">
         <item>Broiler</item>
         <item>Layer</item>

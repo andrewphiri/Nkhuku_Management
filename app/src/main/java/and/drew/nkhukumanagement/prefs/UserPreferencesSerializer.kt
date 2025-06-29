@@ -23,6 +23,8 @@ object UserPreferencesSerializer : Serializer<UserPreferences> {
         .setCurrencyLocale(Locale("en", "ZM").toLanguageTag())
         .setSkipAccountSetup(false)
         .setLanguageLocale(Locale("en", "ZM").language)
+        .setMassSystem("Kilogram (Kg)")
+        .setBagSize("50 Kg")
         .setTraySize("30")
         .build()
 

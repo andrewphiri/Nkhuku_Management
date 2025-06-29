@@ -94,4 +94,16 @@ class UserPreferencesRepository @Inject constructor(
                 .build()
         }
     }
+
+    suspend fun updateMassSystem(massUnit: String) {
+        userPrefsDataStore.updateData { currentPreferences ->
+            currentPreferences.toBuilder().setMassSystem(massUnit).build()
+        }
+    }
+
+    suspend fun updateBagSize(size: String) {
+        userPrefsDataStore.updateData { currentPreferences ->
+            currentPreferences.toBuilder().setBagSize(size).build()
+        }
+    }
 }

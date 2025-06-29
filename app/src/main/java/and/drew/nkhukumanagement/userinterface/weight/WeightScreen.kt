@@ -6,6 +6,9 @@ import and.drew.nkhukumanagement.data.FlockWithWeight
 import and.drew.nkhukumanagement.data.Weight
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ContentType
+import and.drew.nkhukumanagement.utils.convertToKg
+import and.drew.nkhukumanagement.utils.formatConsumption
+import and.drew.nkhukumanagement.utils.formatToKgConsumption
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -70,6 +74,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -102,7 +107,8 @@ fun WeightScreen(
     onNavigateUp: () -> Unit,
     flockId: Int,
     weightViewModel: WeightViewModel = hiltViewModel(),
-    contentType: ContentType
+    contentType: ContentType,
+    unitPreference: String
 ) {
     BackHandler {
         onNavigateUp()
@@ -119,7 +125,7 @@ fun WeightScreen(
     title = stringResource(WeightScreenDestination.resourceId)
     val snackBarHostState = remember { SnackbarHostState() }
     var showUpdateDialog by remember { mutableStateOf(false) }
-    val weight = weightViewModel.weight.asLiveData()
+    val weight by weightViewModel.weight.collectAsState(null)
 
     var isSaveButtonEnabled by remember { mutableStateOf(true) }
     var actualNewWeight by remember { mutableStateOf(-1.0) }
@@ -142,10 +148,10 @@ fun WeightScreen(
 
     LaunchedEffect(key1 = weightIDClicked) {
         if (weightIDClicked > 0) {
-            weight.observe(lifecycleOwner) {
-                weightViewModel.setWeightState(it?.toWeightUiState() ?: WeightUiState())
-                actualNewWeight = it?.weight ?: 0.0
-            }
+            async { weightViewModel.getWeight(weightIDClicked) }.await()
+            weightViewModel.setWeightState(weight?.toWeightUiState() ?: WeightUiState())
+            actualNewWeight = weight?.weight ?: 0.0
+
         }
     }
     var isUpdateEnabled by remember { mutableStateOf(false) }
@@ -177,7 +183,8 @@ fun WeightScreen(
                 onClickUpdate = {
                     if (checkNumberExceptions(it)) {
                         coroutineScope.launch {
-                            weightViewModel.updateWeight(it.toWeight())
+                            weightViewModel.updateWeight(it
+                                .copy(actualWeight = formatToKgConsumption(weightViewModel.weightUiState.actualWeight.toDoubleOrNull(), unitPreference)).toWeight())
                             showUpdateDialog = false
                         }
                     } else {
@@ -201,13 +208,14 @@ fun WeightScreen(
                     weightIDClicked = it
                 },
                 weightUiState = weightViewModel.weightUiState,
-                isSaveButtonEnabled = isSaveButtonEnabled
+                isSaveButtonEnabled = isSaveButtonEnabled,
+                unitPreference = unitPreference
             )
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun WeightInputList(
     modifier: Modifier = Modifier,
@@ -219,8 +227,10 @@ fun WeightInputList(
     setWeightState: (WeightUiState) -> Unit,
     showDialog: Boolean,
     onItemClick: (Int) -> Unit,
-    isSaveButtonEnabled: Boolean
+    isSaveButtonEnabled: Boolean,
+    unitPreference: String
 ) {
+    var weightUiState by remember { mutableStateOf(weightUiState) }
     Column(
         modifier = modifier
             .padding(top = 8.dp, start = 16.dp, end = 16.dp),
@@ -237,7 +247,7 @@ fun WeightInputList(
             )
             Text(
                 modifier = Modifier.weight(1.5f, fill = true),
-                text = stringResource(R.string.actual_kg),
+                text = stringResource(R.string.actual) + " " + unitPreference,
                 textAlign = TextAlign.Center
             )
 
@@ -248,7 +258,7 @@ fun WeightInputList(
 
             Text(
                 modifier = Modifier.weight(1.5f, fill = true),
-                text = stringResource(R.string.standard_kg),
+                text = stringResource(R.string.standard) + " " + unitPreference,
                 textAlign = TextAlign.Center
             )
         }
@@ -257,6 +267,7 @@ fun WeightInputList(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             itemsIndexed(weightUiStateList) { index, weightItem ->
+
                 WeightCard(
                     weightUiState = weightItem,
                     onValueChanged = { weight ->
@@ -264,8 +275,10 @@ fun WeightInputList(
                     },
                     description = "Weight $index",
                     onItemClick = {
+                        weightUiState = weightItem
                         onItemClick(it)
-                    }
+                    },
+                    unitPreference = unitPreference
                 )
             }
         }
@@ -290,7 +303,7 @@ fun WeightInputList(
             },
             onUpdateWeight = onClickUpdate,
             showDialog = showDialog,
-            weightUiState = weightUiState,
+            weightUiState = weightUiState.copy(actualWeight = formatConsumption(weightUiState.actualWeight.toDoubleOrNull(), unitPreference)),
             isSaveButtonEnabled = isSaveButtonEnabled
         )
     }
@@ -302,7 +315,8 @@ fun WeightCard(
     weightUiState: WeightUiState,
     onValueChanged: (WeightUiState) -> Unit,
     description: String,
-    onItemClick: (Int) -> Unit
+    onItemClick: (Int) -> Unit,
+    unitPreference: String
 ) {
 
     Row(
@@ -320,7 +334,7 @@ fun WeightCard(
                 modifier = Modifier
                     .weight(1.5f)
                     .semantics { contentDescription = description },
-                value = if (weightUiState.actualWeight == stringResource(R.string._0_0)) "" else weightUiState.actualWeight,
+                value = if (weightUiState.actualWeight == stringResource(R.string._0_0) || weightUiState.actualWeight == "0.00") "" else formatConsumption(weightUiState.actualWeight.toDoubleOrNull(), unitPreference),
                 onValueChange = {
                     onValueChanged(
                         weightUiState.copy(
@@ -344,7 +358,7 @@ fun WeightCard(
 
             TextField(
                 modifier = Modifier.weight(1.5f),
-                value = weightUiState.standard,
+                value = formatConsumption(weightUiState.standard.toDoubleOrNull(), unitPreference),
                 onValueChange = {
                     onValueChanged(weightUiState.copy(standard = it))
                 },
@@ -359,7 +373,7 @@ fun WeightCard(
         }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun UpdateWeightDialog(
     modifier: Modifier = Modifier,
@@ -384,7 +398,8 @@ fun UpdateWeightDialog(
                 shape = MaterialTheme.shapes.extraLarge
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
@@ -395,7 +410,7 @@ fun UpdateWeightDialog(
                     )
 
                     TextField(
-                        value = if (weightUiState.actualWeight == stringResource(R.string._0_0)) actualWeight else weightUiState.actualWeight,
+                        value = if (weightUiState.actualWeight == stringResource(R.string._0_0) || weightUiState.actualWeight == "0.00") actualWeight else weightUiState.actualWeight,
                         onValueChange = {
                             actualWeight =  it
                             onChangedValue(weightUiState.copy(actualWeight =  it))

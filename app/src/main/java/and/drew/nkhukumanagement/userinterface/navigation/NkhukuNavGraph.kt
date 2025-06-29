@@ -6,7 +6,6 @@ import and.drew.nkhukumanagement.auth.SignInViewModel
 import and.drew.nkhukumanagement.prefs.UserPrefsViewModel
 import and.drew.nkhukumanagement.settings.AccountInfoScreen
 import and.drew.nkhukumanagement.settings.AccountInformationScreenNav
-import and.drew.nkhukumanagement.settings.SettingsDestination
 import and.drew.nkhukumanagement.settings.SettingsScreen
 import and.drew.nkhukumanagement.settings.SettingsScreenNav
 import and.drew.nkhukumanagement.userinterface.accounts.AccountsScreen
@@ -96,6 +95,8 @@ fun NkhukuNavHost(
     isEmailVerified: Boolean,
     isUserSignedIn: Boolean,
     isAccountSetupSkipped: Boolean,
+    unitPreference: String = "",
+    bagSize: String = ""
 ) {
     val appContext = LocalContext.current
     val googleAuthUiClient by lazy {
@@ -149,7 +150,9 @@ fun NkhukuNavHost(
                     navController.navigate(SettingsScreenNav)
                 },
                 contentType = contentType,
-                vaccineViewModel = vaccinationViewModel
+                vaccineViewModel = vaccinationViewModel,
+                unitPreference = unitPreference,
+                bagSize = bagSize
             )
 
             accountDetailsGraph(
@@ -192,7 +195,8 @@ fun NkhukuNavHost(
                 contentType = contentType,
                 onClickSettings = {
                     navController.navigate(SettingsScreenNav)
-                }
+                },
+                userPrefsViewModel = userPrefsViewModel
             )
         }
 
@@ -227,7 +231,9 @@ fun NkhukuNavHost(
                     navController.navigate(SettingsScreenNav)
                 },
                 contentType = contentType,
-                vaccineViewModel = vaccinationViewModel
+                vaccineViewModel = vaccinationViewModel,
+                unitPreference = unitPreference,
+                bagSize = bagSize
                 )
 
             accountDetailsGraph(
@@ -270,7 +276,8 @@ fun NkhukuNavHost(
                 contentType = contentType,
                 onClickSettings = {
                     navController.navigate(SettingsScreenNav)
-                }
+                },
+                userPrefsViewModel = userPrefsViewModel
             )
         }
 
@@ -308,7 +315,9 @@ fun NkhukuNavHost(
                     navController.navigate(SettingsScreenNav)
                 },
                 contentType = contentType,
-                vaccineViewModel = vaccinationViewModel
+                vaccineViewModel = vaccinationViewModel,
+                unitPreference = unitPreference,
+                bagSize = bagSize
                 )
             accountDetailsGraph(
                 navController = navController,
@@ -350,7 +359,8 @@ fun NkhukuNavHost(
                 contentType = contentType,
                 onClickSettings = {
                     navController.navigate(SettingsScreenNav)
-                }
+                },
+                userPrefsViewModel = userPrefsViewModel
             )
         }
     }
@@ -512,7 +522,9 @@ fun NavGraphBuilder.homeGraph(
     contentType: ContentType,
     userPrefsViewModel: UserPrefsViewModel,
     onClickSettings: () -> Unit,
-    vaccineViewModel: VaccinationViewModel
+    vaccineViewModel: VaccinationViewModel,
+    unitPreference: String,
+    bagSize: String
 ) {
     navigation<HomeGraph>(
         startDestination = HomeScreenNav
@@ -529,6 +541,8 @@ fun NavGraphBuilder.homeGraph(
                 onClickSettings = onClickSettings,
                 contentType = contentType,
                 userPrefsViewModel = userPrefsViewModel,
+                unitPreference = unitPreference,
+                bagSize = bagSize
             )
         }
 
@@ -599,7 +613,9 @@ fun NavGraphBuilder.homeGraph(
                     navController.navigate(route = EggsInventoryScreenNav(flockId = flockId, eggId = eggsId))
                 },
                 contentType = contentType,
-                flockId = args.flockId
+                flockId = args.flockId,
+                bagSize = bagSize,
+                unitPreference = unitPreference
             )
         }
         composable<FlockHealthScreenNav>(
@@ -668,7 +684,8 @@ fun NavGraphBuilder.homeGraph(
             WeightScreen(
                 onNavigateUp = { navController.navigateUp() },
                 contentType = contentType,
-                flockId = args.flockId
+                flockId = args.flockId,
+                unitPreference = unitPreference
             )
         }
         composable<FeedScreenNav>(
@@ -690,7 +707,8 @@ fun NavGraphBuilder.homeGraph(
                 onNavigateUp = { navController.navigateUp() },
                 flockEntryViewModel = flockEntryViewModel,
                 contentType = contentType,
-                flockId = args.flockId
+                flockId = args.flockId,
+                unitPreference = unitPreference
             )
         }
 
@@ -908,7 +926,9 @@ fun NavGraphBuilder.plannerGraph(
     navController: NavHostController,
     plannerViewModel: PlannerViewModel,
     onClickSettings: () -> Unit,
-    contentType: ContentType
+    contentType: ContentType,
+    userPrefsViewModel: UserPrefsViewModel
+
 ) {
     navigation<PlannerGraph>(
         startDestination = PlannerScreenNav
@@ -918,14 +938,16 @@ fun NavGraphBuilder.plannerGraph(
                 navigateToResultsScreen = { navController.navigate(PlannerResultsScreenNav) },
                 plannerViewModel = plannerViewModel,
                 onClickSettings = onClickSettings,
-                contentType = contentType
+                contentType = contentType,
+                userPrefsViewModel = userPrefsViewModel
             )
         }
         composable<PlannerResultsScreenNav> {
             PlannerResultScreen(
                 onNavigateUp = { navController.navigateUp() },
                 plannerViewModel = plannerViewModel,
-                contentType = contentType
+                contentType = contentType,
+                userPrefsViewModel = userPrefsViewModel
             )
         }
     }

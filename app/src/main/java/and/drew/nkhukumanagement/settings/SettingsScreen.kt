@@ -15,24 +15,24 @@ import and.drew.nkhukumanagement.utils.ShowSuccessfulDialog
 import and.drew.nkhukumanagement.utils.getAllCurrenciesInUse
 import android.Manifest
 import android.app.LocaleManager
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.icu.util.Currency
 import android.icu.util.ULocale
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,7 +40,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
@@ -77,10 +79,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -143,7 +145,47 @@ fun SettingsScreen(
     //ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0]
 
     val appLanguages = context.resources.getStringArray(R.array.app_languages)
-    var expanded by remember { mutableStateOf(false) }
+    var isTraySizeDropdownExpanded by remember { mutableStateOf(false) }
+    var isMassUnitExpanded by remember { mutableStateOf(false) }
+    var isBagSizeExpanded by remember { mutableStateOf(false) }
+
+    val isDownloading by backupAndRestore.isDownloading.collectAsState()
+    val isDownloadingSuccessful by backupAndRestore.isDownloadingSuccessful.collectAsState()
+
+    val error by backupAndRestore.errorMessage.collectAsState()
+    val isUploading by backupAndRestore.isUploading.collectAsState()
+    val isUploadingSuccessful by backupAndRestore.isUploadingSuccessful.collectAsState()
+
+    LaunchedEffect(key1 = error, key2 = isUploadingSuccessful) {
+        if (error?.isNotEmpty() == true) {
+            snackbarHostState.showSnackbar(
+                message = error ?: "",
+                duration = SnackbarDuration.Long
+            )
+        }
+        if (isUploadingSuccessful) {
+            snackbarHostState.showSnackbar(
+                message = "Successfully uploaded backup",
+                duration = SnackbarDuration.Long
+            )
+        }
+    }
+
+    LaunchedEffect(isDownloadingSuccessful) {
+        if (isDownloadingSuccessful) {
+            //Log.i("isDownloadingSuccessful", restoreBackupUri.toString())
+            isFileValid = backupAndRestore.isFileValid(restoreBackupUri)
+            if (!isFileValid) {
+                //showSuccessfulAfterRestoreDialog = true
+//                snackbarHostState.showSnackbar(
+//                    message = "Please try again.",
+//                    duration = SnackbarDuration.Long
+//                )
+            } else {
+                showRestoreDialog = true
+            }
+        }
+    }
 
     LaunchedEffect(key1 = selectedLocale) {
  //       Log.i("Default_Language", selectedLocale.language.toString())
@@ -242,7 +284,8 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -269,36 +312,43 @@ fun SettingsScreen(
                 },
                 onClickBackup = {
 
-                    when (PackageManager.PERMISSION_GRANTED) {
-                        ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                        ) -> {
-                            coroutineScope.launch {
-                                isCircularIndicatorShowing = true
-                                delay(3000)
-                                backupAndRestore.backupAndShareFile()
-                            }.invokeOnCompletion {
-                                isCircularIndicatorShowing = false
-                            }
-                        }
+//                    when (PackageManager.PERMISSION_GRANTED) {
+//                        ContextCompat.checkSelfPermission(
+//                            context,
+//                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+//                        ) -> {
+//                            coroutineScope.launch {
+//                                isCircularIndicatorShowing = true
+//                                delay(3000)
+//                                backupAndRestore.backupAndShareFile()
+//                            }.invokeOnCompletion {
+//                                isCircularIndicatorShowing = false
+//                            }
+//                        }
+//
+//                        else -> {
+//                            requestStoragePermission.launch(
+//                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+//                            )
+//                        }
+//                    }
 
-                        else -> {
-                            requestStoragePermission.launch(
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE
-                            )
-                        }
+                    coroutineScope.launch {
+                        backupAndRestore.backupFileAndUploadToFirebaseStorage()
                     }
 
                 },
-                isCircularIndicatorShowing = isCircularIndicatorShowing,
+                isCircularIndicatorShowing = isDownloading || isUploading,
                 onClickRestore = {
-                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-                        .apply {
-                            type = "application/octet-stream"
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                        }
-                    launcher.launch(intent)
+//                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+//                        .apply {
+//                            type = "application/octet-stream"
+//                            addCategory(Intent.CATEGORY_OPENABLE)
+//                        }
+//                    launcher.launch(intent)
+                   coroutineScope.launch {
+                       restoreBackupUri = async { backupAndRestore.downloadFileFromFirebaseStorage() }.await()
+                   }
                 },
                 isRestoreBackupDialogShowing = showRestoreDialog,
                 onConfirmRestore = {
@@ -359,17 +409,51 @@ fun SettingsScreen(
                 },
                 defaultLocale = defaultLocale,
                 onExpand = {
-                    expanded = !expanded
+                    isTraySizeDropdownExpanded = !isTraySizeDropdownExpanded
                 },
                 onOptionSelected = {
                     userPrefsViewModel.updateTraySize(it)
                 },
                 onDismissTraySizeDropDownMenu = {
-                    expanded = false
+                    isTraySizeDropdownExpanded = false
                 },
-                expanded = expanded,
+                expanded = isTraySizeDropdownExpanded,
                 traySize = userPreferences.traySize,
-                traySizeOptions = listOf("6", "12", "18", "24", "30") ,
+                traySizeOptions = listOf("6", "12", "18", "24", "30"),
+                onMassUnitExpand = {
+                    isMassUnitExpanded = !isMassUnitExpanded
+                },
+                isMassUnitExpanded = isMassUnitExpanded,
+                onDismissMassUnitDropDownMenu = {
+                    isMassUnitExpanded = false
+                },
+                massUnit = userPreferences.massSystem,
+                massUnitOptions = listOf("Kilogram (Kg)", "Pound (lb)", "Ounce (oz)", "Gram (g)"),
+                onMassUnitOptionSelected = {
+                    userPrefsViewModel.updateMassUnit(it)
+                    if (it == "Ounce (oz)" || it == "Pound (lb)") {
+                        userPrefsViewModel.updateBagSize("50 lb")
+                    } else {
+                        userPrefsViewModel.updateBagSize("50 Kg")
+                    }
+                },
+                onBagSizeExpand = {
+                    isBagSizeExpanded = !isBagSizeExpanded
+                },
+                isBagSizeExpanded = isBagSizeExpanded,
+                onDismissBagSizeDropDownMenu = {
+                    isBagSizeExpanded = false
+                },
+                bagSize = userPreferences.bagSize,
+                bagSizeOptions = if(userPreferences.massSystem == "Kilogram (Kg)" || userPreferences.massSystem == "Gram (g)") listOf("50 Kg", "25 kg") else listOf("50 lb", "25 lb"),
+                onBagSizeOptionSelected = {
+                    userPrefsViewModel.updateBagSize(it)
+                    if (it == "50 lb") {
+                        userPrefsViewModel.updateMassUnit("Pound (lb)")
+                    } else {
+                        userPrefsViewModel.updateMassUnit("Kilogram (Kg)")
+                    }
+                }
             )
         }
     }
@@ -409,7 +493,20 @@ fun SettingsCard(
     onExpand: (Boolean) -> Unit,
     expanded: Boolean,
     onDismissTraySizeDropDownMenu: () -> Unit,
+    massUnit: String,
+    massUnitOptions: List<String>,
+    onMassUnitOptionSelected: (String) -> Unit,
+    onMassUnitExpand: (Boolean) -> Unit,
+    isMassUnitExpanded: Boolean,
+    onDismissMassUnitDropDownMenu: () -> Unit,
+    isBagSizeExpanded: Boolean,
+    bagSizeOptions: List<String>,
+    onBagSizeOptionSelected: (String) -> Unit,
+    onBagSizeExpand: (Boolean) -> Unit,
+    onDismissBagSizeDropDownMenu: () -> Unit,
+    bagSize: String
 ) {
+    val scrollState = rememberScrollState()
     Box(
         modifier = modifier
             .padding(16.dp)
@@ -425,6 +522,7 @@ fun SettingsCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .alpha(if (isCircularIndicatorShowing) 0.5f else 1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -630,6 +728,26 @@ fun SettingsCard(
                 onExpand = onExpand,
                 label = stringResource(R.string.tray_size),
                 expanded = expanded,
+            )
+
+            DropDownMenuDialog(
+                value = massUnit,
+                onDismissed = onDismissMassUnitDropDownMenu,
+                options = massUnitOptions,
+                onOptionSelected = onMassUnitOptionSelected ,
+                onExpand = onMassUnitExpand,
+                label = stringResource(R.string.mass_unit),
+                expanded = isMassUnitExpanded,
+            )
+
+            DropDownMenuDialog(
+                value = bagSize,
+                onDismissed = onDismissBagSizeDropDownMenu,
+                options = bagSizeOptions,
+                onOptionSelected = onBagSizeOptionSelected ,
+                onExpand = onBagSizeExpand,
+                label = stringResource(R.string.bag_size),
+                expanded = isBagSizeExpanded,
             )
 
         }

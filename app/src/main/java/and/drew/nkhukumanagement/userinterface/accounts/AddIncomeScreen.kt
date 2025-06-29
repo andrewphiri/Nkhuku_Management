@@ -183,7 +183,7 @@ fun AddIncomeScreen(
 
     LaunchedEffect(Unit) {
         if (incomeID > 0) {
-            incomeViewModel.getIncome(incomeID)
+
         }
         async { accountsViewModel.getAccountsWithIncome(accountID) }.await()
         async { editFlockViewModel.getFlock(accountsWithIncome?.accountsSummary?.flockUniqueID) }.await()
@@ -202,6 +202,7 @@ fun AddIncomeScreen(
      */
     LaunchedEffect(income) {
         if (incomeID > 0) {
+            async { incomeViewModel.getIncome(incomeID) }.await()
             income?.let { incomeViewModel.updateState(it.toIncomeUiState(enabled = true)) }
         }
     }

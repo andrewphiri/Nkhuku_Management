@@ -84,6 +84,8 @@ fun NkhukuApp(
     isEmailVerified: Boolean,
     isUserSignedIn: Boolean,
     isAccountSetupSkipped: Boolean,
+    unitPreference: String = "",
+    bagSize: String = ""
 ) {
 
     val navBarRoutes = listOf(
@@ -153,7 +155,9 @@ fun NkhukuApp(
                     userPrefsViewModel = userPrefsViewModel,
                     isEmailVerified = isEmailVerified,
                     isUserSignedIn = isUserSignedIn,
-                    isAccountSetupSkipped = isAccountSetupSkipped
+                    isAccountSetupSkipped = isAccountSetupSkipped,
+                    unitPreference = unitPreference,
+                    bagSize = bagSize
                 )
             }
         }

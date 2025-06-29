@@ -22,6 +22,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -67,7 +68,7 @@ class WeightViewModel @Inject constructor(
 //                flockRepository.getWeightItem(it)
 //            }
     private val _weight = MutableStateFlow<Weight?>(null)
-    val weight: Flow<Weight?> = _weight
+    val weight: Flow<Weight?> = _weight.asStateFlow()
 
 //        flockRepository.getAllFlocksWithWeight(flockID)
 //            .map { it }

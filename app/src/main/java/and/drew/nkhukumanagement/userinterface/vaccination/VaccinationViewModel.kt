@@ -147,6 +147,8 @@ class VaccinationViewModel @Inject constructor(
      */
     suspend fun saveVaccination(vaccinationUiState: VaccinationUiState) {
         if (vaccinationUiState.isValid()) {
+            Log.i("CHECK_ID", vaccinationUiState.isValid().toString())
+            Log.i("CHECK_ID", vaccinationUiState.toVaccination().toString())
             flockRepository.insertVaccination(vaccinationUiState.toVaccination())
         }
     }
@@ -187,7 +189,6 @@ class VaccinationViewModel @Inject constructor(
     /**
      * Set initial vaccination dates. This will be based on the breed selected
      */
-    @RequiresApi(Build.VERSION_CODES.O)
     fun setInitialVaccinationDates(vaccinationUiStateList: SnapshotStateList<VaccinationUiState>) {
         initialVaccinationList = vaccinationUiStateList
     }

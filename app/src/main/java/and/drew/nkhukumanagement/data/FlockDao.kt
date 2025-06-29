@@ -132,7 +132,7 @@ interface FlockDao {
     fun retrieveVaccination(id: Int): Flow<Vaccination>
 
     @Query("SELECT * FROM health WHERE id = :id")
-    fun retrieveHealth(id: Int): Flow<FlockHealth>
+    fun retrieveHealth(id: Int): Flow<FlockHealth?>
 
     @Query("SELECT * FROM weight WHERE id = :id")
     fun retrieveWeight(id: Int): Flow<Weight>

@@ -13,4 +13,6 @@ message UserPreferences {
   bool skipAccountSetup = 7;
   string languageLocale = 8;
   string traySize = 9;
+  string massSystem = 10;
+  string bagSize = 11;
 }

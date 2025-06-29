@@ -150,7 +150,6 @@ fun Flock.toFlockUiState(enabled: Boolean = false): FlockUiState =
 /**
  * Check if entry entered is valid
  */
-@RequiresApi(Build.VERSION_CODES.O)
 fun FlockUiState.isValid(): Boolean {
     return breed.isNotBlank() &&
             flockType.isNotBlank() &&

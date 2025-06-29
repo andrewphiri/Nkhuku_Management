@@ -10,6 +10,8 @@ import and.drew.nkhukumanagement.userinterface.flock.FlockUiState
 import and.drew.nkhukumanagement.userinterface.navigation.NkhukuDestinations
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DropDownMenuAutoCompleteDialog
+import and.drew.nkhukumanagement.utils.convertToKg
+import and.drew.nkhukumanagement.utils.formatConsumption
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -81,6 +83,7 @@ import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
+import java.util.Locale
 
 object FeedScreenDestination : NkhukuDestinations {
     override val icon: ImageVector
@@ -103,7 +106,6 @@ data class FeedScreenNav(
     val flockId: Int,
 )
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FeedScreen(
     modifier: Modifier = Modifier,
@@ -112,7 +114,8 @@ fun FeedScreen(
     flockId: Int,
     feedViewModel: FeedViewModel = hiltViewModel(),
     flockEntryViewModel: FlockEntryViewModel,
-    contentType: ContentType
+    contentType: ContentType,
+    unitPreference: String
 ) {
     val coroutineScope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -179,11 +182,11 @@ fun FeedScreen(
             feedIDClicked = it
             feedViewModel.setFeedID(it)
         },
-        isSaveButtonEnabled = isSaveButtonEnabled
+        isSaveButtonEnabled = isSaveButtonEnabled,
+        unitPreference = unitPreference
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainFeedScreen(
     modifier: Modifier = Modifier,
@@ -199,7 +202,8 @@ fun MainFeedScreen(
     setFeedState: (FeedUiState) -> Unit,
     contentType: ContentType,
     onItemClick: (Int) -> Unit,
-    isSaveButtonEnabled: Boolean
+    isSaveButtonEnabled: Boolean,
+    unitPreference: String
 ) {
     BackHandler {
         onNavigateUp()
@@ -255,7 +259,7 @@ fun MainFeedScreen(
                 onUpdateFeed = { feedUiState ->
                     if (checkNumberExceptions(feedUiState)) {
                         coroutineScope.launch {
-                            updateFeed(feedUiState)
+                            updateFeed(feedUiState.copy(actualConsumed = convertToKg(value = feedUiState.actualConsumed.toDoubleOrNull(), fromUnit = unitPreference).toString()))
                             showDialog = false
                         }
                     } else {
@@ -271,13 +275,13 @@ fun MainFeedScreen(
                 feedList = feedStateList,
                 feedUiState = feedUiState,
                 setFeedState = setFeedState,
-                isSaveButtonEnabled = isSaveButtonEnabled
+                isSaveButtonEnabled = isSaveButtonEnabled,
+                unitPreference = unitPreference
             )
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FeedConsumptionList(
     modifier: Modifier = Modifier,
@@ -295,7 +299,8 @@ fun FeedConsumptionList(
     onUpdateFeed: (FeedUiState) -> Unit,
     isAddFeedTypeDialogShowing: Boolean,
     onTypeDialogShowing: () -> Unit,
-    isSaveButtonEnabled: Boolean
+    isSaveButtonEnabled: Boolean,
+    unitPreference: String
 ) {
     Column(
         modifier = modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp),
@@ -309,19 +314,25 @@ fun FeedConsumptionList(
                 text = ""
             )
             Text(
-                modifier = Modifier.weight(1.41f, fill = true).padding(4.dp),
+                modifier = Modifier
+                    .weight(1.41f, fill = true)
+                    .padding(4.dp),
                 text = stringResource(R.string.consumption_per_bird),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleSmall
             )
 
             VerticalDivider(
-                modifier = Modifier.weight(0.01f).fillMaxHeight(),
+                modifier = Modifier
+                    .weight(0.01f)
+                    .fillMaxHeight(),
                 thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
             )
 
             Text(
-                modifier = Modifier.weight(1.51f, fill = true).padding(4.dp),
+                modifier = Modifier
+                    .weight(1.51f, fill = true)
+                    .padding(4.dp),
                 text = stringResource(R.string.total_feed_consumed),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleSmall
@@ -337,7 +348,7 @@ fun FeedConsumptionList(
             )
             Text(
                 modifier = Modifier.weight(0.7f, fill = true),
-                text = stringResource(R.string.actual_kg),
+                text = stringResource(R.string.actual) + "\n" + unitPreference,
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = TextUnit(10f, TextUnitType.Sp),
                 textAlign = TextAlign.Center
@@ -345,7 +356,7 @@ fun FeedConsumptionList(
 
             Text(
                 modifier = Modifier.weight(0.7f, fill = true),
-                text = stringResource(R.string.standard_kg),
+                text = stringResource(R.string.standard) + "\n" + unitPreference,
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = TextUnit(10f, TextUnitType.Sp),
                 textAlign = TextAlign.Center
@@ -357,7 +368,7 @@ fun FeedConsumptionList(
 
             Text(
                 modifier = Modifier.weight(0.75f, fill = true),
-                text = stringResource(R.string.actual_kg),
+                text = stringResource(R.string.actual) + "\n" + unitPreference,
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = TextUnit(10f, TextUnitType.Sp),
                 textAlign = TextAlign.Center
@@ -365,7 +376,7 @@ fun FeedConsumptionList(
 
             Text(
                 modifier = Modifier.weight(0.75f, fill = true),
-                text = stringResource(R.string.standard_kg),
+                text = stringResource(R.string.standard) + "\n" + unitPreference,
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = TextUnit(10f, TextUnitType.Sp),
                 textAlign = TextAlign.Center
@@ -384,7 +395,8 @@ fun FeedConsumptionList(
                     },
                     onItemClick = {
                         onItemClick(it)
-                    }
+                    },
+                    unitPreference = unitPreference
                 )
             }
         }
@@ -396,7 +408,7 @@ fun FeedConsumptionList(
             onDismiss = onDismiss,
             onTypeDialogShowing = onTypeDialogShowing,
             onInnerDialogDismiss = onInnerDialogDismiss,
-            feedUiState = feedUiState,
+            feedUiState = feedUiState.copy(actualConsumed = formatConsumption(feedUiState.actualConsumed.toDoubleOrNull(), unitPreference)),
             isAddFeedTypeDialogShowing = isAddFeedTypeDialogShowing,
             onChangedValue = {
                 try {
@@ -405,6 +417,7 @@ fun FeedConsumptionList(
                             type = it.type,
                             actualConsumed = it.actualConsumed, actualConsumptionPerBird = String
                                 .format(
+                                    Locale.getDefault(),
                                     "%.3f",
                                     it.actualConsumed.toDouble() / flockUiState.getStock()
                                         .toDouble()
@@ -427,31 +440,35 @@ fun FeedConsumptionList(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FeedCardItem(
     modifier: Modifier = Modifier,
     feedUiState: FeedUiState,
     onChangedValue: (FeedUiState) -> Unit = {},
-    onItemClick: (Int) -> Unit
+    onItemClick: (Int) -> Unit,
+    unitPreference: String
 ) {
 
     Row(
-        modifier = modifier.height(IntrinsicSize.Max).padding(4.dp)
+        modifier = modifier
+            .height(IntrinsicSize.Max)
+            .padding(4.dp)
             .clickable(onClick = { onItemClick(feedUiState.id) }),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
 
         Text(
-            modifier = Modifier.weight(0.5f).padding(end = 4.dp),
+            modifier = Modifier
+                .weight(0.5f)
+                .padding(end = 4.dp),
             text = feedUiState.week,
             style = MaterialTheme.typography.bodyMedium
         )
 
         TextField(
             modifier = Modifier.weight(0.7f),
-            value = feedUiState.actualConsumptionPerBird,
+            value = formatConsumption(feedUiState.actualConsumptionPerBird.toDoubleOrNull(), unitPreference),
             onValueChange = {
                 onChangedValue(feedUiState.copy(actualConsumptionPerBird = it))
             },
@@ -468,13 +485,15 @@ fun FeedCardItem(
         )
 
         VerticalDivider(
-            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            modifier = Modifier
+                .weight(0.01f)
+                .fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
 
         TextField(
             modifier = Modifier.weight(0.7f),
-            value = feedUiState.standardConsumptionPerBird,
+            value = formatConsumption(feedUiState.standardConsumptionPerBird.toDoubleOrNull(), unitPreference),
             onValueChange = {
                 onChangedValue(feedUiState.copy(standardConsumptionPerBird = it))
             },
@@ -491,13 +510,15 @@ fun FeedCardItem(
         )
 
         VerticalDivider(
-            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            modifier = Modifier
+                .weight(0.01f)
+                .fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
 
         TextField(
             modifier = Modifier.weight(0.75f),
-            value = feedUiState.actualConsumed,
+            value = formatConsumption(feedUiState.actualConsumed.toDoubleOrNull(), unitPreference),
             onValueChange = {
                 onChangedValue(feedUiState.copy(actualConsumed = it))
             },
@@ -513,13 +534,15 @@ fun FeedCardItem(
             }
         )
         VerticalDivider(
-            modifier = Modifier.weight(0.01f).fillMaxHeight(),
+            modifier = Modifier
+                .weight(0.01f)
+                .fillMaxHeight(),
             thickness = Dp.Hairline, color = MaterialTheme.colorScheme.tertiary
         )
 
         TextField(
             modifier = Modifier.weight(0.75f),
-            value = feedUiState.standardConsumption,
+            value = formatConsumption(feedUiState.standardConsumption.toDoubleOrNull(), unitPreference),
             onValueChange = {
                 onChangedValue(feedUiState.copy(standardConsumption = it))
             },
@@ -537,7 +560,7 @@ fun FeedCardItem(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun UpdateFeedDialog(
@@ -596,7 +619,7 @@ fun UpdateFeedDialog(
                     }
 
                     TextField(
-                        value = if (feedUiState.actualConsumed == stringResource(R.string._0_0)) actualFeedConsumed else feedUiState.actualConsumed,
+                        value = if (feedUiState.actualConsumed == stringResource(R.string._0_0) || feedUiState.actualConsumed == "0.00") actualFeedConsumed else feedUiState.actualConsumed,
                         onValueChange = {
                             actualFeedConsumed =  it
                             onChangedValue(feedUiState.copy(actualConsumed =  it))
@@ -640,7 +663,9 @@ fun UpdateFeedDialog(
                             }
                         ) {
                             Text(
-                                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
                                 text = stringResource(R.string.cancel),
                                 textAlign = TextAlign.Center
                             )
@@ -652,7 +677,9 @@ fun UpdateFeedDialog(
                             onClick = { onUpdateFeed(feedUiState.copy( actualConsumed = actualFeedConsumed)) }
                         ) {
                             Text(
-                                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
                                 text = stringResource(R.string.save),
                                 textAlign = TextAlign.Center
                             )

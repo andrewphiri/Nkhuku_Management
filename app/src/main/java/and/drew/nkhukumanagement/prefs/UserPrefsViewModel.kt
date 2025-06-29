@@ -75,4 +75,16 @@ class UserPrefsViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateMassUnit(massUnit: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateMassSystem(massUnit)
+        }
+    }
+
+    fun updateBagSize(size: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateBagSize(size)
+        }
+    }
 }

@@ -356,7 +356,7 @@ fun DropDownMenuDialog(
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable, expanded),
+                    .menuAnchor(MenuAnchorType.PrimaryEditable, true),
                 textStyle = MaterialTheme.typography.bodySmall,
                 readOnly = true,
                 value = value,
@@ -428,7 +428,7 @@ fun DropDownMenuAutoCompleteDialog(
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryEditable, expanded),
+                    .menuAnchor(MenuAnchorType.PrimaryEditable, true),
                 textStyle = MaterialTheme.typography.bodySmall,
                 value = value,
                 onValueChange = {

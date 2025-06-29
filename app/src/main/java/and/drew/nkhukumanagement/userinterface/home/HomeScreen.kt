@@ -144,7 +144,9 @@ fun HomeScreen(
     feedViewModel: FeedViewModel = hiltViewModel(),
     weightViewModel: WeightViewModel = hiltViewModel(),
     eggsInventoryViewModel: EggsInventoryViewModel = hiltViewModel(),
-    userPrefsViewModel: UserPrefsViewModel
+    userPrefsViewModel: UserPrefsViewModel,
+    unitPreference: String,
+    bagSize: String
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val homeUiState by homeViewModel.homeUiState.collectAsState()
@@ -201,6 +203,7 @@ fun HomeScreen(
                 }
                 coroutineScope.launch {
                     val uniqueId = homeUiState?.get(index)?.uniqueId
+                    Log.i("UNIQUE_ID", uniqueId.toString())
                     if (uniqueId != null) {
                         flockEntryViewModel.deleteFlock(uniqueId)
                         vaccinationViewModel.deleteVaccination(uniqueId)
@@ -355,12 +358,13 @@ fun HomeScreen(
             onOverflowMenuClicked = {
                 flockID = it
                 vaccinationViewModel.setFlockID(flockID)
-            }
+            },
+            unitPreference = unitPreference,
+            bagSize = bagSize
         )
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreenListAndDetails(
     modifier: Modifier = Modifier,
@@ -381,7 +385,9 @@ fun HomeScreenListAndDetails(
     weightViewModel: WeightViewModel,
     eggsInventoryViewModel: EggsInventoryViewModel,
     contentType: ContentType,
-    onOverflowMenuClicked: (Int) -> Unit
+    onOverflowMenuClicked: (Int) -> Unit,
+    unitPreference: String,
+    bagSize: String
 ) {
     var showDetailsPane by rememberSaveable { mutableStateOf(false) }
     var currentScreen by rememberSaveable { mutableStateOf(DETAILS_SCREEN) }
@@ -460,7 +466,9 @@ fun HomeScreenListAndDetails(
                                     flockID = flockId
                                     currentScreen = EGG_INVENTORY_SCREEN
                                 },
-                                flockId = flockID
+                                flockId = flockID,
+                                bagSize = bagSize,
+                                unitPreference = unitPreference
                             )
                         }
 
@@ -501,7 +509,8 @@ fun HomeScreenListAndDetails(
                                         currentScreen = DETAILS_SCREEN
                                     },
                                     contentType = contentType,
-                                    flockId = flockID
+                                    flockId = flockID,
+                                    unitPreference = unitPreference
                                 )
                             }
                         }
@@ -518,7 +527,8 @@ fun HomeScreenListAndDetails(
                                     },
                                     flockEntryViewModel = flockEntryViewModel,
                                     contentType = contentType,
-                                    flockId = flockID
+                                    flockId = flockID,
+                                    unitPreference = unitPreference
                                 )
                             }
                         }

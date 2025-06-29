@@ -83,6 +83,9 @@ class MainActivity : AppCompatActivity() {
             val emailVerified by signInViewModel.emailVerified.collectAsState()
             val userSignedIn by signInViewModel.userLoggedIn.collectAsState()
             val skipAccount by userPrefsViewModel.skipAccount.collectAsState()
+            val userPreference by userPrefsViewModel.initialPreferences.collectAsState(
+                UserPreferences.getDefaultInstance()
+            )
 //            var isEmailVerified by remember { mutableStateOf(false) }
 //            emailVerified.observe(this) {
 //                isEmailVerified = it
@@ -130,6 +133,8 @@ class MainActivity : AppCompatActivity() {
                         isUserSignedIn = userSignedIn,
                         isEmailVerified = emailVerified,
                         isAccountSetupSkipped = skipAccount,
+                        unitPreference = userPreference.massSystem,
+                        bagSize = userPreference.bagSize
                     )
                 }
             }

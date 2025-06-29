@@ -4,6 +4,8 @@ import and.drew.nkhukumanagement.FlockManagementTopAppBar
 import and.drew.nkhukumanagement.R
 import and.drew.nkhukumanagement.backupAndExport.ExportRoomAsPDFViewModel
 import and.drew.nkhukumanagement.backupAndExport.ExportRoomViewModel
+import and.drew.nkhukumanagement.billing.BillingManager
+import and.drew.nkhukumanagement.billing.BillingState
 import and.drew.nkhukumanagement.data.EggsSummary
 import and.drew.nkhukumanagement.data.Flock
 import and.drew.nkhukumanagement.data.FlockWithFeed
@@ -18,10 +20,15 @@ import and.drew.nkhukumanagement.userinterface.weight.toWeightUiState
 import and.drew.nkhukumanagement.utils.BaseSingleRowDetailsItem
 import and.drew.nkhukumanagement.utils.ContentType
 import and.drew.nkhukumanagement.utils.DateUtils
+import and.drew.nkhukumanagement.utils.convertToKg
+import and.drew.nkhukumanagement.utils.convertWeight
+import and.drew.nkhukumanagement.utils.formatConsumption
+import and.drew.nkhukumanagement.utils.formatToKgConsumption
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -45,6 +52,7 @@ import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material.icons.outlined.Scale
 import androidx.compose.material.icons.outlined.Vaccines
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,6 +63,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -74,6 +83,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -83,6 +93,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.android.billingclient.api.ProductDetails
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -129,8 +140,11 @@ fun FlockDetailsScreen(
     detailsViewModel: FlockDetailsViewModel = hiltViewModel(),
     contentType: ContentType,
     exportRoomViewModel: ExportRoomViewModel = hiltViewModel(),
-    exportRoomAsPDFViewModel: ExportRoomAsPDFViewModel = hiltViewModel()
+    exportRoomAsPDFViewModel: ExportRoomAsPDFViewModel = hiltViewModel(),
+    unitPreference: String,
+    bagSize: String
 ) {
+    val activity = LocalActivity.current
     val flockWithVaccinations by detailsViewModel
         .flockWithVaccinationsStateFlow
         .collectAsState(
@@ -189,12 +203,17 @@ fun FlockDetailsScreen(
     val coroutineScope = rememberCoroutineScope()
     var isCircularIndicatorShowing by remember {mutableStateOf(false)}
 
+    var isLoading by remember { mutableStateOf(false) }
+    var showPlanDialog by remember { mutableStateOf(false) }
+    var selectedProductDetails by remember { mutableStateOf<ProductDetails?>(null) }
+    var selectedOfferToken by remember { mutableStateOf<String?>(null) }
+
     val requestStoragePermission = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             coroutineScope.launch {
-                exportRoomViewModel.exportRoomAsExcelFileAndShare(flock ?: return@launch)
+                exportRoomViewModel.exportRoomAsExcelFileAndShare(flock ?: return@launch, unitPreference)
             }
         } else {
             coroutineScope.launch {
@@ -225,6 +244,44 @@ fun FlockDetailsScreen(
         }
     }
 
+    // ✨ Subscription Plan Dialog
+//    if (showPlanDialog && selectedProductDetails != null && selectedOfferToken != null) {
+//        AlertDialog(
+//            onDismissRequest = { showPlanDialog = false },
+//            title = { Text("Premium Plan") },
+//            text = {
+//                Column {
+//                    Text("Unlock export functionality by subscribing:")
+//                    Text(
+//                        text = selectedProductDetails!!.name,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                    Text("Price: ${selectedProductDetails!!.subscriptionOfferDetails!!.first().pricingPhases.pricingPhaseList.first().formattedPrice}")
+//                }
+//            },
+//            confirmButton = {
+//                TextButton(onClick = {
+//                    showPlanDialog = false
+//                    coroutineScope.launch {
+//                        selectedProductDetails?.let { product ->
+//                            selectedOfferToken?.let { token ->
+//                                val billingManager = BillingManager(context)
+//                                activity?.let { billingManager.launchSubscriptionFlow(it, product, token) }
+//                            }
+//                        }
+//                    }
+//                }) {
+//                    Text("Subscribe")
+//                }
+//            },
+//            dismissButton = {
+//                TextButton(onClick = { showPlanDialog = false }) {
+//                    Text("Cancel")
+//                }
+//            }
+//        )
+//    }
+
     MainFlockDetailsScreen(
         modifier = modifier,
         canNavigateBack = canNavigateBack,
@@ -244,7 +301,7 @@ fun FlockDetailsScreen(
         eggsSummary = flockAndEggsSummary?.eggsSummary,
         contentType = contentType,
         navigateToEggsInventoryScreen = { navigateToEggsInventoryScreen(it, flockId) },
-        isCircularIndicatorShowing = isExportingAsPDF || isExportingExcel,
+        isCircularIndicatorShowing = isExportingAsPDF || isExportingExcel || isLoading,
         showExportButton = true,
         onClickExportAsExcel = {
             when (PackageManager.PERMISSION_GRANTED) {
@@ -255,7 +312,7 @@ fun FlockDetailsScreen(
                     coroutineScope.launch {
                         isCircularIndicatorShowing = true
                         delay(3000)
-                        exportRoomViewModel.exportRoomAsExcelFileAndShare(flock ?: return@launch)
+                        exportRoomViewModel.exportRoomAsExcelFileAndShare(flock ?: return@launch, unitPreference)
                     }.invokeOnCompletion {
                         isCircularIndicatorShowing = false
                     }
@@ -265,8 +322,57 @@ fun FlockDetailsScreen(
                         android.Manifest.permission.WRITE_EXTERNAL_STORAGE
                     )
                 }
-
             }
+
+
+//            if (activity != null) {
+//                coroutineScope.launch {
+//                    isLoading = true
+//                    val billingManager = BillingManager(context)
+//
+//                    billingManager.startConnection {
+//                        if (BillingState.isSubscribed) {
+//                            coroutineScope.launch {
+//                                when (PackageManager.PERMISSION_GRANTED) {
+//                                    ContextCompat.checkSelfPermission(
+//                                        context,
+//                                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+//                                    ) -> {
+//                                        coroutineScope.launch {
+//                                            isCircularIndicatorShowing = true
+//                                            delay(3000)
+//                                            exportRoomViewModel.exportRoomAsExcelFileAndShare(flock ?: return@launch)
+//                                        }.invokeOnCompletion {
+//                                            isCircularIndicatorShowing = false
+//                                        }
+//                                    }
+//                                    else -> {
+//                                        requestStoragePermission.launch(
+//                                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+//                                        )
+//                                    }
+//                                }
+//                                //snackbarHostState.showSnackbar("PDF exported successfully.")
+//                            }
+//                        } else {
+//                            billingManager.queryProductDetails("yearly_subscription_id") { productDetails ->
+//                                val offer = productDetails?.subscriptionOfferDetails?.firstOrNull()
+//                                if (productDetails != null && offer != null) {
+//                                    selectedProductDetails = productDetails
+//                                    selectedOfferToken = offer.offerToken
+//                                    showPlanDialog = true
+//                                } else {
+//                                    coroutineScope.launch {
+//                                        snackbarHostState.showSnackbar("Subscription unavailable.")
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    isLoading = false
+//                }
+//            }
         },
         onClickExportAsPDF = {
             when (PackageManager.PERMISSION_GRANTED) {
@@ -277,7 +383,7 @@ fun FlockDetailsScreen(
                     coroutineScope.launch {
                         isCircularIndicatorShowing = true
                         delay(3000)
-                        exportRoomAsPDFViewModel.exportRoomAsPDFAndShare(flock ?: return@launch)
+                        exportRoomAsPDFViewModel.exportRoomAsPDFAndShare(flock ?: return@launch, unitPreference)
                     }.invokeOnCompletion {
                         isCircularIndicatorShowing = false
                     }
@@ -290,7 +396,9 @@ fun FlockDetailsScreen(
 
             }
         },
-        isExportButtonEnabled = !isExportingExcel || !isExportingAsPDF
+        isExportButtonEnabled = !isExportingExcel || !isExportingAsPDF,
+        unitPreference = unitPreference,
+        bagSize = bagSize
     )
 
 }
@@ -317,7 +425,9 @@ fun MainFlockDetailsScreen(
     showExportButton: Boolean = false,
     onClickExportAsExcel: () -> Unit = {},
     onClickExportAsPDF: () -> Unit = {},
-    isExportButtonEnabled: Boolean = false
+    isExportButtonEnabled: Boolean = false,
+    bagSize: String,
+    unitPreference: String
 ) {
     val context = LocalContext.current
     val flockTypeOptions = context.resources.getStringArray(R.array.types_of_flocks).toList()
@@ -406,7 +516,9 @@ fun MainFlockDetailsScreen(
                                     if (flock.active) {
                                         navigateToFeedScreen(id)
                                     }
-                                }
+                                },
+                                bagSize = bagSize,
+                                unitPreference = unitPreference
                             )
                         }
                     }
@@ -427,7 +539,8 @@ fun MainFlockDetailsScreen(
                                     if (flock.active) {
                                         navigateToWeightScreen(id)
                                     }
-                                }
+                                },
+                                unitPreference = unitPreference
                             )
                         }
                     }
@@ -458,7 +571,6 @@ fun MainFlockDetailsScreen(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: (Flock) -> Unit) {
     val flockUiState = flock?.let { flock1 ->
@@ -536,8 +648,23 @@ fun HealthCard(modifier: Modifier = Modifier, flock: Flock?, onHealthCardClick: 
 fun FeedCard(
     modifier: Modifier = Modifier, quantityConsumed: Double,
     flockUiState: FlockUiState,
-    onFeedCardClick: (Int) -> Unit
+    onFeedCardClick: (Int) -> Unit,
+    bagSize: String,
+    unitPreference: String
 ) {
+    val context = LocalContext.current
+    var totalFeedQtyConsumed: String by remember { mutableStateOf("") }
+    totalFeedQtyConsumed = formatConsumption(quantityConsumed, unitPreference) + if (unitPreference == "Kilogram (Kg)") " Kg"
+        else if (unitPreference == "Gram (g)") " g"
+    else if (unitPreference == "Pound (lb)") " lb"
+    else " oz"
+
+    var totalBagSizeConsumed: Int? by remember { mutableStateOf(0) }
+    totalBagSizeConsumed = convertWeight(quantityConsumed,unitPreference)?.div(
+        if (bagSize == "50 Kg" || bagSize == "50 lb") 50 else 25
+    )?.roundToInt()
+
+
     ElevatedCard(
         modifier = modifier
             .clickable { onFeedCardClick(flockUiState.id) }
@@ -566,8 +693,8 @@ fun FeedCard(
 
             Card {
                 BaseSingleRowDetailsItem(
-                    label = stringResource(R.string.bags_50kg),
-                    value = "${(quantityConsumed / 50).roundToInt()}"
+                    label = bagSize,
+                    value = totalBagSizeConsumed.toString(),
                 )
             }
 
@@ -575,8 +702,11 @@ fun FeedCard(
                 BaseSingleRowDetailsItem(
                     label = stringResource(R.string.total_feed_consumed).lowercase()
                         .replaceFirstChar { it.uppercase() },
-                    value = stringResource(R.string.kg, String.format(Locale.getDefault(),"%.2f", quantityConsumed))
+                    value = totalFeedQtyConsumed
+//                        stringResource(R.string.kg, String.format(Locale.getDefault(),"%.2f", quantityConsumed))
                 )
+
+
             }
         }
     }
@@ -621,7 +751,6 @@ fun VaccinationList(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
     val vaccinationUiState = Vaccination(
@@ -662,13 +791,13 @@ fun VaccinationCard(modifier: Modifier = Modifier, vaccination: Vaccination) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeightCard(
     modifier: Modifier = Modifier,
     weight: Weight,
     flock: Flock,
-    onWeightCardClick: (Int) -> Unit
+    onWeightCardClick: (Int) -> Unit,
+    unitPreference: String
 ) {
     val weightUiState = Weight(
         id = weight.id,
@@ -678,6 +807,18 @@ fun WeightCard(
         expectedWeight = weight.expectedWeight,
         measuredDate = weight.measuredDate
     ).toWeightUiState()
+
+    var actualWeight by remember { mutableStateOf(weightUiState.actualWeight) }
+    var standardWeight by remember { mutableStateOf(weightUiState.standard) }
+
+     actualWeight= formatConsumption(weight.weight, unitPreference) + if (unitPreference == "Kilogram (Kg)") " Kg"
+     else if (unitPreference == "Gram (g)") " g"
+     else if (unitPreference == "Pound (lb)") " lb"
+     else " oz"
+     standardWeight= formatConsumption(weight.expectedWeight, unitPreference) + if (unitPreference == "Kilogram (Kg)") " Kg"
+     else if (unitPreference == "Gram (g)") " g"
+     else if (unitPreference == "Pound (lb)") " lb"
+     else " oz"
 
     ElevatedCard(modifier = modifier
         .clickable { onWeightCardClick(flock.id) }) {
@@ -717,7 +858,7 @@ fun WeightCard(
             Card {
                 BaseSingleRowDetailsItem(
                     label = stringResource(R.string.actual),
-                    value = stringResource(R.string.kg_weight, weightUiState.actualWeight),
+                    value = actualWeight,
                     weightA = 1.5f,
                 )
             }
@@ -725,7 +866,7 @@ fun WeightCard(
             Card {
                 BaseSingleRowDetailsItem(
                     label = stringResource(R.string.standard),
-                    value = stringResource(R.string.kg_weight, weightUiState.standard),
+                    value = standardWeight,
                     weightA = 1.5f
                 )
             }

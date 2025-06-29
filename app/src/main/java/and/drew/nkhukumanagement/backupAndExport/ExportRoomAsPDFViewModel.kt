@@ -13,6 +13,7 @@ import and.drew.nkhukumanagement.data.FlockRepository
 import and.drew.nkhukumanagement.data.Income
 import and.drew.nkhukumanagement.data.Vaccination
 import and.drew.nkhukumanagement.data.Weight
+import and.drew.nkhukumanagement.utils.formatConsumption
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
@@ -46,7 +47,7 @@ class ExportRoomAsPDFViewModel @Inject constructor(
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
 
-    suspend fun exportRoomAsPDFAndShare(flock: Flock) {
+    suspend fun exportRoomAsPDFAndShare(flock: Flock, unitPreference: String) {
         val pageWidth = 842 // A4 in points
         val pageHeight = 595
         val margin = 40
@@ -116,8 +117,8 @@ class ExportRoomAsPDFViewModel @Inject constructor(
          drawSectionSafely { exportFlockSummaryToPdfSection(flock) }
          drawSectionSafely { exportAccountSummaryToPdfSection(flock.uniqueId) }
          drawSectionSafely { exportHealthToPdfSection(flock.uniqueId) }
-         drawSectionSafely { exportWeightToPdfSection(flock.uniqueId) }
-         drawSectionSafely { exportFeedToPdfSection(flock.uniqueId) }
+         drawSectionSafely { exportWeightToPdfSection(flock.uniqueId, unitPreference) }
+         drawSectionSafely { exportFeedToPdfSection(flock.uniqueId, unitPreference) }
          drawSectionSafely { exportVaccinationToPdfSection(flock.uniqueId) }
          drawSectionSafely { exportExpenseToPdfSection(flock.uniqueId) }
          drawSectionSafely { exportIncomeToPdfSection(flock.uniqueId) }
@@ -299,7 +300,7 @@ class ExportRoomAsPDFViewModel @Inject constructor(
             flock.active.toString()
         )
 
-        return Triple("Flock Summary", headers, listOf(row))
+        return Triple("Flock", headers, listOf(row))
     }
 
     suspend fun exportVaccinationToPdfSection(
@@ -324,7 +325,11 @@ class ExportRoomAsPDFViewModel @Inject constructor(
 
     suspend fun exportFeedToPdfSection(
         uniqueId: String,
+        unitPreference: String,
     ): Triple<String, List<String>, List<List<String>>> {
+        val unitPref = if (unitPreference == "Kilogram (Kg)") "kg" else if
+                (unitPreference == "Pound (lb)") "lb" else if
+                        (unitPreference == "Ounce (oz)") "oz" else "g"
         val headers = listOf(
             "Name", "Week", "Type", "Consumed", "Standard",
             "Actual/Bird", "Standard/Bird", "Date"
@@ -338,15 +343,15 @@ class ExportRoomAsPDFViewModel @Inject constructor(
                 f.name,
                 f.week.toString(),
                 f.type,
-                f.consumed.toString(),
-                f.standardConsumption.toString(),
-                f.actualConsumptionPerBird.toString(),
-                f.standardConsumptionPerBird.toString(),
+                formatConsumption(f.consumed, unitPreference),
+                formatConsumption(f.standardConsumption, unitPreference),
+                formatConsumption(f.actualConsumptionPerBird, unitPreference),
+                formatConsumption(f.standardConsumptionPerBird, unitPreference),
                 f.feedingDate.toString()
             )
         }
 
-        return Triple("Feed", headers, rows)
+        return Triple("Feed (${unitPref})", headers, rows)
     }
 
     suspend fun exportHealthToPdfSection(
@@ -422,16 +427,20 @@ class ExportRoomAsPDFViewModel @Inject constructor(
 
     suspend fun exportWeightToPdfSection(
         uniqueId: String,
+        unitPreference: String,
     ): Triple<String, List<String>, List<List<String>>> {
-        val headers = listOf("Week", "Expected Weight(Kgs)", "Actual Weight(Kgs)", "Measured Date")
+        val unitPref = if (unitPreference == "Kilogram (Kg)") "kg" else if
+                (unitPreference == "Pound (lb)") "lb" else if
+                        (unitPreference == "Ounce (oz)") "oz" else "g"
+        val headers = listOf("Week", "Expected Weight($unitPref)", "Actual Weight ($unitPref)", "Measured Date")
         val weightList = repository.getAllWeightsForExport(uniqueId).firstOrNull() ?: return Triple("", headers, emptyList())
         if (weightList.isEmpty()) return Triple("", headers, emptyList())
 
         val rows = weightList.map { w ->
             listOf(
                 w.week.toString(),
-                w.expectedWeight.toString(),
-                w.weight.toString(),
+                formatConsumption(w.expectedWeight, unitPreference),
+                formatConsumption(w.weight, unitPreference),
                 w.measuredDate.toString()
             )
         }
